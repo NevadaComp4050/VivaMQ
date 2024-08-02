@@ -1,7 +1,7 @@
 {
-  "name": "expressjs-typescript-prisma-boilerplate",
+  "name": "mq-vivia-backend",
   "version": "2.0.4",
-  "description": "expressjs typescript boilerplate with prisma",
+  "description": "expressjs typescript with prisma",
   "main": "index.ts",
   "scripts": {
     "prebuild": "npm run clean:build",
@@ -33,7 +33,6 @@
       "path": "cz-conventional-changelog"
     }
   },
-  "author": "akhil chandran",
   "engines": {
     "node": ">=16.0.0"
   },

@@ -1,5 +1,5 @@
 # Use the official Node.js image as the base image
-FROM node:22-slim
+FROM node:22-alpine
 
 # Install global dependencies
 RUN npm install -g cross-env ts-node-dev tsconfig-paths tsc-alias prisma

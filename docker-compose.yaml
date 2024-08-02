@@ -24,7 +24,7 @@ services:
   mysql:
     image: mysql:8.0
     ports:
-      - "3306:3306"
+      - "3307:3306"  # Changed port mapping here
     environment:
       MYSQL_ROOT_PASSWORD: example
       MYSQL_DATABASE: vivamq

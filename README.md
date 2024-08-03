@@ -151,8 +151,6 @@ Example Commit Message:
 
 ## Contributing
 
-We welcome contributions! Follow these steps to contribute:
-
 ### Forking the Repository
 
 1. **Fork the repository:**

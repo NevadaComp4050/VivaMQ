@@ -151,6 +151,13 @@ Example Commit Message:
 
 ## Contributing
 
+```
+As a team admin you dont have to work in a fork, just a branch (feat branch)
+and your team members submit a pull request from their forks to the branch to the feat branch of the respective team leader
+then the team leaders resolve it
+then myself/Adrian/Eli/ can merge the branch to dev -> main -> prod 
+```
+
 ### Forking the Repository
 
 1. **Fork the repository:**

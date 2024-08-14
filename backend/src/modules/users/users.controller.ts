@@ -20,4 +20,17 @@ export default class UserController extends Api {
       next(e);
     }
   };
+
+  public getallusers = async (
+    req: Request,
+    res: CustomResponse<users[]>,
+    next: NextFunction
+  ) => {
+    try {
+      const userList = await this.userService.getUsers();
+      this.send(res, userList, HttpStatusCode.Ok, 'gotAllUsers' )
+    } catch (e) {
+      next(e)
+    }
+  }
 }

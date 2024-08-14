@@ -23,6 +23,7 @@ const controller = new Controller();
  * @property {string} cognitoId - cognito id
  * @property {string} phone - phone number
  */
+
 /**
  * POST /users/create
  * @summary Create user
@@ -35,6 +36,19 @@ users.post(
   verifyAuthToken,
   RequestValidator.validate(CreateUserDto),
   controller.createUser
+);
+
+/**
+ * GET /users/getall
+ * @summary Get all user data
+ * @tags users
+ * @param None
+ * @return {Array.<User>} 200 - user list
+ */
+users.get(
+  '/getall',
+  verifyAuthToken,
+  controller.getallusers
 );
 
 export default users;

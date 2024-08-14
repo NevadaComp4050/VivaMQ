@@ -4,11 +4,11 @@
 Dev requested that this be implemented for this project.
 
 ### Description
-Node.js and TypeScript [ORM](ORM)
+Node.js and TypeScript [ORM](ORM.md)
 
 
 ### Usage
-These are the files that must be changed in order to present an API recognisable by [Swagger](Swagger)
+These are the files that must be changed in order to present an API recognisable by [Swagger](Swagger.md)
 ```mermaid
 ---
 title: Prisma to API

@@ -1,35 +1,33 @@
 import { Router } from 'express';
-import Controller from './users.controller';
+import UserController from './users.controller';
 import { CreateUserDto } from '@/dto/user.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
 
 const users: Router = Router();
-const controller = new Controller();
+const controller = new UserController();
 
 /**
  * Create user body
  * @typedef {object} CreateUserBody
- * @property {string} email.required - email of user
- * @property {string} name.required - name of user
- * @property {string} cognitoId.required - cognito id
- * @property {string} phone - phone number
+ * @property {string} email.required - email of the user
+ * @property {string} name.required - name of the user
+ * @property {string} password.required - password of the user
  */
 /**
  * User
  * @typedef {object} User
- * @property {string} email - email of user
- * @property {string} name - name of user
- * @property {string} cognitoId - cognito id
- * @property {string} phone - phone number
+ * @property {string} email - email of the user
+ * @property {string} name - name of the user
+ * @property {string} password - password of the user
  */
 
 /**
  * POST /users/create
- * @summary Create user
+ * Create a new user
  * @tags users
  * @param {CreateUserBody} request.body.required
- * @return {User} 201 - user created
+ * @return {User} 201 - User created
  */
 users.post(
   '/create',
@@ -40,15 +38,14 @@ users.post(
 
 /**
  * GET /users/getall
- * @summary Get all user data
+ * Get all users
  * @tags users
- * @param None
- * @return {Array.<User>} 200 - user list
+ * @return {Array.<User>} 200 - List of users
  */
 users.get(
   '/getall',
   verifyAuthToken,
-  controller.getallusers
+  controller.getAllUsers
 );
 
 export default users;

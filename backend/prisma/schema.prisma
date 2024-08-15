@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,9 +7,62 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model users {
-  id String @id @default(uuid())
-  email String @db.VarChar(255)
-  name  String @db.VarChar(255)
-  phone String? @db.VarChar(255)
+model User {
+  id        String   @id @default(uuid())
+  email     String   @db.VarChar(255)
+  name      String   @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Student {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(255)
+  email     String   @db.VarChar(255)
+  studentId String   @db.VarChar(255)
+  groupId   String   @db.VarChar(255)
+}
+
+model Tutor {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(255)
+  email     String   @db.VarChar(255)
+}
+
+model Assignment {
+  id          String    @id @default(uuid())
+  unit        String    @db.VarChar(255)
+  name        String    @db.VarChar(255)
+  description String    @db.VarChar(255)
+  files       File[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model File {
+  id              String       @id @default(uuid())
+  filename        String       @db.VarChar(255)
+  fileUrl         String       @db.VarChar(255)
+  studentId       String?
+  assignmentId    String
+  generatedQuestions Questions[]
+  Assignment  Assignment  @relation(fields: [assignmentId], references: [id])
+}
+
+model Questions {
+  id         String    @id @default(uuid())
+  fileId     String
+  question   String    @db.VarChar(255)
+  locked     Boolean   @default(false)
+  asked      Boolean   @default(false)
+
+  File File[]
+}
+
+enum Role {
+  ADMIN
+  TUTOR
+  STUDENT
 }

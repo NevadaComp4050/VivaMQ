@@ -23,7 +23,8 @@
     "test": "jest",
     "test:e2e": "jest -c jest.config.e2e.ts",
     "test:integration": "jest -c jest.config.integration.ts",
-    "test:unit": "jest -c jest.config.unit.ts"
+    "test:unit": "jest -c jest.config.unit.ts",
+    "create-module": "powershell ./scripts/create-module.sh"
   },
   "prisma": {
     "seed": "ts-node-dev -r tsconfig-paths/register --transpile-only prisma/seed.ts"
@@ -47,7 +48,7 @@
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.1.1",
-    "axios": "^1.4.0",
+    "axios": "^1.7.4",
     "body-parser": "^1.20.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
@@ -62,6 +63,9 @@
     "morgan": "^1.10.0",
     "nocache": "^4.0.0",
     "nodemon": "^3.0.1",
+    "openai": "^4.55.7",
+    "pdf-parse": "^1.1.1",
+    "uploadthing": "^6.13.2",
     "winston": "^3.10.0"
   },
   "devDependencies": {

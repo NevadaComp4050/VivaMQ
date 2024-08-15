@@ -1,8 +1,8 @@
-import { type NextFunction, type Request } from 'express';
-import { type users } from '@prisma/client';
+import { NextFunction, Request } from 'express';
+import { User } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import UserService from './users.service';
-import { type CustomResponse } from '@/types/common.type';
+import { CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
 
 export default class UserController extends Api {
@@ -10,7 +10,7 @@ export default class UserController extends Api {
 
   public createUser = async (
     req: Request,
-    res: CustomResponse<users>,
+    res: CustomResponse<User>,
     next: NextFunction
   ) => {
     try {
@@ -21,16 +21,16 @@ export default class UserController extends Api {
     }
   };
 
-  public getallusers = async (
+  public getAllUsers = async (
     req: Request,
-    res: CustomResponse<users[]>,
+    res: CustomResponse<User[]>,
     next: NextFunction
   ) => {
     try {
       const userList = await this.userService.getUsers();
-      this.send(res, userList, HttpStatusCode.Ok, 'gotAllUsers' )
+      this.send(res, userList, HttpStatusCode.Ok, 'gotAllUsers');
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 }

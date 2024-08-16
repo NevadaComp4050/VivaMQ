@@ -20,7 +20,7 @@ Each member has been tasked with an investigating an AI provider with the above 
 - Eli - OpenAI
 - Zarin - Gemini 
 - Rahik - Anthropic
-- Aaron is tasked with familiarising himself with the literature and best practices of how Viva Voce are conducted currently
+- Aaron - literature research and best practices of how Viva Voce are conducted currently
 
 All Members in attendance for Friday project meeting
 
@@ -64,7 +64,7 @@ figure out how to best create the pipeline for ease of integration
 Discussions this week with BE include:
     - what format will student data be in for the AI module
     - 
-Questions with Carl:
+Questions for Carl:
     - 
 
 Acceptance Criteria for AI component
@@ -73,3 +73,10 @@ Viva sessions are becoming a common part of assessments based on written submiss
 
 2. Quality of writing
 An AI tool, could also be used to assess the quality of the written document in aspects such as: structure appropriate to the type of document, appropriate set of vocabulary, grammar and spelling. For example: a thesis is expected to have A title page, Introduction, TOC, chapters, reference list, in-text citations, register, style level, etc.
+
+Items to address
+• The Project Pitch
+• Key User Stories (with MoSCoW prioritisation)
+• The Proposed Architecture
+• Roles and Responsibilities
+

@@ -80,3 +80,23 @@ Items to address
 • The Proposed Architecture
 • Roles and Responsibilities
 
+Module development
+- API w/ OpenAI
+- Documentation
+- Testing
+- Integration w/ BE
+- 
+
+Zarin - 
+    - Mid week goal - research AI prompt testing by mid week sprint
+    - Friday goal - input testing prompts to AI Module and document output consistency and appropriateness
+    
+Rahik -
+    - Find 'User Manual' documentation template and work through boilerplate and weeks 2, 3
+    - The User Manual should be specific for AI Module. Start with Steps 3, 4 for **Module Purpose**
+
+Eli
+    - MVP AI Module, text input and text output, OpenAI API usage, Structured output 
+
+Aaron
+    - Skeleton front end with Console input and function call for AI module  

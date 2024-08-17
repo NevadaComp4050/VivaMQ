@@ -1,9 +1,3 @@
-
- 
- 
- 
- 
-
 ## AI Module - API Interfaces and Integration Document
 
 ### 1. Overview

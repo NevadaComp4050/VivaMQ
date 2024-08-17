@@ -90,9 +90,9 @@ Module development
 Zarin - 
     - Mid week goal - research AI prompt testing by mid week sprint
     - Friday goal - input testing prompts to AI Module and document output consistency and appropriateness
-    
+
 Rahik -
-    - Find 'User Manual' documentation template and work through boilerplate and weeks 2, 3
+    - Find 'Interface Document For Backend' documentation template and work through boilerplate and weeks 2, 3
     - The User Manual should be specific for AI Module. Start with Steps 3, 4 for **Module Purpose**
 
 Eli

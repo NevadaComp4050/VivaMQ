@@ -11,7 +11,7 @@ I think this project could be done in a weekend with some requisite knowledge
 
 
 # Week 2
-From here I will use the format for all logs: **What** **When** **Who** 
+Use the format for all logs: **What** **When** **Who** 
 
 **What**
 Met the Nevada team today, very general project discussions occurred.
@@ -32,28 +32,82 @@ Project team name - Nevada
 ## AI - Bandana
     Eli, Zarin, Rahik, Aaron
 
-# Week 3
+# Week 3/4 (Sprint 0) - Research phase
+Resource allocations and documentation changes occurred during this sprint through AI Channel on [[discord](https://discord.com/channels/1268791198370234379/1268791413328318546)]
+Notably:
+    - Task allocation -> moved to GitHub Projects [https://github.com/orgs/NevadaComp4050/projects/2]
+    - Resource collection points -> 
+        - Official/In development documentation (in markdown) GitHub/AI [https://github.com/NevadaComp4050/VivaMQ/tree/main/AI]
+        - Unrefined/dump site google drive [https://drive.google.com/drive/folders/1smZQxVk9Okn5IibhHAR_vPzWciA2TK7G?usp=drive_link]
+    - Sprints are now also organised on GitHub Projects
 
-Discussions around GitHub project management
+The client has asked for additional use cases:
+1. Vivas (already agreed upon - sprints assigned)
+Viva sessions are becoming a common part of assessments based on written submissions. To make those worthwhile requires a lot of preparation by the examiner as the questions are best to be tailored to each submission. An AI tool could be used to process the submissions and generate a bank of questions. A tool has been developed to do that [1], but it does not have a user-friendly interface.
 
-# Week 4
+2. Quality of writing (project level discussions - not on backlog)
+An AI tool, could also be used to assess the quality of the written document in aspects such as: structure appropriate to the type of document, appropriate set of vocabulary, grammar and spelling. For example: a thesis is expected to have A title page, Introduction, TOC, chapters, reference list, in-text citations, register, style level, etc.
 
-# Week 5
+3. Rubric Generator (project level discussions - not on backlog)
+Both holistic and specific rubrics, linked to Unit Guides. 
+    - Holistic rubric, aligns with the learning outcomes specified in the unit guide
+    - Specific rubric, built ground up to fit specific assessment and learning outcomes of assessment
 
-# Week 6
+Additionally there should be permanence and traceability for all prompts response outputs for testing, error analysis and future diagnostics.
 
-# Week 7
+# Summary - Sprint 0
+What team did?
+Summarised individual milestones and accomplishments for first sprint. Presented across all three groups.
+Group log finalised and sumbitted for review.
+GitHub projects and Sprints setup
+Resource and task assignments updated
 
-# Week 8
+How team did?
+Sufficient details were obtained for the first sprint
+With the lack of structure and review process it is hard to gauge the depth and quality of work for the team.
 
-# Week 9
 
-# Week 10
+## Planning and estimation. 
+Soliciting and determining:
+    - client input
+        - client increased scope (as above)
+        - no adjustments to sprint 1 for MVP
+        - additional backlog items added
+    - new features/fixes
+        - no programming changes, sprint 0 research stage
+    - functionality 
+        - Structured outputs research conducted.
+    - milestones achieved in project period
 
-# Week 11
+## Software development 
+No GitHub issues so far. Each team member expressed some familiarity with GitHub repo management. 
+Testing of OpenAI API conducted by each member, for Python or NodeJS implementation.
+NodeJS is the preferred choice by the majority
 
-# Week 12
+## Review
+Opportunity: Identified a need to formalise the review process for future sprints to ensure depth and quality.
+             Workflow, processes and communication could be improved for clarity and conciseness
+Achievement: Successful in determining the AI provider and being able to use the API to communicate with.
+             Presenting findings to all project teams
+             Identifying speed bumps in workflow
+      
+## Team functioning 
+    Aspects that worked well?
+All team members performed as expected and achieved by the end of the sprint.
 
-# Week 13
+    Aspects that could be improved?
+Initial assignments made it difficult to determine structure and process.
+    Are you satisfied with your contribution? 
+Everyone met the objectives for the first AI sprint, some aspects can be addressed above to streamline future sprints.
 
-# Post Session review
+
+
+# Week 5/6 (Sprint 1)
+
+# Week 7/8 (Sprint 2)
+
+# Week 9/10 (Sprint 3)
+
+# Week 11/12 (Sprint 4)
+
+# Week 13 (Project review)

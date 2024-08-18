@@ -11,13 +11,13 @@ Need some form of authentication to implement access controls and just to verify
     - Next.js client
     - Express.js server
 
-### Required bullshit
+### Requirement before starting
 - 0AUTH config
   - Not defined in this guide.
   - Ironically if you had this already the guide would be pointless.
   - Does not work without this or explain what this is or how to get your own... Great.
 - pnpm 
-  - Yet another stupid npm tool, just delete it, it only exists to cause errors.
+  - Just delete it, it only exists to cause errors.
 
 
 ### Introduction

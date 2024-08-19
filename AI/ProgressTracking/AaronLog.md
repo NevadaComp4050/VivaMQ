@@ -96,13 +96,30 @@ Achievement: Successful in determining the AI provider and being able to use the
 All team members performed as expected and achieved by the end of the sprint.
 
     Aspects that could be improved?
-Initial assignments made it difficult to determine structure and process.
+Initial assignments made it difficult to determine task, expectation and communication structure and processes.
     Are you satisfied with your contribution? 
 Everyone met the objectives for the first AI sprint, some aspects can be addressed above to streamline future sprints.
 
-
-
 # Week 5/6 (Sprint 1)
+GitHub Project Management Utilised, tasks assigned to all members
+
+Question for BE:
+- how will pipeline work for submissions? (parse database ID? raw txt file? )
+- calling the function what would you like returned?
+- we give you a set of functions you can call -> blackbox -> response
+- how to handle errors?
+- to think about automarker/rubric:
+    - Input/output data?
+    
+
+Questions for AI:
+- what do we think about generating >5 (maybe 20) questions for the user to select from? saves the regeneration of questions step/time/cost/flexibility for assessors
+- 
+
+Questions for FE:
+- nothing you guys look dope
+- ohh actually... how you look so dope
+
 
 # Week 7/8 (Sprint 2)
 

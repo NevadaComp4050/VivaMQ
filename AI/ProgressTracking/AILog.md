@@ -88,3 +88,11 @@ Module development
 
 18/8 - All members assigned tasks on GitHub Project
 
+AI Module
+start by 
+npm init -y
+npm install openai
+npm install express
+you will need to update your env or zshrc with the API key
+
+run the skeleton file

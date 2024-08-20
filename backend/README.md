@@ -63,11 +63,6 @@ Multiple env files are also supported according to each environment as below
 **Note**: Custom environment files have priority over the default .env file. Configuration variables in a specific custom environment file take precedence over the ones in the default .env file.
 
 ## Run Locally
-
-Run
-```bash 
-  make setup
-```
 to setup the project or run each steps individually as below
 
 Install dependencies
@@ -81,6 +76,13 @@ Create env file from .env.example
 ```bash
   cp .env.example .env
   # Add env values to .env file after this
+  # If changes should be persistent modify .env.example
+```
+
+Create the mySQL database if it doesn't already exist (and start it)
+
+```bash
+  docker compose up -d mysql
 ```
 
 Start app in dev mode

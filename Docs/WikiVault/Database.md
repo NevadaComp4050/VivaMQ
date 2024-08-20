@@ -15,10 +15,13 @@ title: Prisma to API
 ---
 graph
 sch[<a href=https://github.com/NevadaComp4050/VivaMQ/blob/main/backend/prisma/schema.prisma>Schema</a>]
+migr[<a href=https://github.com/NevadaComp4050/VivaMQ/blob/main/backend/src/modules/users/users.service.ts>sql</a>]
 serv[<a href=https://github.com/NevadaComp4050/VivaMQ/blob/main/backend/src/modules/users/users.service.ts>Service</a>]
 cont[<a href='https://github.com/NevadaComp4050/VivaMQ/blob/main/backend/src/modules/users/users.controller.ts'>Controller</a>]
 html[<a href=https://github.com/NevadaComp4050/VivaMQ/blob/main/backend/src/modules/users/users.route.ts>/route</a>]
-sch --Prisma driver--> serv
+docker[mySQL image]
+migr --Prisma driver--> serv
+sch --migration-->migr --SQL--> docker
 serv --Used by--> cont
 cont --Called by--> html
 ```

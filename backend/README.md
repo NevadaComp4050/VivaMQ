@@ -97,6 +97,14 @@ If the prisma schema has been changed run, or the alternative defined in scripts
 npx prisma generate
 ```
 
+If you are trying to migrate changes, delete the old migration and run
+
+```bash
+npx prisma migrate dev --name <Your migration name here>
+```
+
+TODO: Research [this](https://www.prisma.io/docs/orm/prisma-migrate/workflows/prototyping-your-schema)
+
 ## Scripts
 
 Following are the list of predefined scripts available in the app. For a full list of defined scripts check ["scripts"](package.json).

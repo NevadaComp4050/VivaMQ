@@ -16,5 +16,10 @@ export default class UserService {
     const user = await prisma.user.findMany()
     return user;
   }
+
+  public async deleteUsers(){
+    const { count } = await prisma.user.deleteMany()
+    return count
+  }
 }
 //

@@ -5,7 +5,7 @@ import UserService from './User.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
 
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 // Should this be here? No probably not
 import prisma from '@/lib/prisma';
 
@@ -30,6 +30,8 @@ export default class UserController extends Api {
         password: 'i have no idea what im doing',
         role: 
       }*/
+
+      /*
       const result = await prisma.user.deleteMany();
       const newUser = await prisma.user.create({
         data: {
@@ -37,11 +39,13 @@ export default class UserController extends Api {
           name: 'John Doe',
           phone: '123-456-7890',
           password: 'securepassword123',  // Ensure this is hashed in a real app
-          role: Role.STUDENT,             // Setting the role to STUDENT
+          //role: Role.STUDENT,             // Setting the role to STUDENT
         },})
+        */
+
       //const user = await this.userService.createUser(newUser);
       // Pass func(req.body) to service
-      //const user = await this.userService.createUser(req.body);
+      const newUser = await this.userService.createUser(req.body);
       this.send(res, newUser, HttpStatusCode.Created, 'createUser');
     } catch (e) {
       next(e);
@@ -56,6 +60,19 @@ export default class UserController extends Api {
     try {
       const userList = await this.userService.getUsers();
       this.send(res, userList, HttpStatusCode.Ok, 'gotAllUsers' )
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  public deleteallusers = async (
+    req: Request,
+    res: CustomResponse<User[]>,
+    next: NextFunction
+  ) => {
+    try {
+      const count = await this.userService.deleteUsers();
+      this.send(res, count, HttpStatusCode.Ok, 'deletedAllUsers' )
     } catch (e) {
       next(e)
     }

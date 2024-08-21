@@ -13,7 +13,7 @@ export default class UserService {
   // TODO log the calls
   //@LogMessage<[users]>({message: 'get all'})
   public async getUsers() {
-    const user = await prisma.user.findMany
+    const user = await prisma.user.findMany()
     return user;
   }
 }

@@ -1,4 +1,4 @@
-import { type users } from '@prisma/client';
+import { type User } from '@prisma/client';
 import request from 'supertest';
 import { type ApiResponse } from '../../types/util-types';
 import app from '../../../src/app';
@@ -22,7 +22,7 @@ describe('[e2e] - sign up a user', () => {
   });
 
   afterAll(async () => {
-    await prismaClient.users.deleteMany({
+    await prismaClient.user.deleteMany({
       where: {
         AND: [{ name, email }],
       },
@@ -40,7 +40,7 @@ describe('[e2e] - sign up a user', () => {
       .set('Accept', 'application/json')
       .send(createUserBody);
 
-    const { data } = response.body as ApiResponse<users>;
+    const { data } = response.body as ApiResponse<User>;
     expect(data.name).toBe(name);
     expect(data.email).toBe(email);
     expect(data.phone).toBe(phone);

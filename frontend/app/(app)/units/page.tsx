@@ -12,89 +12,44 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { PlusIcon, PencilIcon, TrashIcon } from "lucide-react";
 
-export default function AssignmentManagement() {
-  const [assignments, setAssignments] = useState([
-    {
-      id: 1,
-      unit: "Advanced Database Systems",
-      name: "Database Normalization",
-      vivaStatus: "Pending",
-    },
-    {
-      id: 2,
-      unit: "Software Engineering Principles",
-      name: "Design Patterns",
-      vivaStatus: "In Progress",
-    },
-    {
-      id: 3,
-      unit: "Machine Learning Fundamentals",
-      name: "Neural Networks",
-      vivaStatus: "Completed",
-    },
+export default function UnitManagement() {
+  const [units, setUnits] = useState([
+    { id: 1, name: "Advanced Database Systems", assignments: 2 },
+    { id: 2, name: "Software Engineering Principles", assignments: 3 },
+    { id: 3, name: "Machine Learning Fundamentals", assignments: 1 },
   ]);
-  const [newAssignmentName, setNewAssignmentName] = useState("");
-  const [selectedUnit, setSelectedUnit] = useState("");
+  const [newUnitName, setNewUnitName] = useState("");
 
-  const handleCreateAssignment = () => {
-    if (newAssignmentName.trim() && selectedUnit) {
-      setAssignments([
-        ...assignments,
-        {
-          id: assignments.length + 1,
-          unit: selectedUnit,
-          name: newAssignmentName,
-          vivaStatus: "Pending",
-        },
+  const handleCreateUnit = () => {
+    if (newUnitName.trim()) {
+      setUnits([
+        ...units,
+        { id: units.length + 1, name: newUnitName, assignments: 0 },
       ]);
-      setNewAssignmentName("");
-      setSelectedUnit("");
+      setNewUnitName("");
     }
   };
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Assignment Management</h1>
+      <h1 className="text-3xl font-bold mb-6">Unit Management</h1>
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Create New Assignment</CardTitle>
+          <CardTitle>Create New Unit</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <Select value={selectedUnit} onValueChange={setSelectedUnit}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Unit" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Advanced Database Systems">
-                  Advanced Database Systems
-                </SelectItem>
-                <SelectItem value="Software Engineering Principles">
-                  Software Engineering Principles
-                </SelectItem>
-                <SelectItem value="Machine Learning Fundamentals">
-                  Machine Learning Fundamentals
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex space-x-2">
             <Input
-              placeholder="Assignment Name"
-              value={newAssignmentName}
-              onChange={(e) => setNewAssignmentName(e.target.value)}
+              placeholder="Unit Name"
+              value={newUnitName}
+              onChange={(e) => setNewUnitName(e.target.value)}
             />
-            <Button onClick={handleCreateAssignment}>
+            <Button onClick={handleCreateUnit}>
               <PlusIcon className="mr-2 h-4 w-4" />
-              Create Assignment
+              Create Unit
             </Button>
           </div>
         </CardContent>
@@ -102,24 +57,22 @@ export default function AssignmentManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Existing Assignments</CardTitle>
+          <CardTitle>Existing Units</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Unit</TableHead>
-                <TableHead>Assignment</TableHead>
-                <TableHead>Viva Status</TableHead>
+                <TableHead>Unit Name</TableHead>
+                <TableHead>Assignments</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {assignments.map((assignment) => (
-                <TableRow key={assignment.id}>
-                  <TableCell>{assignment.unit}</TableCell>
-                  <TableCell>{assignment.name}</TableCell>
-                  <TableCell>{assignment.vivaStatus}</TableCell>
+              {units.map((unit) => (
+                <TableRow key={unit.id}>
+                  <TableCell>{unit.name}</TableCell>
+                  <TableCell>{unit.assignments}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm">
@@ -127,7 +80,7 @@ export default function AssignmentManagement() {
                         Edit
                       </Button>
                       <Button variant="outline" size="sm">
-                        Manage Viva
+                        View Assignments
                       </Button>
                       <Button variant="destructive" size="sm">
                         <TrashIcon className="h-4 w-4 mr-2" />

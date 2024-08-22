@@ -41,6 +41,7 @@ Follow these steps to set up your local development environment:
     ```sh
     cd backend
     npm install
+    create or copy ./backend/.env 
     ```
 
 3. **Install frontend dependencies:**

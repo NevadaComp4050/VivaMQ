@@ -37,6 +37,7 @@ const controller = new Controller();
  * @tags User
  * @param {CreateUserBody} request.body.required
  * @return {User} 201 - user created
+
  */
 users.post(
   '/create',

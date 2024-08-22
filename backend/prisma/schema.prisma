@@ -8,61 +8,73 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @db.VarChar(255)
-  name      String   @db.VarChar(255)
-  password  String   @db.VarChar(255)
-  role      Role
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid())
+  createdAt    DateTime @default(now())
+  email        String   @unique
+  name         String
+  phone        String?
+  password     String
+  role         Role     @default(STUDENT)
+  units        Unit[]   @relation("UnitManager")
 }
 
-model Student {
-  id        String   @id @default(uuid())
-  name      String   @db.VarChar(255)
-  email     String   @db.VarChar(255)
-  studentId String   @db.VarChar(255)
-  groupId   String   @db.VarChar(255)
+model Unit {
+  id          String       @id @default(uuid())
+  name        String
+  year        Int
+  convenorId  String
+  convenor    User         @relation("UnitManager", fields: [convenorId], references: [id])
+  tutors      Tutor[]
+  assignments Assignment[]
 }
 
 model Tutor {
-  id        String   @id @default(uuid())
-  name      String   @db.VarChar(255)
-  email     String   @db.VarChar(255)
+  id       String  @id @default(uuid())
+  name     String
+  email    String   @unique
+  unitId   String
+  unit     Unit     @relation(fields: [unitId], references: [id])
+}
+
+model Student {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  submissions  Submission[]
 }
 
 model Assignment {
-  id          String    @id @default(uuid())
-  unit        String    @db.VarChar(255)
-  name        String    @db.VarChar(255)
-  description String    @db.VarChar(255)
-  files       File[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id          String        @id @default(uuid())
+  name        String
+  aiModel     String
+  specs       String
+  settings    String
+  unitId      String
+  unit        Unit          @relation(fields: [unitId], references: [id])
+  submissions Submission[]
 }
 
-model File {
-  id              String       @id @default(uuid())
-  filename        String       @db.VarChar(255)
-  fileUrl         String       @db.VarChar(255)
-  studentId       String?
-  assignmentId    String
-  generatedQuestions Questions[]
-  Assignment  Assignment  @relation(fields: [assignmentId], references: [id])
+model Submission {
+  id             String         @id @default(uuid())
+  assignmentId   String
+  studentId      String
+  submissionFile String
+  status         String
+  assignment     Assignment     @relation(fields: [assignmentId], references: [id])
+  student        Student        @relation(fields: [studentId], references: [id])
+  vivaQuestions  VivaQuestion[]
 }
 
-model Questions {
-  id         String    @id @default(uuid())
-  fileId     String
-  question   String    @db.VarChar(255)
-  locked     Boolean   @default(false)
-  asked      Boolean   @default(false)
-
-  File File[]
+model VivaQuestion {
+  id           String     @id @default(uuid())
+  submissionId String
+  question     String
+  status       String
+  submission   Submission @relation(fields: [submissionId], references: [id])
 }
 
 enum Role {
   ADMIN
-  TUTOR
+  TEACHER
   STUDENT
 }

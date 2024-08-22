@@ -15,6 +15,7 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "~/components/ui/tooltip";
+import { ModeToggle } from "../mode-toggle";
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -103,6 +104,47 @@ export function Menu({ isOpen }: MenuProps) {
               )}
             </li>
           ))}
+          <li className={cn("w-full pt-5")}>
+            {(isOpen && "Preferences") || isOpen === undefined ? (
+              <p className="text-sm font-medium text-muted-foreground px-4 pb-2 max-w-[248px] truncate">
+                Preferences
+              </p>
+            ) : !isOpen && isOpen !== undefined ? (
+              <TooltipProvider>
+                <Tooltip delayDuration={100}>
+                  <TooltipTrigger className="w-full">
+                    <div className="w-full flex justify-center items-center">
+                      <Ellipsis className="h-5 w-5" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Preferences</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <p className="pb-2"></p>
+            )}
+            <TooltipProvider>
+              <Tooltip delayDuration={100}>
+                <TooltipTrigger asChild>
+                  <div
+                    className={cn("w-full flex justify-start items-center px-2 py-2")}
+                  >
+                    <ModeToggle />
+                    {isOpen !== false && (
+                      <span className={cn("ml-4 max-w-[200px] truncate")}>
+                        Toggle Mode
+                      </span>
+                    )}
+                  </div>
+                </TooltipTrigger>
+                {isOpen === false && (
+                  <TooltipContent side="right">Toggle Mode</TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          </li>
           <li className="w-full grow flex items-end">
             <TooltipProvider disableHoverableContent>
               <Tooltip delayDuration={100}>

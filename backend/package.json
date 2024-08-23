@@ -47,6 +47,7 @@
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.18.0",
+    "@quixo3/prisma-session-store": "^3.1.13",
     "@types/bcryptjs": "^2.4.6",
     "@types/express-session": "^1.18.0",
     "@types/passport": "^1.0.16",
@@ -65,7 +66,9 @@
     "express": "^4.19.2",
     "express-jwt": "^8.4.1",
     "express-session": "^1.18.0",
+    "express-validator": "^7.2.0",
     "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
     "jwk-to-pem": "^2.0.5",
     "jwks-rsa": "^3.0.1",
     "morgan": "^1.10.0",
@@ -75,6 +78,7 @@
     "passport-azure-ad": "^4.3.5",
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
+    "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "passport-microsoft": "^2.1.0",
     "winston": "^3.10.0"

@@ -14,9 +14,11 @@ import appConfig from './config/app.config';
 import errorHandler from '@/middlewares/error-handler';
 import routes from '@/modules/index';
 import prismaClient from '@/lib/prisma';
+const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
 
-import './passportConfig'; // Local strategy
-import './passportMicrosoft'; // Microsoft OAuth strategy
+
+import './passportConfig';
+import './passportGitHub';
 
 class App {
   public express: express.Application;
@@ -39,16 +41,23 @@ class App {
     this.express.use(helmet());
     this.express.use(express.static('public'));
 
-    // Session management
+
+    
     this.express.use(
       session({
         secret: process.env.SESSION_SECRET!,
         resave: false,
-        saveUninitialized: false,
+        saveUninitialized: true,
+        cookie: { secure: false },
+        store: new PrismaSessionStore(
+          prismaClient,
+          {
+            checkPeriod: 2 * 60 * 1000,
+            dbRecordIdIsSessionId: true,
+          }
+        ),
       })
     );
-
-    // Initialize Passport and session
     this.express.use(passport.initialize());
     this.express.use(passport.session());
   }
@@ -65,7 +74,6 @@ class App {
     this.express.use('/', home);
     this.express.use(`/api/${version}/${env}`, routes);
 
-    // Authentication routes
     this.express.use('/auth', require('./authRoutes').default);
   }
 

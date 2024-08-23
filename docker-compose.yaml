@@ -9,8 +9,10 @@ services:
       - "8080:8080"
     environment:
       - DATABASE_URL=mysql://root:example@mysql:3306/vivamq
+      - RABBITMQ_URL=amqp://rabbitmq
     depends_on:
       - mysql
+      - rabbitmq
 
   frontend:
     build:
@@ -24,12 +26,32 @@ services:
   mysql:
     image: mysql:8.0
     ports:
-      - "3307:3306"  # Changed port mapping here
+      - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: example
       MYSQL_DATABASE: vivamq
     volumes:
       - mysql-data:/var/lib/mysql
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+
+  ai-processor:
+    build:
+      context: ./ai-processor
+      dockerfile: Dockerfile
+    environment:
+      - RABBITMQ_URL=amqp://user:password@rabbitmq:5672
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - rabbitmq
+
 
 volumes:
   mysql-data:

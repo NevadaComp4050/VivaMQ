@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,18 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model users {
-  id             String  @id @default(uuid())
-  email          String  @unique @db.VarChar(255)
-  name           String  @db.VarChar(255)
-  phone          String? @db.VarChar(255)
-  password       String? @db.VarChar(255)
-  microsoftId    String? @unique @db.VarChar(255)
-  githubId       String? @unique @db.VarChar(255)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-}
-
 model Session {
   id        String   @id @default(cuid())
   sid       String   @unique
@@ -29,4 +14,78 @@ model Session {
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model User {
+  id           String   @id @default(uuid())
+  createdAt    DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  email        String   @unique
+  name           String  @db.VarChar(255)
+  phone          String? @db.VarChar(255)
+  password       String? @db.VarChar(255)
+  githubId       String? @unique @db.VarChar(255)
+  role         Role     @default(STUDENT)
+  units        Unit[]   @relation("UnitManager")
+}
+
+model Unit {
+  id          String       @id @default(uuid())
+  name        String
+  year        Int
+  convenorId  String
+  convenor    User         @relation("UnitManager", fields: [convenorId], references: [id])
+  tutors      Tutor[]
+  assignments Assignment[]
+}
+
+model Tutor {
+  id       String  @id @default(uuid())
+  name     String
+  email    String   @unique
+  unitId   String
+  unit     Unit     @relation(fields: [unitId], references: [id])
+}
+
+model Student {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  submissions  Submission[]
+}
+
+model Assignment {
+  id          String        @id @default(uuid())
+  name        String
+  aiModel     String
+  specs       String
+  settings    String
+  unitId      String
+  unit        Unit          @relation(fields: [unitId], references: [id])
+  submissions Submission[]
+}
+
+model Submission {
+  id             String         @id @default(uuid())
+  assignmentId   String
+  studentId      String
+  submissionFile String
+  status         String
+  assignment     Assignment     @relation(fields: [assignmentId], references: [id])
+  student        Student        @relation(fields: [studentId], references: [id])
+  vivaQuestions  VivaQuestion[]
+}
+
+model VivaQuestion {
+  id           String     @id @default(uuid())
+  submissionId String
+  question     String
+  status       String
+  submission   Submission @relation(fields: [submissionId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
 }

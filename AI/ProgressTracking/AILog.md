@@ -85,18 +85,14 @@ Module development
 - Documentation
 - Testing
 - Integration w/ BE
-- 
 
-Zarin - 
-    - Mid week goal - research AI prompt testing by mid week sprint
-    - Friday goal - input testing prompts to AI Module and document output consistency and appropriateness
-    
-Rahik -
-    - Find 'User Manual' documentation template and work through boilerplate and weeks 2, 3
-    - The User Manual should be specific for AI Module. Start with Steps 3, 4 for **Module Purpose**
+18/8 - All members assigned tasks on GitHub Project
 
-Eli
-    - MVP AI Module, text input and text output, OpenAI API usage, Structured output 
+AI Module
+start by 
+npm init -y
+npm install openai
+npm install express
+you will need to update your env or zshrc with the API key
 
-Aaron
-    - Skeleton front end with Console input and function call for AI module  
+run the skeleton file

@@ -1,5 +1,7 @@
 # Frontend
 
+# Backend
+
 ## Entity Relation model
 
 ```mermaid
@@ -57,7 +59,7 @@ erDiagram
 	Submission ||--o{ VivaQuestion: generates
 ```
 
-# Backend
+
 - Each process particular to backend should be wrapped in buffers
 	- Inbox and outbox effectively
 	- For bottlenecks more processing power could be allocated to accelerate processing
@@ -67,6 +69,7 @@ erDiagram
 - Multiple parallel dataflows will be needed (Different users with different data)
 
 ## Pipe and filter model of the Dataflow through the system
+### Viva Generation
 ```mermaid
 flowchart TD
 	subgraph FrontEnd
@@ -96,4 +99,52 @@ flowchart TD
 	class Doc2AI internal-link;
 ```
 
+### Rubric generation
+Need to model this new flow
 
+## System architecture
+
+```mermaid
+flowchart
+	subgraph DockerDB[MySQL container]
+		DB[MySQL database]
+	end
+	subgraph DockerBE[Backend container]
+		subgraph AuthBE[Authentication Module]
+			ABEAPI[API]
+			ABEKey[Auth keys]
+		end
+		subgraph AIProc[AI process]
+			AI[AI team logic]
+			AIKey[AI API Keys]
+		end
+		Prisma[Database ORM]
+		File[File Storage]
+		ConvProc[Data Conversion process]
+	end
+	subgraph DockerFE[Frontend container]
+		subgraph AuthFE[Authentication Middleware]
+			AFEAPI[API]
+		end
+		FEserve[Frontend server]
+	end
+	subgraph SSO[SSO servers]
+		A0[Auth0]
+		Ok[Okta Verify]
+	end
+	AuthBE <--Register Tokens--> SSO
+	subgraph AIsys[LLM API]
+	end
+	ABEAPI --> Prisma
+	File <--> Prisma
+	ABEAPI --> AIProc
+	AIProc <--AI connection--> AIsys
+	Prisma <--Query / Access--> DB
+	FEserve --Serves--> ClientA[Client] --Logs on using--> SSO
+	FEserve --Serves--> ClientB[Client] --Logs on using--> SSO
+	FEserve --Serves--> ClientC[Client] --Logs on using--> SSO
+	AuthBE --defines--> AuthFE
+	FEserve --Redirects-->  AFEAPI
+	AFEAPI --Authenication / Authorisation--> FEserve
+	AFEAPI <--data / requests--> ABEAPI
+```

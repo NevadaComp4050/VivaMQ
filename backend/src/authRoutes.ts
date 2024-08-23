@@ -23,14 +23,14 @@ router.post(
     const { email, name, phone, password } = req.body;
 
     try {
-      const existingUser = await prisma.users.findUnique({ where: { email } });
+      const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) {
         return res.status(400).json({ message: 'Email already in use.' });
       }
 
       const hashedPassword = await argon2.hash(password);
 
-      const user = await prisma.users.create({
+      const user = await prisma.user.create({
         data: {
           email,
           name,

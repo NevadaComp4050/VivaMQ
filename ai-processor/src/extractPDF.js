@@ -35,6 +35,7 @@ async function processPrompt(prompt) {
 
 // Main function to handle the workflow
 async function main(prompt) {
+  console.log("[x] Sent Prompt : " + prompt);
   try {
     const pdf = await extractTextFromPDF('example.pdf'); // Replace with your PDF path
     const response = await processPrompt(prompt + pdf);

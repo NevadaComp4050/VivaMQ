@@ -4,6 +4,7 @@ import { CreateUserDto } from '@/dto/user.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
 
+
 const users: Router = Router();
 const controller = new Controller();
 
@@ -27,7 +28,7 @@ const controller = new Controller();
  * @property {string} name - name of user
  * @property {string} phone - phone number
  * @property {string} password - 
- * @property {role} role - Users role, default Student
+ * @property {Role} role - Users role, default Student
  */
 
 // Use CreateUserBody
@@ -63,7 +64,7 @@ users.get(
  * @summary Delete all user data
  * @tags User
  * @param None
- * @return {number} 200 - user list
+ * @return {number} 200 - user clear
  */
 users.get(
   '/deleteall',

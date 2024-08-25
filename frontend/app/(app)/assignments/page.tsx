@@ -1,9 +1,9 @@
 "use client";
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
 import {
   Table,
   TableBody,
@@ -19,63 +19,76 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { PlusIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
+import Link from "next/link";
 
-export default function AssignmentManagement() {
+export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState([
     {
       id: 1,
-      unit: "Advanced Database Systems",
       name: "Database Normalization",
-      vivaStatus: "Pending",
+      unit: "Advanced Database Systems",
+      unitId: 1,
+      dueDate: "2023-06-15",
+      submissions: 20,
     },
     {
       id: 2,
+      name: "Software Design Patterns",
       unit: "Software Engineering Principles",
-      name: "Design Patterns",
-      vivaStatus: "In Progress",
+      unitId: 2,
+      dueDate: "2023-07-01",
+      submissions: 25,
     },
     {
       id: 3,
+      name: "Machine Learning Algorithms",
       unit: "Machine Learning Fundamentals",
-      name: "Neural Networks",
-      vivaStatus: "Completed",
+      unitId: 3,
+      dueDate: "2023-07-15",
+      submissions: 18,
     },
   ]);
-  const [newAssignmentName, setNewAssignmentName] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("");
 
-  const handleCreateAssignment = () => {
-    if (newAssignmentName.trim() && selectedUnit) {
-      setAssignments([
-        ...assignments,
-        {
-          id: assignments.length + 1,
-          unit: selectedUnit,
-          name: newAssignmentName,
-          vivaStatus: "Pending",
-        },
-      ]);
-      setNewAssignmentName("");
-      setSelectedUnit("");
-    }
-  };
+  const filteredAssignments = assignments.filter(
+    (assignment) =>
+      (assignment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignment.unit.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (selectedUnit === "" || assignment.unit === selectedUnit)
+  );
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Assignment Management</h1>
+      <h1 className="text-3xl font-bold mb-6">All Assignments</h1>
 
-      <Card className="mb-6">
+      <Card>
         <CardHeader>
-          <CardTitle>Create New Assignment</CardTitle>
+          <CardTitle>Assignments</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <Select value={selectedUnit} onValueChange={setSelectedUnit}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Unit" />
+          <div className="flex space-x-2 mb-4">
+            <div className="relative flex-grow">
+              <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search assignments..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Select
+              value={selectedUnit}
+              onValueChange={(value) => {
+                setSelectedUnit(value === "All" ? "" : value);
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Unit" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="All">All Units</SelectItem>
                 <SelectItem value="Advanced Database Systems">
                   Advanced Database Systems
                 </SelectItem>
@@ -87,53 +100,32 @@ export default function AssignmentManagement() {
                 </SelectItem>
               </SelectContent>
             </Select>
-            <Input
-              placeholder="Assignment Name"
-              value={newAssignmentName}
-              onChange={(e) => setNewAssignmentName(e.target.value)}
-            />
-            <Button onClick={handleCreateAssignment}>
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Create Assignment
-            </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Existing Assignments</CardTitle>
-        </CardHeader>
-        <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Assignment Name</TableHead>
                 <TableHead>Unit</TableHead>
-                <TableHead>Assignment</TableHead>
-                <TableHead>Viva Status</TableHead>
+                <TableHead>Due Date</TableHead>
+                <TableHead>Submissions</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {assignments.map((assignment) => (
+              {filteredAssignments.map((assignment) => (
                 <TableRow key={assignment.id}>
-                  <TableCell>{assignment.unit}</TableCell>
                   <TableCell>{assignment.name}</TableCell>
-                  <TableCell>{assignment.vivaStatus}</TableCell>
+                  <TableCell>{assignment.unit}</TableCell>
+                  <TableCell>{assignment.dueDate}</TableCell>
+                  <TableCell>{assignment.submissions}</TableCell>
                   <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
-                        <PencilIcon className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Manage Viva
-                      </Button>
-                      <Button variant="destructive" size="sm">
-                        <TrashIcon className="h-4 w-4 mr-2" />
-                        Delete
-                      </Button>
-                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link
+                        href={`units/${assignment.unitId}/assignments/${assignment.id}`}
+                      >
+                        Manage
+                      </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

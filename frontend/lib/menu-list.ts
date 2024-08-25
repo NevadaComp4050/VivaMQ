@@ -46,17 +46,17 @@ export function getMenuList(pathname: string): Group[] {
       groupLabel: "Manage",
       menus: [
         {
-          href: "/assignments",
-          label: "Assignments",
-          active: pathname.includes("/assignments"),
-          icon: Bookmark,
-          submenus: [],
-        },
-        {
           href: "/units",
           label: "Units",
           active: pathname.includes("/units"),
           icon: SquarePen,
+          submenus: [],
+        },
+        {
+          href: "/assignments",
+          label: "Assignments",
+          active: pathname.includes("/assignments"),
+          icon: Bookmark,
           submenus: [],
         },
         {
@@ -79,9 +79,9 @@ export function getMenuList(pathname: string): Group[] {
           submenus: [],
         },
         {
-          href: "/account",
-          label: "Account",
-          active: pathname.includes("/account"),
+          href: "/settings",
+          label: "Settings",
+          active: pathname.includes("/settings"),
           icon: Settings,
           submenus: [],
         },

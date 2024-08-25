@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
 import {
   Table,
   TableBody,
@@ -12,13 +11,19 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { PlusIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
+import Link from "next/link";
 
-export default function UnitManagement() {
+export default function UnitsPage() {
   const [units, setUnits] = useState([
-    { id: 1, name: "Advanced Database Systems", assignments: 2 },
-    { id: 2, name: "Software Engineering Principles", assignments: 3 },
-    { id: 3, name: "Machine Learning Fundamentals", assignments: 1 },
+    { id: 1, name: "Advanced Database Systems", assignments: 3, tutors: 2 },
+    {
+      id: 2,
+      name: "Software Engineering Principles",
+      assignments: 4,
+      tutors: 3,
+    },
+    { id: 3, name: "Machine Learning Fundamentals", assignments: 2, tutors: 2 },
   ]);
   const [newUnitName, setNewUnitName] = useState("");
 
@@ -26,7 +31,7 @@ export default function UnitManagement() {
     if (newUnitName.trim()) {
       setUnits([
         ...units,
-        { id: units.length + 1, name: newUnitName, assignments: 0 },
+        { id: units.length + 1, name: newUnitName, assignments: 0, tutors: 0 },
       ]);
       setNewUnitName("");
     }
@@ -65,6 +70,7 @@ export default function UnitManagement() {
               <TableRow>
                 <TableHead>Unit Name</TableHead>
                 <TableHead>Assignments</TableHead>
+                <TableHead>Tutors</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -73,18 +79,22 @@ export default function UnitManagement() {
                 <TableRow key={unit.id}>
                   <TableCell>{unit.name}</TableCell>
                   <TableCell>{unit.assignments}</TableCell>
+                  <TableCell>{unit.tutors}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
-                        <PencilIcon className="h-4 w-4 mr-2" />
-                        Edit
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/units/${unit.id}`}>Manage</Link>
                       </Button>
-                      <Button variant="outline" size="sm">
-                        View Assignments
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/units/${unit.id}/assignments`}>
+                          Assignments
+                        </Link>
                       </Button>
-                      <Button variant="destructive" size="sm">
-                        <TrashIcon className="h-4 w-4 mr-2" />
-                        Delete
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/units/${unit.id}/tutors`}>Tutors</Link>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/units/${unit.id}/vivas`}>Vivas</Link>
                       </Button>
                     </div>
                   </TableCell>

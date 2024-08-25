@@ -93,9 +93,6 @@ export default function UnitsPage() {
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/units/${unit.id}/tutors`}>Tutors</Link>
                       </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/units/${unit.id}/vivas`}>Vivas</Link>
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

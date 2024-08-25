@@ -32,16 +32,9 @@
 3. **Set OpenAI API Key**:
    Make OpenAI API key part of your environment variables (depends on your OS) `export OPENAI_API_KEY='your-openai-api-key'`
 
-### 4. Running the Components
-   All these steps needs to be done using CLI in folder with the modules (i.e. singlePromptNoPDF.js, serviceSimulator.js, extractPDF.js)
-- **singlePromptNoPDF.js**: Start the consumer to process prompts.
-  `node singlePromptNoPDF.js`
-- **serviceSimulator.js**: Start the producer to send prompts.
-  `node serviceSimulator.js`
-- **extractPDF.js**: Extract text from a PDF and process it with extractPDF.
-  `node extractPDF.js`
 
 ## Usage Guide
+All these steps needs to be done using CLI in folder with the modules (i.e. singlePromptNoPDF.js, serviceSimulator.js, extractPDF.js)
 ### 1. Single Prompt without PDF 
 1. **Run `singlePromptNoPDF.js`**: You do not have to do anything here (black box)
 2. **Run `serviceSimulator.js`**: Enter your prompt into the terminal. BE CLI will display response

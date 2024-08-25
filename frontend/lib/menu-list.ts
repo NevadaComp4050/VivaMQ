@@ -1,5 +1,4 @@
 import {
-  Tag,
   Users,
   Settings,
   Bookmark,
@@ -36,7 +35,7 @@ export function getMenuList(pathname: string): Group[] {
         {
           href: "/dashboard",
           label: "Dashboard",
-          active: pathname.includes("/dashboard"),
+          active: pathname === "/dashboard",
           icon: LayoutGrid,
           submenus: [],
         },
@@ -48,40 +47,38 @@ export function getMenuList(pathname: string): Group[] {
         {
           href: "/units",
           label: "Units",
-          active: pathname.includes("/units"),
+          active: pathname.startsWith("/units"),
           icon: SquarePen,
           submenus: [],
         },
         {
           href: "/assignments",
-          label: "Assignments",
-          active: pathname.includes("/assignments"),
+          label: "All Assignments",
+          active: pathname === "/assignments",
           icon: Bookmark,
-          submenus: [],
-        },
-        {
-          href: "/vivas",
-          label: "Vivas",
-          active: pathname.includes("/vivas"),
-          icon: LucideFileQuestion,
           submenus: [],
         },
       ],
     },
     {
-      groupLabel: "Settings",
+      groupLabel: "Users",
       menus: [
         {
-          href: "/users",
-          label: "Users",
-          active: pathname.includes("/users"),
+          href: "/tutors",
+          label: "Tutors",
+          active: pathname === "/tutors",
           icon: Users,
           submenus: [],
         },
+      ],
+    },
+    {
+      groupLabel: "System",
+      menus: [
         {
           href: "/settings",
           label: "Settings",
-          active: pathname.includes("/settings"),
+          active: pathname === "/settings",
           icon: Settings,
           submenus: [],
         },

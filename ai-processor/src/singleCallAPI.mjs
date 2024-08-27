@@ -8,7 +8,7 @@ console.log("API Key:", process.env.OPENAI_API_KEY); // need your own API and en
 
 const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
-});git 
+});
 
 async function main() {
     try {

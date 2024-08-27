@@ -8,7 +8,7 @@ const client = new OpenAI({
 async function processPrompt(prompt) {
     try {
         const response = await client.chat.completions.create({
-            model: "gpt-4o-mini", // Use the appropriate model
+            model: "gpt-4o-mini", // OpenAI Model - ask Eli/Deb about storing this in a setting file
             messages: [{ role: "user", content: prompt }],
         });
         return response.choices[0].message.content;

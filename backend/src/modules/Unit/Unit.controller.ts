@@ -1,13 +1,9 @@
 import { type NextFunction, type Request } from 'express';
-import { type Unit, Role } from '@prisma/client';
+import { type Unit } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import UnitService from './Unit.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
-
-// import { v4 as uuidv4 } from 'uuid';
-// Should this be here? No probably not
-import prisma from '@/lib/prisma';
 
 export default class UnitController extends Api {
   private readonly unitService = new UnitService();
@@ -32,22 +28,39 @@ export default class UnitController extends Api {
   ) => {
     try {
       const unitList = await this.unitService.getUnits();
-      this.send(res, unitList, HttpStatusCode.Ok, 'gotAllUnits')
+      this.send(res, unitList, HttpStatusCode.Ok, 'gotAllUnits');
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 
   public deleteallunits = async (
     req: Request,
-    res: CustomResponse<Unit[]>,
+    res: CustomResponse<number>,
     next: NextFunction
   ) => {
     try {
       const count = await this.unitService.deleteUnits();
-      this.send(res, count, HttpStatusCode.Ok, 'deletedAllUnits')
+      this.send(res, count, HttpStatusCode.Ok, 'deletedAllUnits');
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
+
+  public updateUnitName = async (
+    req: Request,
+    res: CustomResponse<Unit>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const { name } = req.query;  
+      if (typeof name == 'string') {
+        const updatedUnit = await this.unitService.updateUnitName(id, name);
+        this.send(res, updatedUnit, HttpStatusCode.Ok, 'updatedUnitName');
+      } 
+    } catch (e) {
+      next(e);
+    }
+  };
 }

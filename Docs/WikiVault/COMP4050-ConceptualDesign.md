@@ -148,3 +148,43 @@ flowchart
 	AFEAPI --Authenication / Authorisation--> FEserve
 	AFEAPI <--data / requests--> ABEAPI
 ```
+
+### Middleware layers
+- Access to any resource should (Exceptions must be noted) be performed via a service.
+- Routes shall focus on providing an external interface.
+- Controllers shall implement the actual logic of a process.
+
+```mermaid
+---
+title: Middlewares
+---
+flowchart
+	subgraph route[Router]
+		API[API endpoints]
+	end
+	subgraph cont[Controller]
+		logic[logic engine]
+	end
+	subgraph serv[Services]
+		res[Other Resources]
+		fileSys[File system]
+		db[database]
+	end
+	cont2[Controller as a service]
+	cont2 --response--> cont --service access--> cont2
+	route --Uses--> cont --Calls methods--> serv
+	
+```
+
+### FileSystem
+One of the main ways that users will interact with the System is uploading files, this process needs to handle multiple types of files and tie these uploads to database entries to maintain the relational data. 
+
+Files need a form of unique resource indication (URI), I think using IPFS style CID would provide this.
+Design alternatives
+- /uploads directory
+- HDFS
+- IPFS
+- S3
+  - Simple, Storage, Service
+
+Recommended choice is /uploads for dev and S3 for production

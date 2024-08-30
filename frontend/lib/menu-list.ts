@@ -6,6 +6,8 @@ import {
   LayoutGrid,
   LucideIcon,
   LucideFileQuestion,
+  BookLock,
+  BookOpenText,
 } from "lucide-react";
 
 type Submenu = {
@@ -56,6 +58,13 @@ export function getMenuList(pathname: string): Group[] {
           label: "All Assignments",
           active: pathname === "/assignments",
           icon: Bookmark,
+          submenus: [],
+        },
+        {
+          href: "/rubrics",
+          label: "Rubrics",
+          active: pathname === "/rubrics",
+          icon: BookOpenText,
           submenus: [],
         },
       ],

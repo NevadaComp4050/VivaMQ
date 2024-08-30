@@ -52,26 +52,54 @@ export default class UserController extends Api {
     }
   };
 
-  public getallusers = async (
+  public get = async (
+    req: Request,
+    res: CustomResponse<User>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const user = await this.userService.get(id);
+      this.send(res, user, HttpStatusCode.Ok, 'gotUser:' )
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  public getAll = async (
     req: Request,
     res: CustomResponse<User[]>,
     next: NextFunction
   ) => {
     try {
-      const userList = await this.userService.getUsers();
+      const userList = await this.userService.getAll();
       this.send(res, userList, HttpStatusCode.Ok, 'gotAllUsers' )
     } catch (e) {
       next(e)
     }
   }
 
-  public deleteallusers = async (
+  public delete = async (
+    req: Request,
+    res: CustomResponse<User>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const user = await this.userService.delete(id);
+      this.send(res, user, HttpStatusCode.Ok, 'deletedUser:' )
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  public deleteAll = async (
     req: Request,
     res: CustomResponse<User[]>,
     next: NextFunction
   ) => {
     try {
-      const count = await this.userService.deleteUsers();
+      const count = await this.userService.deleteAll();
       this.send(res, count, HttpStatusCode.Ok, 'deletedAllUsers' )
     } catch (e) {
       next(e)

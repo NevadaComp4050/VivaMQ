@@ -50,12 +50,38 @@ users.post(
  * @summary Get all user data
  * @tags User
  * @param None
- * @return {Array.<User>} 200 - user list
+ * @return {User} 200 - user list
  */
 users.get(
   '/getall',
   verifyAuthToken,
-  controller.getallusers
+  controller.getAll
+);
+
+/**
+ * GET /users/get
+ * @summary Get a single user data
+ * @tags User
+ * @param None
+ * @return {Array.<User>} 200 - user list
+ */
+users.get(
+  '/get',
+  verifyAuthToken,
+  controller.get
+);
+
+/**
+ * GET /users/delete
+ * @summary Delete a single user data
+ * @tags User
+ * @param None
+ * @return {number} 200 - user list
+ */
+users.get(
+  '/delete',
+  verifyAuthToken,
+  controller.delete
 );
 
 /**
@@ -68,7 +94,7 @@ users.get(
 users.get(
   '/deleteall',
   verifyAuthToken,
-  controller.deleteallusers
+  controller.deleteAll
 );
 
 // TODO this needs to be modified

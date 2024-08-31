@@ -1,21 +1,15 @@
+// app/api/units/[unitId]/assignments/route.ts
 import { NextResponse } from 'next/server'
-
-const assignments = {
-  '1': [
-    { id: '1', name: "Database Normalization Assignment" },
-    { id: '2', name: "Query Optimization Project" },
-  ],
-  '2': [
-    { id: '3', name: "Design Patterns Implementation" },
-    { id: '4', name: "Agile Development Case Study" },
-  ],
-  '3': [
-    { id: '5', name: "Neural Network Implementation" },
-    { id: '6', name: "Data Preprocessing Techniques" },
-  ],
-}
+import mockDatabase from '~/lib/mockDatabase'
 
 export async function GET(request: Request, { params }: { params: { unitId: string } }) {
-  const unitAssignments = assignments[params.unitId as keyof typeof assignments] || []
+  const unitAssignments = mockDatabase.assignments.filter(a => a.unitId === params.unitId)
   return NextResponse.json(unitAssignments)
+}
+
+export async function POST(request: Request, { params }: { params: { unitId: string } }) {
+  const { name } = await request.json()
+  const newAssignment = { id: String(mockDatabase.assignments.length + 1), unitId: params.unitId, name }
+  mockDatabase.assignments.push(newAssignment)
+  return NextResponse.json(newAssignment, { status: 201 })
 }

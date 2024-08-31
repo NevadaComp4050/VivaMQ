@@ -1,5 +1,14 @@
 "use client";
-import { useState, useEffect, AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
+import {
+  useState,
+  useEffect,
+  AwaitedReactNode,
+  JSXElementConstructor,
+  Key,
+  ReactElement,
+  ReactNode,
+  ReactPortal,
+} from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -29,11 +38,13 @@ export default function SingleSubmissionReviewPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Update in the SingleSubmissionReviewPage component
+
   useEffect(() => {
     const fetchSubmission = async () => {
       try {
         const response = await fetch(
-          `/api/units/${params.unitId}/assignments/${params.assignmentId}/vivas/${params.vivaId}/submissions/${params.submissionId}`
+          `/api/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${params.submissionId}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch submission");
@@ -49,7 +60,7 @@ export default function SingleSubmissionReviewPage({
     };
 
     fetchSubmission();
-  }, [params.unitId, params.assignmentId, params.vivaId, params.submissionId]);
+  }, [params.unitId, params.assignmentId, params.submissionId]);
 
   const handleLockQuestion = async (questionId: number) => {
     try {
@@ -63,7 +74,7 @@ export default function SingleSubmissionReviewPage({
         throw new Error("Failed to toggle question lock");
       }
       const updatedQuestion = await response.json();
-      setSubmission((prev: { questions: any[]; }) => ({
+      setSubmission((prev: { questions: any[] }) => ({
         ...prev,
         questions: prev.questions.map((q: any) =>
           q.id === questionId ? updatedQuestion : q
@@ -86,7 +97,7 @@ export default function SingleSubmissionReviewPage({
         throw new Error("Failed to regenerate question");
       }
       const updatedQuestion = await response.json();
-      setSubmission((prev: { questions: any[]; }) => ({
+      setSubmission((prev: { questions: any[] }) => ({
         ...prev,
         questions: prev.questions.map((q: any) =>
           q.id === questionId ? updatedQuestion : q
@@ -190,33 +201,58 @@ export default function SingleSubmissionReviewPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {submission.questions.map((question: { id: Key | null | undefined; text: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; status: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<AwaitedReactNode> | null | undefined; }) => (
-                <TableRow key={question.id}>
-                  <TableCell>{question.text}</TableCell>
-                  <TableCell>{question.status}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant={
-                          question.status === "Locked" ? "default" : "outline"
-                        }
-                        onClick={() => handleLockQuestion(question.id)}
-                      >
-                        <LockIcon className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleRegenerateQuestion(question.id)}
-                        disabled={question.status === "Locked"}
-                      >
-                        <RefreshCwIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {submission.questions.map(
+                (question: {
+                  id: Key | null | undefined;
+                  text:
+                    | string
+                    | number
+                    | bigint
+                    | boolean
+                    | ReactElement<any, string | JSXElementConstructor<any>>
+                    | Iterable<ReactNode>
+                    | ReactPortal
+                    | Promise<AwaitedReactNode>
+                    | null
+                    | undefined;
+                  status:
+                    | string
+                    | number
+                    | bigint
+                    | boolean
+                    | ReactElement<any, string | JSXElementConstructor<any>>
+                    | Iterable<ReactNode>
+                    | Promise<AwaitedReactNode>
+                    | null
+                    | undefined;
+                }) => (
+                  <TableRow key={question.id}>
+                    <TableCell>{question.text}</TableCell>
+                    <TableCell>{question.status}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant={
+                            question.status === "Locked" ? "default" : "outline"
+                          }
+                          onClick={() => handleLockQuestion(question.id)}
+                        >
+                          <LockIcon className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRegenerateQuestion(question.id)}
+                          disabled={question.status === "Locked"}
+                        >
+                          <RefreshCwIcon className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              )}
             </TableBody>
           </Table>
         </CardContent>

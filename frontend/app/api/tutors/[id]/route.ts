@@ -1,3 +1,4 @@
+// app/api/tutors/[id]/route.ts
 import { NextResponse } from 'next/server'
 import mockDatabase from '~/lib/mockDatabase'
 

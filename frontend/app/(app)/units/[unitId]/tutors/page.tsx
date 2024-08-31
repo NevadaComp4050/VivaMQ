@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -19,21 +19,76 @@ export default function UnitTutorsPage({
 }: {
   params: { unitId: string };
 }) {
-  const [tutors, setTutors] = useState([
-    { id: 1, name: "John Doe", email: "john~example.com" },
-    { id: 2, name: "Jane Smith", email: "jane~example.com" },
-  ]);
+  const [tutors, setTutors] = useState<any[]>([]);
   const [newTutorEmail, setNewTutorEmail] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddTutor = () => {
+  useEffect(() => {
+    const fetchTutors = async () => {
+      try {
+        const response = await fetch(`/api/units/${params.unitId}/tutors`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch tutors');
+        }
+        const data = await response.json();
+        setTutors(data);
+      } catch (err) {
+        setError('Error fetching tutors data');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTutors();
+  }, [params.unitId]);
+
+  const handleAddTutor = async () => {
     if (newTutorEmail.trim()) {
-      setTutors([
-        ...tutors,
-        { id: tutors.length + 1, name: "New Tutor", email: newTutorEmail },
-      ]);
-      setNewTutorEmail("");
+      try {
+        const response = await fetch(`/api/units/${params.unitId}/tutors`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: newTutorEmail }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to add tutor');
+        }
+
+        const newTutor = await response.json();
+        setTutors([...tutors, newTutor]);
+        setNewTutorEmail("");
+      } catch (err) {
+        console.error('Error adding tutor:', err);
+        setError('Failed to add tutor');
+      }
     }
   };
+
+  const handleRemoveTutor = async (tutorId: string) => {
+    try {
+      const response = await fetch(`/api/units/${params.unitId}/tutors/${tutorId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove tutor');
+      }
+
+      setTutors(tutors.filter(tutor => tutor.id !== tutorId));
+    } catch (err) {
+      console.error('Error removing tutor:', err);
+      setError('Failed to remove tutor');
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
 
   return (
     <div className="p-8">

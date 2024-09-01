@@ -20,14 +20,15 @@ import { send } from "process";
     channel.consume(receiveQueue, async (msg: amqp.ConsumeMessage | null) => {
       
       if (msg) {
-        console.log(msg.content[0].toString());
+        const content = msg.content.toString();
+        const contentSplit = [content.split("],[")[0], content.split("],[")[1]]
+        console.log(contentSplit);
         const response = await promptSubUUID(
           "return five questions to assess understanding of the following prompt",
-          msg.content[0].toString(),
-          msg.content[1].toString()
+          contentSplit[0],
+          contentSplit[1]
         );
         const sendMsg = Buffer.from(JSON.stringify([response[0],response[1]]));
-        console.log(sendMsg);
         channel.sendToQueue(sendQueue, sendMsg);
         channel.ack(msg);
       }

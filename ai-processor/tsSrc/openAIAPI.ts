@@ -29,6 +29,7 @@ const client = new OpenAI({
 // function to prompt OpenAI and parse the response using Zod
 async function promptSubUUID(prompt: string, submission: string, uuid: string): Promise<[string, string]> {
   try {
+    console.log("[x] Sending to OpenAI: ", prompt + "\n\n" + submission)
     const response = await client.chat.completions.create({
       model: "gpt-4o-2024-08-06", // Use the appropriate model
       messages: [{ role: "user", content: prompt + "\n\n" + submission }],

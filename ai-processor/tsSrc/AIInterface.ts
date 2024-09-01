@@ -1,10 +1,13 @@
+import { promptSubUUID } from "./openAIAPI";
+import { pdfToText } from "./extractPDF";
 import * as amqp from "amqplib";
-import { parseMe } from "./openAIAPI";
+import { send } from "process";
 
-async function receiveMessage() {
+(async () => {
   try {
     const connection = await amqp.connect("amqp://localhost");
     const channel = await connection.createChannel();
+
     const receiveQueue = "BEtoAI";
     const sendQueue = "AItoBE";
 
@@ -14,19 +17,25 @@ async function receiveMessage() {
     console.log(
       ` [*] Waiting for messages in '${receiveQueue}'. To exit press CTRL+C`
     );
-
     channel.consume(receiveQueue, async (msg: amqp.ConsumeMessage | null) => {
+      
       if (msg) {
-        const reply: [string, string] = await parseMe(msg.content[0].toString(), msg.content[1].toString());
-        channel.sendToQueue(sendQueue, Buffer.from(reply[0]));
-        console.log(` [x] Received `); // '${msg.content.toString()}'`);
-        console.log(` [x] Replying to UUID:`, reply[1]); // '${reply}'`);
+        console.log(msg.content[0].toString());
+        const response = await promptSubUUID(
+          "return five questions to assess understanding of the following prompt",
+          msg.content[0].toString(),
+          msg.content[1].toString()
+        );
+        const sendMsg = Buffer.from(JSON.stringify([response[0],response[1]]));
+        console.log(sendMsg);
+        channel.sendToQueue(sendQueue, sendMsg);
         channel.ack(msg);
       }
     });
   } catch (error) {
     console.error("Error:", error);
   }
-}
+})();
 
-receiveMessage();
+
+// ------------------- debugging --------------------//

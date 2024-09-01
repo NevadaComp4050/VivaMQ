@@ -60,7 +60,6 @@ All these steps needs to be done using CLI in folder with the modules (i.e. sing
 5. **Output**: Response will be printed in the terminal
 
 ### 3. Example Workflow
-
 ### 4. Error Handling
 
 - **Connection Errors**: Ensure RabbitMQ is running and accessible.

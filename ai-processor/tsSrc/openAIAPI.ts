@@ -1,8 +1,9 @@
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 dotenv.config();
-import axios from 'axios';
-import { z } from 'zod';
-const OpenAIApi = require("openai");
+
+import { z } from "zod";
+import { OpenAI } from "openai";
+import { zodResponseFormat } from "openai/helpers/zod";
 
 // question structure
 const Question = z.object({
@@ -21,40 +22,44 @@ const QuestionResponse = z.object({
 });
 
 // env API key
-const client = new OpenAIApi({
+const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 // function to prompt OpenAI and parse the response using Zod
-async function promptString(prompt: string, uuid: string): Promise<[string, string]> {
+async function promptSubUUID(prompt: string, submission: string, uuid: string): Promise<[string, string]> {
   try {
     const response = await client.chat.completions.create({
-      model: "gpt-4o", // Use the appropriate model
-      messages: [{ role: "user", content: prompt }],
+      model: "gpt-4o-2024-08-06", // Use the appropriate model
+      messages: [{ role: "user", content: prompt + "\n\n" + submission }],
+      response_format: zodResponseFormat(QuestionResponse, "QuestionResponse"),
     });
 
     const responseText = response.choices[0].message.content;
-
-    return [responseText, uuid];
+    if (responseText != null) return [responseText, uuid];
+    else return ["response error", uuid];
   } catch (error) {
     console.error("Error:", error);
     throw error;
   }
 }
 
-//mediator between OpenAI API and the interface for RabbitMQ
-async function parseMe(toPrompt: string, uuid: string): Promise<[string, string]> {
-  try {
-    const ret = await promptString(toPrompt, uuid);
-    if (ret) {
-      //console.log(ret[0], "UUID:", ret[1]);
-      return ret;  // return API response
+export { promptSubUUID };
+
+// ------------------- debugging --------------------//
+
+const debug = false;
+if (debug) {
+  (async () => {
+    try {
+      const response = await promptSubUUID(
+        // student submission , prompt used, UUID
+       "photosynthesis", "please provide three questions to assess my understanding of the text submission", "1324"
+      );
+      if (response) console.log("The response is: ", response);
+    } catch (error) {
+      console.error("failed to get response", error);
     }
-    return ['error', uuid];  // Default return in case of no response
-  } catch (error) {
-    console.error("Error:", error);
-    return ['Error occurred', uuid];  // Return an error string if needed
-  }
+  })();
 }
 
-export { parseMe };

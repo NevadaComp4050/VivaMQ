@@ -1,0 +1,12 @@
+User: Hello
+AI: Question: What does "hello" mean to you?
+Question: How often do you say "hello"?
+Question: What are some different ways to say "hello"?
+Question: What is the history of the word "hello"?
+Question: What does "hello" sound like in other languages?
+User: hola
+AI: Question: What does "hola" mean in English?
+Question: How is "hola" used in Spanish conversation?
+Question: Are there any regional variations in the pronunciation of "hola"?
+Question: Is there a more formal way to say hello in Spanish than "hola"?
+Question: Can "hola" be used in a situation where you are greeting someone you know well?

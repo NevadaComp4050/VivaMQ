@@ -1,5 +1,4 @@
 "use client";
-
 import {
   useState,
   useEffect,
@@ -12,6 +11,8 @@ import {
 } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
   Table,
   TableBody,
@@ -23,36 +24,43 @@ import {
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { LockIcon, RefreshCwIcon, CheckIcon, XIcon } from "lucide-react";
 
-export default function VivaPage({
+export default function SingleSubmissionReviewPage({
   params,
 }: {
-  params: { unitId: string; assignmentId: string; vivaId: string };
+  params: {
+    unitId: string;
+    assignmentId: string;
+    vivaId: string;
+    submissionId: string;
+  };
 }) {
-  const [viva, setViva] = useState<any>(null);
+  const [submission, setSubmission] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Update in the SingleSubmissionReviewPage component
+
   useEffect(() => {
-    const fetchViva = async () => {
+    const fetchSubmission = async () => {
       try {
         const response = await fetch(
-          `/api/units/${params.unitId}/assignments/${params.assignmentId}/vivas/${params.vivaId}`
+          `/api/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${params.submissionId}`
         );
         if (!response.ok) {
-          throw new Error("Failed to fetch viva");
+          throw new Error("Failed to fetch submission");
         }
         const data = await response.json();
-        setViva(data);
+        setSubmission(data);
       } catch (err) {
-        setError("Error fetching viva data");
+        setError("Error fetching submission data");
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchViva();
-  }, [params.unitId, params.assignmentId, params.vivaId]);
+    fetchSubmission();
+  }, [params.unitId, params.assignmentId, params.submissionId]);
 
   const handleLockQuestion = async (questionId: number) => {
     try {
@@ -66,7 +74,7 @@ export default function VivaPage({
         throw new Error("Failed to toggle question lock");
       }
       const updatedQuestion = await response.json();
-      setViva((prev: { questions: any[] }) => ({
+      setSubmission((prev: { questions: any[] }) => ({
         ...prev,
         questions: prev.questions.map((q: any) =>
           q.id === questionId ? updatedQuestion : q
@@ -89,7 +97,7 @@ export default function VivaPage({
         throw new Error("Failed to regenerate question");
       }
       const updatedQuestion = await response.json();
-      setViva((prev: { questions: any[] }) => ({
+      setSubmission((prev: { questions: any[] }) => ({
         ...prev,
         questions: prev.questions.map((q: any) =>
           q.id === questionId ? updatedQuestion : q
@@ -136,27 +144,32 @@ export default function VivaPage({
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
-  if (!viva) return <div>No viva found</div>;
+  if (!submission) return <div>No submission found</div>;
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Viva: {viva.studentName}</h1>
+      <h1 className="text-3xl font-bold mb-6">
+        Review Submission: {submission.studentName}
+      </h1>
 
-      <div className="grid grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Viva Details</CardTitle>
+            <CardTitle>Submission Details</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div>
-                <strong>Student Name:</strong> {viva.studentName}
+                <Label>Student Name</Label>
+                <div>{submission.studentName}</div>
               </div>
               <div>
-                <strong>Assignment:</strong> {viva.assignmentName}
+                <Label>Assignment</Label>
+                <div>{submission.assignmentName}</div>
               </div>
               <div>
-                <strong>Submission Date:</strong> {viva.submissionDate}
+                <Label>Submission Date</Label>
+                <div>{submission.submissionDate}</div>
               </div>
             </div>
           </CardContent>
@@ -168,13 +181,13 @@ export default function VivaPage({
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[200px] w-full rounded-md border p-4">
-              <p>{viva.content}</p>
+              <p>{submission.content}</p>
             </ScrollArea>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="mb-6">
+      <Card className="mt-6">
         <CardHeader>
           <CardTitle>Viva Questions</CardTitle>
         </CardHeader>
@@ -188,7 +201,7 @@ export default function VivaPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {viva.questions.map(
+              {submission.questions.map(
                 (question: {
                   id: Key | null | undefined;
                   text:
@@ -245,7 +258,7 @@ export default function VivaPage({
         </CardContent>
       </Card>
 
-      <div className="flex justify-end space-x-2">
+      <div className="mt-6 flex justify-end space-x-2">
         <Button variant="outline" onClick={handleApproveQuestions}>
           Approve Questions
         </Button>

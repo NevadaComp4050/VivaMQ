@@ -1,10 +1,19 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Textarea } from "~/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import {
   Table,
   TableBody,
@@ -13,270 +22,176 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import { PlusIcon, FileIcon, DownloadIcon, UploadIcon } from "lucide-react";
+import { PlusIcon, LinkIcon, ExternalLinkIcon } from "lucide-react";
 
-export default function RubricManagementPage({
+interface Rubric {
+  id: string;
+  name: string;
+  unit: string;
+  year: string;
+  session: string;
+}
+
+export default function AssignmentRubricPage({
   params,
 }: {
   params: { unitId: string; assignmentId: string };
 }) {
-  const [rubricTitle, setRubricTitle] = useState("");
-  const [assessmentOverview, setAssessmentOverview] = useState("");
-  const [criteria, setCriteria] = useState([{ id: 1, name: "", marks: 0 }]);
-  const [selectedULOs, setSelectedULOs] = useState<string[]>([]);
+  const router = useRouter();
+  const [rubrics, setRubrics] = useState<Rubric[]>([]);
+  const [selectedRubricId, setSelectedRubricId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const gradeDescriptors = ["F", "P", "C", "D", "HD"];
+  useEffect(() => {
+    const fetchRubrics = async () => {
+      try {
+        const response = await fetch("/api/rubrics");
+        if (!response.ok) {
+          throw new Error("Failed to fetch rubrics");
+        }
+        const data = await response.json();
+        setRubrics(data);
+      } catch (err) {
+        setError("Error fetching rubrics");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const ULOs = [
-    { id: "ULO1", description: "Understand key concepts in the subject area" },
-    {
-      id: "ULO2",
-      description: "Apply theoretical knowledge to practical scenarios",
-    },
-    { id: "ULO3", description: "Analyze and evaluate complex problems" },
-    {
-      id: "ULO4",
-      description: "Communicate ideas effectively in written and oral forms",
-    },
-  ];
+    fetchRubrics();
+  }, []);
 
-  const handleAddCriterion = () => {
-    setCriteria([...criteria, { id: criteria.length + 1, name: "", marks: 0 }]);
+  const handleLinkRubric = async () => {
+    if (selectedRubricId) {
+      try {
+        const response = await fetch(
+          `/api/assignments/${params.assignmentId}/link-rubric`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ rubricId: selectedRubricId }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to link rubric");
+        }
+
+        router.push(
+          `/units/${params.unitId}/assignments/${params.assignmentId}`
+        );
+      } catch (err) {
+        console.error("Error linking rubric:", err);
+        setError("Failed to link rubric");
+      }
+    }
   };
 
-  const handleCriterionChange = (
-    id: number,
-    field: "name" | "marks",
-    value: string | number
-  ) => {
-    setCriteria(
-      criteria.map((c) => (c.id === id ? { ...c, [field]: value } : c))
-    );
-  };
+  const filteredRubrics = rubrics.filter(
+    (rubric) =>
+      rubric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      rubric.unit.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const handleULOChange = (uloId: string) => {
-    setSelectedULOs((prev) =>
-      prev.includes(uloId)
-        ? prev.filter((id) => id !== uloId)
-        : [...prev, uloId]
-    );
-  };
-
-  const handleGenerateRubric = () => {
-    // Logic to generate rubric based on input
-    console.log("Generating rubric...");
-  };
-
-  const handleExportPDF = () => {
-    // Logic to export rubric as PDF
-    console.log("Exporting rubric as PDF...");
-  };
-
-  const handleExportXLS = () => {
-    // Logic to export rubric as XLS
-    console.log("Exporting rubric as XLS...");
-  };
-
-  const handleUploadMarkingGuide = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Logic to handle marking guide upload
-    console.log("Uploading marking guide...");
-  };
-
-  const handleConvertMarkingGuide = () => {
-    // Logic to convert marking guide to rubric
-    console.log("Converting marking guide to rubric...");
-  };
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Rubric Management</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Link Rubric to Assignment</h1>
+        <Button asChild>
+          <Link href="/rubrics/create">
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Create New Rubric
+          </Link>
+        </Button>
+      </div>
 
-      <Tabs defaultValue="create">
-        <TabsList>
-          <TabsTrigger value="create">Create Rubric</TabsTrigger>
-          <TabsTrigger value="convert">Convert Marking Guide</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="create">
-          <Card>
-            <CardHeader>
-              <CardTitle>Create New Rubric</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="rubricTitle">Rubric Title</Label>
-                  <Input
-                    id="rubricTitle"
-                    value={rubricTitle}
-                    onChange={(e) => setRubricTitle(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="assessmentOverview">
-                    Assessment Overview
-                  </Label>
-                  <Textarea
-                    id="assessmentOverview"
-                    value={assessmentOverview}
-                    onChange={(e) => setAssessmentOverview(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Criteria</Label>
-                  {criteria.map((criterion) => (
-                    <div key={criterion.id} className="flex space-x-2">
-                      <Input
-                        placeholder="Criterion name"
-                        value={criterion.name}
-                        onChange={(e) =>
-                          handleCriterionChange(
-                            criterion.id,
-                            "name",
-                            e.target.value
-                          )
-                        }
-                      />
-                      <Input
-                        type="number"
-                        placeholder="Marks"
-                        value={criterion.marks}
-                        onChange={(e) =>
-                          handleCriterionChange(
-                            criterion.id,
-                            "marks",
-                            parseInt(e.target.value)
-                          )
-                        }
-                      />
-                    </div>
-                  ))}
-                  <Button type="button" onClick={handleAddCriterion}>
-                    <PlusIcon className="mr-2 h-4 w-4" />
-                    Add Criterion
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Unit Learning Objectives (ULOs)</Label>
-                  {ULOs.map((ulo) => (
-                    <div key={ulo.id} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={ulo.id}
-                        checked={selectedULOs.includes(ulo.id)}
-                        onChange={() => handleULOChange(ulo.id)}
-                      />
-                      <label htmlFor={ulo.id}>{ulo.description}</label>
-                    </div>
-                  ))}
-                </div>
-
-                <Button type="button" onClick={handleGenerateRubric}>
-                  Generate Rubric
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Generated Rubric</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Criterion</TableHead>
-                    {gradeDescriptors.map((grade) => (
-                      <TableHead key={grade}>{grade}</TableHead>
-                    ))}
-                    <TableHead>Marks</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {criteria.map((criterion) => (
-                    <TableRow key={criterion.id}>
-                      <TableCell>{criterion.name}</TableCell>
-                      {gradeDescriptors.map((grade) => (
-                        <TableCell key={grade}>
-                          <Textarea placeholder={`${grade} descriptor`} />
-                        </TableCell>
-                      ))}
-                      <TableCell>{criterion.marks}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <div className="mt-4 flex space-x-2">
-                <Button onClick={handleExportPDF}>
-                  <FileIcon className="mr-2 h-4 w-4" />
-                  Export as PDF
-                </Button>
-                <Button onClick={handleExportXLS}>
-                  <DownloadIcon className="mr-2 h-4 w-4" />
-                  Export as XLS
-                </Button>
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Select Rubric</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex space-x-2">
+              <div className="flex-grow">
+                <Label htmlFor="search">Search Rubrics</Label>
+                <Input
+                  id="search"
+                  placeholder="Search by name or unit..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              <div>
+                <Label htmlFor="rubric-select">Select Rubric</Label>
+                <Select
+                  onValueChange={setSelectedRubricId}
+                  value={selectedRubricId || undefined}
+                >
+                  <SelectTrigger id="rubric-select">
+                    <SelectValue placeholder="Select a rubric" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredRubrics.map((rubric) => (
+                      <SelectItem key={rubric.id} value={rubric.id}>
+                        {rubric.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <Button onClick={handleLinkRubric} disabled={!selectedRubricId}>
+              <LinkIcon className="mr-2 h-4 w-4" />
+              Link Rubric to Assignment
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="convert">
-          <Card>
-            <CardHeader>
-              <CardTitle>Convert Marking Guide to Rubric</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="markingGuideUpload">
-                    Upload Marking Guide (PDF)
-                  </Label>
-                  <Input
-                    id="markingGuideUpload"
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleUploadMarkingGuide}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Unit Learning Objectives (ULOs)</Label>
-                  {ULOs.map((ulo) => (
-                    <div key={ulo.id} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={`convert-${ulo.id}`}
-                        checked={selectedULOs.includes(ulo.id)}
-                        onChange={() => handleULOChange(ulo.id)}
-                      />
-                      <label htmlFor={`convert-${ulo.id}`}>
-                        {ulo.description}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-
-                <Button type="button" onClick={handleConvertMarkingGuide}>
-                  <UploadIcon className="mr-2 h-4 w-4" />
-                  Convert to Rubric
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <Card>
+        <CardHeader>
+          <CardTitle>Available Rubrics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Unit</TableHead>
+                <TableHead>Year</TableHead>
+                <TableHead>Session</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredRubrics.map((rubric) => (
+                <TableRow key={rubric.id}>
+                  <TableCell>{rubric.name}</TableCell>
+                  <TableCell>{rubric.unit}</TableCell>
+                  <TableCell>{rubric.year}</TableCell>
+                  <TableCell>{rubric.session}</TableCell>
+                  <TableCell>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/rubrics/${rubric.id}`}>
+                        <ExternalLinkIcon className="mr-2 h-4 w-4" />
+                        View
+                      </Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

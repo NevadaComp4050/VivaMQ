@@ -14,67 +14,143 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { SaveIcon, TrashIcon } from "lucide-react";
+import { toast } from "~/components/ui/use-toast";
+import { useRouter } from "next/navigation";
+
+interface Tutor {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+interface Unit {
+  id: string;
+  name: string;
+  assigned: boolean;
+}
 
 export default function EditTutorPage({
   params,
 }: {
   params: { tutorId: string };
 }) {
-  const [tutor, setTutor] = useState({
+  const router = useRouter();
+  const [tutor, setTutor] = useState<Tutor>({
     id: params.tutorId,
     name: "",
     email: "",
     phone: "",
   });
 
-  const [units, setUnits] = useState([
-    { id: 1, name: "Advanced Database Systems", assigned: true },
-    { id: 2, name: "Software Engineering Principles", assigned: false },
-    { id: 3, name: "Machine Learning Fundamentals", assigned: true },
-  ]);
+  const [units, setUnits] = useState<Unit[]>([]);
 
   useEffect(() => {
-    // Fetch tutor data
-    // This is a mock fetch, replace with actual API call
-    const fetchTutor = async () => {
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setTutor({
-        id: params.tutorId,
-        name: "John Doe",
-        email: "john.doe~example.com",
-        phone: "123-456-7890",
-      });
-    };
-
     fetchTutor();
+    fetchUnits();
   }, [params.tutorId]);
+
+  const fetchTutor = async () => {
+    try {
+      const response = await fetch(`/api/tutors/${params.tutorId}`);
+      if (response.ok) {
+        const data: Tutor = await response.json();
+        setTutor(data);
+      } else {
+        throw new Error('Failed to fetch tutor');
+      }
+    } catch (error) {
+      console.error('Error fetching tutor:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch tutor details. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchUnits = async () => {
+    try {
+      const response = await fetch('/api/units');
+      if (response.ok) {
+        const data: Unit[] = await response.json();
+        setUnits(data.map(unit => ({ ...unit, assigned: false }))); // Ensure all units have the 'assigned' property
+      } else {
+        throw new Error('Failed to fetch units');
+      }
+    } catch (error) {
+      console.error('Error fetching units:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch units. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setTutor((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleUnitAssignment = (unitId: number) => {
-    setUnits(
-      units.map((unit) =>
+  const handleUnitAssignment = (unitId: string) => {
+    setUnits(prevUnits =>
+      prevUnits.map(unit =>
         unit.id === unitId ? { ...unit, assigned: !unit.assigned } : unit
       )
     );
   };
 
-  const handleSave = () => {
-    // Save tutor data
-    console.log("Saving tutor:", tutor);
-    console.log(
-      "Assigned units:",
-      units.filter((unit) => unit.assigned).map((unit) => unit.id)
-    );
+  const handleSave = async () => {
+    try {
+      const response = await fetch(`/api/tutors/${tutor.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...tutor,
+          assignedUnits: units.filter(unit => unit.assigned).map(unit => unit.id)
+        }),
+      });
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Tutor details updated successfully.",
+        });
+      } else {
+        throw new Error('Failed to update tutor');
+      }
+    } catch (error) {
+      console.error('Error updating tutor:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update tutor details. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDelete = () => {
-    // Delete tutor
-    console.log("Deleting tutor:", tutor.id);
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`/api/tutors/${tutor.id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Tutor deleted successfully.",
+        });
+        router.push('/tutors');
+      } else {
+        throw new Error('Failed to delete tutor');
+      }
+    } catch (error) {
+      console.error('Error deleting tutor:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete tutor. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

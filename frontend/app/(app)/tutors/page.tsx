@@ -1,9 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
 import {
   Table,
   TableBody,
@@ -14,44 +13,71 @@ import {
 } from "~/components/ui/table";
 import { PlusIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
+import { toast } from "~/components/ui/use-toast";
+import { Tutor } from "~/lib/mockDatabase";
 
 export default function TutorsPage() {
-  const [tutors, setTutors] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john~example.com",
-      units: ["Advanced Database Systems", "Software Engineering"],
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane~example.com",
-      units: ["Machine Learning", "Data Structures"],
-    },
-  ]);
+  const [tutors, setTutors] = useState([]);
   const [newTutorName, setNewTutorName] = useState("");
   const [newTutorEmail, setNewTutorEmail] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const handleAddTutor = () => {
+  useEffect(() => {
+    fetchTutors();
+  }, []);
+
+  const fetchTutors = async () => {
+    try {
+      const response = await fetch('/api/tutors');
+      if (response.ok) {
+        const data = await response.json();
+        setTutors(data);
+      } else {
+        throw new Error('Failed to fetch tutors');
+      }
+    } catch (error) {
+      console.error('Error fetching tutors:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch tutors. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddTutor = async () => {
     if (newTutorName && newTutorEmail) {
-      setTutors([
-        ...tutors,
-        {
-          id: tutors.length + 1,
-          name: newTutorName,
-          email: newTutorEmail,
-          units: [],
-        },
-      ]);
-      setNewTutorName("");
-      setNewTutorEmail("");
+      try {
+        const response = await fetch('/api/tutors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newTutorName, email: newTutorEmail }),
+        });
+        if (response.ok) {
+          const newTutor = await response.json();
+          setTutors([...tutors, newTutor]);
+          setNewTutorName("");
+          setNewTutorEmail("");
+          toast({
+            title: "Success",
+            description: "New tutor added successfully.",
+          });
+        } else {
+          throw new Error('Failed to add tutor');
+        }
+      } catch (error) {
+        console.error('Error adding tutor:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add tutor. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const filteredTutors = tutors.filter(
-    (tutor) =>
+    (tutor :Tutor) =>
       tutor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tutor.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -106,7 +132,6 @@ export default function TutorsPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Units</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -115,7 +140,6 @@ export default function TutorsPage() {
                 <TableRow key={tutor.id}>
                   <TableCell>{tutor.name}</TableCell>
                   <TableCell>{tutor.email}</TableCell>
-                  <TableCell>{tutor.units.join(", ")}</TableCell>
                   <TableCell>
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/tutors/${tutor.id}`}>Edit</Link>

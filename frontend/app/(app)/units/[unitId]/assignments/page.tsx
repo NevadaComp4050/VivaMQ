@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -20,42 +20,61 @@ export default function UnitAssignmentsPage({
 }: {
   params: { unitId: string };
 }) {
-  const [assignments, setAssignments] = useState([
-    {
-      id: 1,
-      name: "Database Normalization",
-      dueDate: "2023-06-15",
-      submissions: 20,
-    },
-    {
-      id: 2,
-      name: "Query Optimization",
-      dueDate: "2023-07-01",
-      submissions: 15,
-    },
-    {
-      id: 3,
-      name: "Distributed Databases",
-      dueDate: "2023-07-15",
-      submissions: 18,
-    },
-  ]);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [newAssignmentName, setNewAssignmentName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleCreateAssignment = () => {
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        const response = await fetch(`/api/units/${params.unitId}/assignments`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch assignments");
+        }
+        const data = await response.json();
+        setAssignments(data);
+      } catch (err) {
+        setError("Error fetching assignments data");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAssignments();
+  }, [params.unitId]);
+
+  const handleCreateAssignment = async () => {
     if (newAssignmentName.trim()) {
-      setAssignments([
-        ...assignments,
-        {
-          id: assignments.length + 1,
-          name: newAssignmentName,
-          dueDate: "TBD",
-          submissions: 0,
-        },
-      ]);
-      setNewAssignmentName("");
+      try {
+        const response = await fetch(
+          `/api/units/${params.unitId}/assignments`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name: newAssignmentName }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to create assignment");
+        }
+
+        const newAssignment = await response.json();
+        setAssignments([...assignments, newAssignment]);
+        setNewAssignmentName("");
+      } catch (err) {
+        console.error("Error creating assignment:", err);
+        setError("Failed to create assignment");
+      }
     }
   };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="p-8">

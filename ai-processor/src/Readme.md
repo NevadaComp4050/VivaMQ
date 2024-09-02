@@ -14,6 +14,8 @@
 ## create config file
 `npx tsc --init`
 
+## Test
+To run jest tests - simply run 'npm test' as the script is setup
 
 
 # Running the program

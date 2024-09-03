@@ -17,7 +17,7 @@ import { toast } from "~/components/ui/use-toast";
 import { Tutor } from "~/lib/mockDatabase";
 
 export default function TutorsPage() {
-  const [tutors, setTutors] = useState([]);
+  const [tutors, setTutors] = useState<Tutor[]>([]);
   const [newTutorName, setNewTutorName] = useState("");
   const [newTutorEmail, setNewTutorEmail] = useState("");
   const [searchTerm, setSearchTerm] = useState("");

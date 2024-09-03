@@ -4,8 +4,9 @@ import * as dotenv from 'dotenv';
 import path from 'path';
 dotenv.config();
 
+
 const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: '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',
 });
 
 type OpenAIEndpoint = "/v1/chat/completions";
@@ -74,7 +75,7 @@ async function processBatch(inputFilePath: string, endpoint: OpenAIEndpoint, com
 
 // Main execution
 (async () => {
-  const inputFilePath = path.join(__dirname, 'input.jsonl'); // .jsonl file path
+  const inputFilePath = path.join('./input.jsonl');  // .jsonl file path
   const endpoint: OpenAIEndpoint = '/v1/chat/completions'; 
   const completionWindow: CompletionWindow = '24h';
 

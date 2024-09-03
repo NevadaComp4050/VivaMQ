@@ -4,9 +4,9 @@ export class CreateAssignmentDto {
   @IsString()
   name: string;
 
-  @IsString()
+  /*@IsString()
   unit: string;
 
   @IsString()
-  description: string;
+  description: string;*/
 }

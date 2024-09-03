@@ -120,6 +120,17 @@ Questions for FE:
 - nothing you guys look dope
 - ohh actually... how you look so dope
 
+Sunday 25/08
+Have completed a the RabbitMQ implementation for single prompts. `singlePDFStaticPrompt.js`
+- using a UUID
+Have completed a implementation of PDF -> text then upload to OpenAI. `singlePromptNoPDF.js`
+Initial documentation for `Development and Usage guide.md`
+- Step by Step to setup and run both ends of RabbitMQ
+- 
+Created `serviceSimulator.js` to mock BE queries throught RabbitMQ
+
+
+Wednesday 28/08
 
 # Week 7/8 (Sprint 2)
 

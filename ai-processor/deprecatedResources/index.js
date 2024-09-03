@@ -34,7 +34,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const amqp = __importStar(require("amqplib"));
 const dotenv_1 = require("dotenv");
-const questionGenerator_1 = require("./questionGenerator");
+const questionGenerator_1 = require("../src/questionGenerator");
 (0, dotenv_1.config)();
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
 const QUEUE_NAME = 'document_processing';

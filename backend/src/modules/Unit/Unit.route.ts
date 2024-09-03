@@ -52,6 +52,19 @@ units.get(
 );
 
 /**
+ * GET /units/{id}
+ * @summary Get single unit data
+ * @tags Unit
+ * @param {string} id.path.required - ID of the unit to retrieve
+ * @return {Unit} 200 - unit data
+ */
+units.get(
+  '/:id',
+  verifyAuthToken,
+  controller.getUnitById
+);
+
+/**
  * GET /units/deleteall
  * @summary Delete all unit data
  * @tags Unit

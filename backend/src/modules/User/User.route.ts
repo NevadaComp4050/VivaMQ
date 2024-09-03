@@ -19,6 +19,13 @@ const controller = new Controller();
  * @property {string} phone - phone number
  * @property {string} password.required - password
  */
+
+/**
+ * Create idField
+ * @typedef {object} idField
+ * @property {string} id.required
+
+ */
 /**
  * User
  * @typedef {object} User
@@ -52,12 +59,38 @@ users.post(
  * @summary Get all user data
  * @tags User
  * @param None
- * @return {Array.<User>} 200 - user list
+ * @return {User} 200 - user list
  */
 users.get(
   '/getall',
   verifyAuthToken,
-  controller.getallusers
+  controller.getAll
+);
+
+/**
+ * GET /users/{id}
+ * @summary Get a single user data
+ * @tags User
+ * @param {string} id.path.required
+ * @return {User} 200 - user list
+ */
+users.get(
+  '/:id',
+  verifyAuthToken,
+  controller.get
+);
+
+/**
+ * POST /users/{id}
+ * @summary Delete a single user data
+ * @tags User
+ * @param {string} id.path.required
+ * @return {User} 200 - user list
+ */
+users.post(
+  '/:id',
+  verifyAuthToken,
+  controller.delete
 );
 
 /**
@@ -70,7 +103,7 @@ users.get(
 users.get(
   '/deleteall',
   verifyAuthToken,
-  controller.deleteallusers
+  controller.deleteAll
 );
 
 // TODO this needs to be modified

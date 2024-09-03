@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
-import { Button } from "~/components/ui/button"
-import { Input } from "~/components/ui/input"
-import { Label } from "~/components/ui/label"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select"
+} from "~/components/ui/select";
 import {
   Table,
   TableBody,
@@ -21,72 +21,85 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table"
-import { PlusIcon, LinkIcon, ExternalLinkIcon } from "lucide-react"
+} from "~/components/ui/table";
+import { PlusIcon, LinkIcon, ExternalLinkIcon } from "lucide-react";
 
 interface Rubric {
-  id: string
-  name: string
-  unit: string
-  year: string
-  session: string
+  id: string;
+  name: string;
+  unit: string;
+  year: string;
+  session: string;
 }
 
 export default function AssignmentRubricPage({
   params,
 }: {
-  params: { unitId: string; assignmentId: string }
+  params: { unitId: string; assignmentId: string };
 }) {
-  const router = useRouter()
-  const [rubrics, setRubrics] = useState<Rubric[]>([])
-  const [selectedRubricId, setSelectedRubricId] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
+  const router = useRouter();
+  const [rubrics, setRubrics] = useState<Rubric[]>([]);
+  const [selectedRubricId, setSelectedRubricId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch available rubrics
     const fetchRubrics = async () => {
       try {
-        const response = await fetch('/api/rubrics')
-        if (response.ok) {
-          const data = await response.json()
-          setRubrics(data)
-        } else {
-          console.error('Failed to fetch rubrics')
+        const response = await fetch("/api/rubrics");
+        if (!response.ok) {
+          throw new Error("Failed to fetch rubrics");
         }
-      } catch (error) {
-        console.error('Error fetching rubrics:', error)
+        const data = await response.json();
+        setRubrics(data);
+      } catch (err) {
+        setError("Error fetching rubrics");
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
-    fetchRubrics()
-  }, [])
+    fetchRubrics();
+  }, []);
 
   const handleLinkRubric = async () => {
     if (selectedRubricId) {
       try {
-        const response = await fetch(`/api/assignments/${params.assignmentId}/link-rubric`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ rubricId: selectedRubricId }),
-        })
+        const response = await fetch(
+          `/api/assignments/${params.assignmentId}/link-rubric`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ rubricId: selectedRubricId }),
+          }
+        );
 
-        if (response.ok) {
-          router.push(`/units/${params.unitId}/assignments/${params.assignmentId}`)
-        } else {
-          console.error('Failed to link rubric')
+        if (!response.ok) {
+          throw new Error("Failed to link rubric");
         }
-      } catch (error) {
-        console.error('Error linking rubric:', error)
+
+        router.push(
+          `/units/${params.unitId}/assignments/${params.assignmentId}`
+        );
+      } catch (err) {
+        console.error("Error linking rubric:", err);
+        setError("Failed to link rubric");
       }
     }
-  }
+  };
 
-  const filteredRubrics = rubrics.filter(rubric =>
-    rubric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    rubric.unit.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredRubrics = rubrics.filter(
+    (rubric) =>
+      rubric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      rubric.unit.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="p-8">
@@ -118,7 +131,10 @@ export default function AssignmentRubricPage({
               </div>
               <div>
                 <Label htmlFor="rubric-select">Select Rubric</Label>
-                <Select onValueChange={setSelectedRubricId} value={selectedRubricId || undefined}>
+                <Select
+                  onValueChange={setSelectedRubricId}
+                  value={selectedRubricId || undefined}
+                >
                   <SelectTrigger id="rubric-select">
                     <SelectValue placeholder="Select a rubric" />
                   </SelectTrigger>
@@ -177,5 +193,5 @@ export default function AssignmentRubricPage({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

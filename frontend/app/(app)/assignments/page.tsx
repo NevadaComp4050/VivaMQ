@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -21,42 +21,38 @@ import {
 } from "~/components/ui/select";
 import { SearchIcon } from "lucide-react";
 import Link from "next/link";
+import { Assignment, Unit } from "~/lib/mockDatabase";
 
 export default function AssignmentsPage() {
-  const [assignments, setAssignments] = useState([
-    {
-      id: 1,
-      name: "Database Normalization",
-      unit: "Advanced Database Systems",
-      unitId: 1,
-      dueDate: "2023-06-15",
-      submissions: 20,
-    },
-    {
-      id: 2,
-      name: "Software Design Patterns",
-      unit: "Software Engineering Principles",
-      unitId: 2,
-      dueDate: "2023-07-01",
-      submissions: 25,
-    },
-    {
-      id: 3,
-      name: "Machine Learning Algorithms",
-      unit: "Machine Learning Fundamentals",
-      unitId: 3,
-      dueDate: "2023-07-15",
-      submissions: 18,
-    },
-  ]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("");
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const unitsResponse = await fetch("/api/units");
+        const unitsData = await unitsResponse.json();
+        setUnits(unitsData);
+
+        const assignmentsPromises = unitsData.map((unit: Unit) =>
+          fetch(`/api/units/${unit.id}/assignments`).then((res) => res.json())
+        );
+        const allAssignments = await Promise.all(assignmentsPromises);
+        setAssignments(allAssignments.flat());
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const filteredAssignments = assignments.filter(
     (assignment) =>
-      (assignment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assignment.unit.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (selectedUnit === "" || assignment.unit === selectedUnit)
+      assignment.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (selectedUnit === "" || assignment.unitId === selectedUnit)
   );
 
   return (
@@ -89,15 +85,11 @@ export default function AssignmentsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All">All Units</SelectItem>
-                <SelectItem value="Advanced Database Systems">
-                  Advanced Database Systems
-                </SelectItem>
-                <SelectItem value="Software Engineering Principles">
-                  Software Engineering Principles
-                </SelectItem>
-                <SelectItem value="Machine Learning Fundamentals">
-                  Machine Learning Fundamentals
-                </SelectItem>
+                {units.map((unit) => (
+                  <SelectItem key={unit.id} value={unit.id}>
+                    {unit.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -115,9 +107,11 @@ export default function AssignmentsPage() {
               {filteredAssignments.map((assignment) => (
                 <TableRow key={assignment.id}>
                   <TableCell>{assignment.name}</TableCell>
-                  <TableCell>{assignment.unit}</TableCell>
-                  <TableCell>{assignment.dueDate}</TableCell>
-                  <TableCell>{assignment.submissions}</TableCell>
+                  <TableCell>
+                    {units.find((u) => u.id === assignment.unitId)?.name}
+                  </TableCell>
+                  <TableCell>{assignment.dueDate ?? "N/A"}</TableCell>
+                  <TableCell>{assignment.submissions ?? "N/A"}</TableCell>
                   <TableCell>
                     <Button variant="outline" size="sm" asChild>
                       <Link

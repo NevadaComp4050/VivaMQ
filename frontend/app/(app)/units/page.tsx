@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -14,26 +15,53 @@ import {
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 
+interface Unit {
+  id: string;
+  name: string;
+}
+
 export default function UnitsPage() {
-  const [units, setUnits] = useState([
-    { id: 1, name: "Advanced Database Systems", assignments: 3, tutors: 2 },
-    {
-      id: 2,
-      name: "Software Engineering Principles",
-      assignments: 4,
-      tutors: 3,
-    },
-    { id: 3, name: "Machine Learning Fundamentals", assignments: 2, tutors: 2 },
-  ]);
+  const [units, setUnits] = useState<Unit[]>([]);
   const [newUnitName, setNewUnitName] = useState("");
 
-  const handleCreateUnit = () => {
+  useEffect(() => {
+    fetchUnits();
+  }, []);
+
+  const fetchUnits = async () => {
+    try {
+      const response = await fetch('/api/units');
+      if (!response.ok) {
+        throw new Error('Failed to fetch units');
+      }
+      const data = await response.json();
+      setUnits(data);
+    } catch (error) {
+      console.error('Error fetching units:', error);
+    }
+  };
+
+  const handleCreateUnit = async () => {
     if (newUnitName.trim()) {
-      setUnits([
-        ...units,
-        { id: units.length + 1, name: newUnitName, assignments: 0, tutors: 0 },
-      ]);
-      setNewUnitName("");
+      try {
+        const response = await fetch('/api/units', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name: newUnitName }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create unit');
+        }
+
+        const newUnit = await response.json();
+        setUnits([...units, newUnit]);
+        setNewUnitName("");
+      } catch (error) {
+        console.error('Error creating unit:', error);
+      }
     }
   };
 
@@ -69,8 +97,6 @@ export default function UnitsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Unit Name</TableHead>
-                <TableHead>Assignments</TableHead>
-                <TableHead>Tutors</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -78,8 +104,6 @@ export default function UnitsPage() {
               {units.map((unit) => (
                 <TableRow key={unit.id}>
                   <TableCell>{unit.name}</TableCell>
-                  <TableCell>{unit.assignments}</TableCell>
-                  <TableCell>{unit.tutors}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm" asChild>

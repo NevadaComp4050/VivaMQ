@@ -1,14 +1,5 @@
 "use client";
-import {
-  useState,
-  useEffect,
-  AwaitedReactNode,
-  JSXElementConstructor,
-  Key,
-  ReactElement,
-  ReactNode,
-  ReactPortal,
-} from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -22,7 +13,24 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { LockIcon, RefreshCwIcon, CheckIcon, XIcon } from "lucide-react";
+import { LockIcon, RefreshCwIcon, CheckIcon } from "lucide-react";
+
+interface Submission {
+  id: string;
+  assignmentId: string;
+  studentName: string;
+  submissionDate: string;
+  status: string;
+  content: string;
+  assignmentName: string;
+  questions: Question[];
+}
+
+interface Question {
+  id: string;
+  text: string;
+  status: "Locked" | "Unlocked";
+}
 
 export default function SingleSubmissionReviewPage({
   params,
@@ -34,11 +42,9 @@ export default function SingleSubmissionReviewPage({
     submissionId: string;
   };
 }) {
-  const [submission, setSubmission] = useState<any>(null);
+  const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Update in the SingleSubmissionReviewPage component
 
   useEffect(() => {
     const fetchSubmission = async () => {
@@ -49,7 +55,7 @@ export default function SingleSubmissionReviewPage({
         if (!response.ok) {
           throw new Error("Failed to fetch submission");
         }
-        const data = await response.json();
+        const data: Submission = await response.json();
         setSubmission(data);
       } catch (err) {
         setError("Error fetching submission data");
@@ -62,7 +68,8 @@ export default function SingleSubmissionReviewPage({
     fetchSubmission();
   }, [params.unitId, params.assignmentId, params.submissionId]);
 
-  const handleLockQuestion = async (questionId: number) => {
+  const handleLockQuestion = async (questionId: string) => {
+    if (!submission) return;
     try {
       const response = await fetch(
         `/api/vivas/${params.vivaId}/questions/${questionId}/toggle-lock`,
@@ -73,19 +80,20 @@ export default function SingleSubmissionReviewPage({
       if (!response.ok) {
         throw new Error("Failed to toggle question lock");
       }
-      const updatedQuestion = await response.json();
-      setSubmission((prev: { questions: any[] }) => ({
-        ...prev,
-        questions: prev.questions.map((q: any) =>
+      const updatedQuestion: Question = await response.json();
+      setSubmission({
+        ...submission,
+        questions: submission.questions.map((q) =>
           q.id === questionId ? updatedQuestion : q
         ),
-      }));
+      });
     } catch (err) {
       console.error("Error toggling question lock:", err);
     }
   };
 
-  const handleRegenerateQuestion = async (questionId: number) => {
+  const handleRegenerateQuestion = async (questionId: string) => {
+    if (!submission) return;
     try {
       const response = await fetch(
         `/api/vivas/${params.vivaId}/questions/${questionId}/regenerate`,
@@ -96,13 +104,13 @@ export default function SingleSubmissionReviewPage({
       if (!response.ok) {
         throw new Error("Failed to regenerate question");
       }
-      const updatedQuestion = await response.json();
-      setSubmission((prev: { questions: any[] }) => ({
-        ...prev,
-        questions: prev.questions.map((q: any) =>
+      const updatedQuestion: Question = await response.json();
+      setSubmission({
+        ...submission,
+        questions: submission.questions.map((q) =>
           q.id === questionId ? updatedQuestion : q
         ),
-      }));
+      });
     } catch (err) {
       console.error("Error regenerating question:", err);
     }
@@ -201,58 +209,33 @@ export default function SingleSubmissionReviewPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {submission.questions.map(
-                (question: {
-                  id: Key | null | undefined;
-                  text:
-                    | string
-                    | number
-                    | bigint
-                    | boolean
-                    | ReactElement<any, string | JSXElementConstructor<any>>
-                    | Iterable<ReactNode>
-                    | ReactPortal
-                    | Promise<AwaitedReactNode>
-                    | null
-                    | undefined;
-                  status:
-                    | string
-                    | number
-                    | bigint
-                    | boolean
-                    | ReactElement<any, string | JSXElementConstructor<any>>
-                    | Iterable<ReactNode>
-                    | Promise<AwaitedReactNode>
-                    | null
-                    | undefined;
-                }) => (
-                  <TableRow key={question.id}>
-                    <TableCell>{question.text}</TableCell>
-                    <TableCell>{question.status}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant={
-                            question.status === "Locked" ? "default" : "outline"
-                          }
-                          onClick={() => handleLockQuestion(question.id)}
-                        >
-                          <LockIcon className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRegenerateQuestion(question.id)}
-                          disabled={question.status === "Locked"}
-                        >
-                          <RefreshCwIcon className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              )}
+              {submission.questions.map((question) => (
+                <TableRow key={question.id}>
+                  <TableCell>{question.text}</TableCell>
+                  <TableCell>{question.status}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant={
+                          question.status === "Locked" ? "default" : "outline"
+                        }
+                        onClick={() => handleLockQuestion(question.id)}
+                      >
+                        <LockIcon className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRegenerateQuestion(question.id)}
+                        disabled={question.status === "Locked"}
+                      >
+                        <RefreshCwIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>

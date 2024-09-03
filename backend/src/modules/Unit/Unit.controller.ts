@@ -61,20 +61,6 @@ export default class UnitController extends Api {
     }
   }
 
-  public getUnitById = async (
-    req: Request,
-    res: CustomResponse<Unit>,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params;
-      const unit = await this.unitService.getUnitById(id);
-      this.send(res, unit, HttpStatusCode.Ok, 'gotUnitById');
-    } catch (e) {
-      next(e);
-    }
-  };
-
   public updateUnitName = async (
     req: Request,
     res: CustomResponse<Unit>,

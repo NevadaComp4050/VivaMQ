@@ -4,7 +4,6 @@ import { CreateUserDto } from '@/dto/user.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
 
-
 const users: Router = Router();
 const controller = new Controller();
 
@@ -19,6 +18,13 @@ const controller = new Controller();
  * @property {string} phone - phone number
  * @property {string} password.required - password
  */
+
+/**
+ * Create idField
+ * @typedef {object} idField
+ * @property {string} id.required
+
+ */
 /**
  * User
  * @typedef {object} User
@@ -28,7 +34,7 @@ const controller = new Controller();
  * @property {string} name - name of user
  * @property {string} phone - phone number
  * @property {string} password - 
- * @property {Role} role - Users role, default Student
+ * @property {role} role - Users role, default Student
  */
 
 // Use CreateUserBody
@@ -38,7 +44,6 @@ const controller = new Controller();
  * @tags User
  * @param {CreateUserBody} request.body.required
  * @return {User} 201 - user created
-
  */
 users.post(
   '/create',
@@ -52,12 +57,38 @@ users.post(
  * @summary Get all user data
  * @tags User
  * @param None
- * @return {Array.<User>} 200 - user list
+ * @return {User} 200 - user list
  */
 users.get(
   '/getall',
   verifyAuthToken,
-  controller.getallusers
+  controller.getAll
+);
+
+/**
+ * GET /users/{id}
+ * @summary Get a single user data
+ * @tags User
+ * @param {string} id.path.required
+ * @return {User} 200 - user list
+ */
+users.get(
+  '/:id',
+  verifyAuthToken,
+  controller.get
+);
+
+/**
+ * POST /users/{id}
+ * @summary Delete a single user data
+ * @tags User
+ * @param {string} id.path.required
+ * @return {User} 200 - user list
+ */
+users.post(
+  '/:id',
+  verifyAuthToken,
+  controller.delete
 );
 
 /**
@@ -65,12 +96,12 @@ users.get(
  * @summary Delete all user data
  * @tags User
  * @param None
- * @return {number} 200 - user clear
+ * @return {number} 200 - user list
  */
 users.get(
   '/deleteall',
   verifyAuthToken,
-  controller.deleteallusers
+  controller.deleteAll
 );
 
 // TODO this needs to be modified

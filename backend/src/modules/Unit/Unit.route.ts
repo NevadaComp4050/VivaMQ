@@ -7,8 +7,6 @@ import { verifyAuthToken } from '@/middlewares/auth';
 const units: Router = Router();
 const controller = new Controller();
 
-// Define CreateUnitBody
-// Comments after property do render
 /**
  * Create unit body
  * @typedef {object} CreateUnitBody
@@ -26,7 +24,6 @@ const controller = new Controller();
  * @property {user} convenor - convenor of unit
  */
 
-// Use CreateUnitBody
 /**
  * POST /units/create
  * @summary Create unit
@@ -55,11 +52,24 @@ units.get(
 );
 
 /**
+ * GET /units/{id}
+ * @summary Get single unit data
+ * @tags Unit
+ * @param {string} id.path.required - ID of the unit to retrieve
+ * @return {Unit} 200 - unit data
+ */
+units.get(
+  '/:id',
+  verifyAuthToken,
+  controller.getUnitById
+);
+
+/**
  * GET /units/deleteall
  * @summary Delete all unit data
  * @tags Unit
  * @param None
- * @return {number} 200 - unit list
+ * @return {number} 200 - unit clear
  */
 units.get(
   '/deleteall',
@@ -67,5 +77,31 @@ units.get(
   controller.deleteallunits
 );
 
-// TODO this needs to be modified
+/**
+ * GET /units/{id}
+ * @summary Get single unit data
+ * @tags Unit
+ * @param {string} id.path.required - ID of the unit to retrieve
+ * @return {Unit} 200 - unit data
+ */
+units.get(
+  '/:id',
+  verifyAuthToken,
+  controller.getUnitById
+);
+
+/**
+ * PUT /units/update-name/{id}
+ * @summary Update unit name
+ * @tags Unit
+ * @param {string} id.path.required - ID of the unit to update
+ * @param {string} name.query.required - New name for the unit
+ * @return {Unit} 200 - unit updated
+ */
+units.put(
+  '/update-name/:id',
+  verifyAuthToken,
+  controller.updateUnitName
+);
+
 export default units;

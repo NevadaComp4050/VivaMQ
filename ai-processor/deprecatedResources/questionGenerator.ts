@@ -42,7 +42,7 @@ export async function generateQuestions(
 
     // Call the chat completion API with the defined schema
     const completion = await client.beta.chat.completions.parse({
-      model: "gpt-4",
+      model: "gpt-4o-2024-08-06",
       messages: [
         {
           role: "system",

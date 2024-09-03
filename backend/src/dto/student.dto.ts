@@ -7,11 +7,11 @@ export class CreateStudentDto {
   @IsEmail()
   email: string;
 
-  @IsString()
+  /*@IsString()
   studentId: string;
 
   @IsString()
-  groupId: string;
+  groupId: string;*/
 }
 
 export class MapFilesDto {

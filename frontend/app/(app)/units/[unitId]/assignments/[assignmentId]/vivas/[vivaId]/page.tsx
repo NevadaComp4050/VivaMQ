@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  AwaitedReactNode,
-  JSXElementConstructor,
-  Key,
-  ReactElement,
-  ReactNode,
-  ReactPortal,
-} from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import {
@@ -21,14 +12,29 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { LockIcon, RefreshCwIcon, CheckIcon, XIcon } from "lucide-react";
+import { LockIcon, RefreshCwIcon, CheckIcon } from "lucide-react";
+
+interface Question {
+  id: string;
+  text: string;
+  status: "Locked" | "Unlocked";
+}
+
+interface Viva {
+  id: string;
+  studentName: string;
+  assignmentName: string;
+  submissionDate: string;
+  content: string;
+  questions: Question[];
+}
 
 export default function VivaPage({
   params,
 }: {
   params: { unitId: string; assignmentId: string; vivaId: string };
 }) {
-  const [viva, setViva] = useState<any>(null);
+  const [viva, setViva] = useState<Viva | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +47,7 @@ export default function VivaPage({
         if (!response.ok) {
           throw new Error("Failed to fetch viva");
         }
-        const data = await response.json();
+        const data: Viva = await response.json();
         setViva(data);
       } catch (err) {
         setError("Error fetching viva data");
@@ -54,7 +60,8 @@ export default function VivaPage({
     fetchViva();
   }, [params.unitId, params.assignmentId, params.vivaId]);
 
-  const handleLockQuestion = async (questionId: number) => {
+  const handleLockQuestion = async (questionId: string) => {
+    if (!viva) return;
     try {
       const response = await fetch(
         `/api/vivas/${params.vivaId}/questions/${questionId}/toggle-lock`,
@@ -65,19 +72,20 @@ export default function VivaPage({
       if (!response.ok) {
         throw new Error("Failed to toggle question lock");
       }
-      const updatedQuestion = await response.json();
-      setViva((prev: { questions: any[] }) => ({
-        ...prev,
-        questions: prev.questions.map((q: any) =>
+      const updatedQuestion: Question = await response.json();
+      setViva({
+        ...viva,
+        questions: viva.questions.map((q) =>
           q.id === questionId ? updatedQuestion : q
         ),
-      }));
+      });
     } catch (err) {
       console.error("Error toggling question lock:", err);
     }
   };
 
-  const handleRegenerateQuestion = async (questionId: number) => {
+  const handleRegenerateQuestion = async (questionId: string) => {
+    if (!viva) return;
     try {
       const response = await fetch(
         `/api/vivas/${params.vivaId}/questions/${questionId}/regenerate`,
@@ -88,13 +96,13 @@ export default function VivaPage({
       if (!response.ok) {
         throw new Error("Failed to regenerate question");
       }
-      const updatedQuestion = await response.json();
-      setViva((prev: { questions: any[] }) => ({
-        ...prev,
-        questions: prev.questions.map((q: any) =>
+      const updatedQuestion: Question = await response.json();
+      setViva({
+        ...viva,
+        questions: viva.questions.map((q) =>
           q.id === questionId ? updatedQuestion : q
         ),
-      }));
+      });
     } catch (err) {
       console.error("Error regenerating question:", err);
     }
@@ -112,6 +120,7 @@ export default function VivaPage({
         throw new Error("Failed to approve questions");
       }
       // Handle success (e.g., show a success message or update UI)
+      console.log("Questions approved successfully");
     } catch (err) {
       console.error("Error approving questions:", err);
     }
@@ -129,6 +138,7 @@ export default function VivaPage({
         throw new Error("Failed to mark viva as complete");
       }
       // Handle success (e.g., show a success message or redirect)
+      console.log("Viva marked as complete");
     } catch (err) {
       console.error("Error marking viva as complete:", err);
     }
@@ -188,58 +198,33 @@ export default function VivaPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {viva.questions.map(
-                (question: {
-                  id: Key | null | undefined;
-                  text:
-                    | string
-                    | number
-                    | bigint
-                    | boolean
-                    | ReactElement<any, string | JSXElementConstructor<any>>
-                    | Iterable<ReactNode>
-                    | ReactPortal
-                    | Promise<AwaitedReactNode>
-                    | null
-                    | undefined;
-                  status:
-                    | string
-                    | number
-                    | bigint
-                    | boolean
-                    | ReactElement<any, string | JSXElementConstructor<any>>
-                    | Iterable<ReactNode>
-                    | Promise<AwaitedReactNode>
-                    | null
-                    | undefined;
-                }) => (
-                  <TableRow key={question.id}>
-                    <TableCell>{question.text}</TableCell>
-                    <TableCell>{question.status}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant={
-                            question.status === "Locked" ? "default" : "outline"
-                          }
-                          onClick={() => handleLockQuestion(question.id)}
-                        >
-                          <LockIcon className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRegenerateQuestion(question.id)}
-                          disabled={question.status === "Locked"}
-                        >
-                          <RefreshCwIcon className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              )}
+              {viva.questions.map((question) => (
+                <TableRow key={question.id}>
+                  <TableCell>{question.text}</TableCell>
+                  <TableCell>{question.status}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant={
+                          question.status === "Locked" ? "default" : "outline"
+                        }
+                        onClick={() => handleLockQuestion(question.id)}
+                      >
+                        <LockIcon className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRegenerateQuestion(question.id)}
+                        disabled={question.status === "Locked"}
+                      >
+                        <RefreshCwIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>

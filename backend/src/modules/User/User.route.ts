@@ -18,6 +18,13 @@ const controller = new Controller();
  * @property {string} phone - phone number
  * @property {string} password.required - password
  */
+
+/**
+ * Create idField
+ * @typedef {object} idField
+ * @property {string} id.required
+
+ */
 /**
  * User
  * @typedef {object} User
@@ -59,27 +66,27 @@ users.get(
 );
 
 /**
- * GET /users/get
+ * GET /users/{id}
  * @summary Get a single user data
  * @tags User
- * @param None
- * @return {Array.<User>} 200 - user list
+ * @param {string} id.path.required
+ * @return {User} 200 - user list
  */
 users.get(
-  '/get',
+  '/:id',
   verifyAuthToken,
   controller.get
 );
 
 /**
- * GET /users/delete
+ * POST /users/{id}
  * @summary Delete a single user data
  * @tags User
- * @param None
- * @return {number} 200 - user list
+ * @param {string} id.path.required
+ * @return {User} 200 - user list
  */
-users.get(
-  '/delete',
+users.post(
+  '/:id',
   verifyAuthToken,
   controller.delete
 );

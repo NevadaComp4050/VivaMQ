@@ -9,9 +9,9 @@ export default class UserService {
     return user;
   }
 
-  public async get(id:string){
+  public async get(id: string){
     const ret =  await prisma.user.findUnique({
-      where: {id},
+      where: { id },
     });
       return ret;
   }
@@ -25,7 +25,7 @@ export default class UserService {
 
   public async delete(id:string){
     const ret =  await prisma.user.delete({
-      where: {id},
+      where: { id },
     });
       return ret;
   }

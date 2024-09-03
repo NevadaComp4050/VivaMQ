@@ -60,7 +60,7 @@ export default class UserController extends Api {
     try {
       const { id } = req.params;
       const user = await this.userService.get(id);
-      this.send(res, user, HttpStatusCode.Ok, 'gotUser:' )
+      this.send(res, user, HttpStatusCode.Ok, 'gotUser:'+id )
     } catch (e) {
       next(e)
     }
@@ -87,7 +87,7 @@ export default class UserController extends Api {
     try {
       const { id } = req.params;
       const user = await this.userService.delete(id);
-      this.send(res, user, HttpStatusCode.Ok, 'deletedUser:' )
+      this.send(res, user, HttpStatusCode.Ok, 'deletedUser:+id' )
     } catch (e) {
       next(e)
     }

@@ -15,6 +15,7 @@
 `npx tsc --init`
 
 ## Test
+Ensure dockor image is setup for Rabbitmq
 To run jest tests - simply run 'npm test' as the script is setup
 
 

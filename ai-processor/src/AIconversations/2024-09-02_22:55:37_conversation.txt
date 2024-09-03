@@ -1,7 +1,0 @@
-User: Hellooo
-AI: Question: Hellooo to whom?
-Question: What does "Hellooo" imply? 
-Question: Is "Hellooo" a friendly greeting or something else? 
-Question: What's the context behind this "Hellooo"?
-Question: Are you trying to say something more with this "Hellooo"?
-User: how often do you break?

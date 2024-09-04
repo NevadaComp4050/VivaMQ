@@ -21,7 +21,7 @@ If you want to test these endpoints follow these steps
 7. `npm run dev`
 8. open [swagger](http://localhost:8080/v1/swagger)
    - most of these APIs have a "tryme"
-   - FileIO doesn't work via swagger, please see [FileHandling #usage](FileHandling.md#Usage).
+   - FileIO doesn't work via swagger, please see [FileHandling #usage](fileHandling.md#Usage).
 
 ## BE
 - Submission

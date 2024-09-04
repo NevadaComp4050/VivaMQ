@@ -12,7 +12,15 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { LockIcon, RefreshCwIcon, CheckIcon, XIcon } from "lucide-react";
+import {
+  LockIcon,
+  RefreshCwIcon,
+  CheckIcon,
+  XIcon,
+  PlusIcon,
+} from "lucide-react";
+
+import { useCustomQuestionStore } from "~/hooks/use-custom-question";
 
 export default function VivaPage({
   params,
@@ -45,6 +53,10 @@ export default function VivaPage({
     ],
   });
 
+  const { showInput, hideInput, setInputValue, inputVisible, inputValue } =
+    useCustomQuestionStore();
+
+  /*Handle the locking and unlocking of a question using The ID of the question.*/
   const handleLockQuestion = (questionId: number) => {
     setViva((prev) => ({
       ...prev,
@@ -54,6 +66,23 @@ export default function VivaPage({
           : q
       ),
     }));
+  };
+
+  /*Add new question to viva list.*/
+  const handleAddQuestion = () => {
+    const newQuestionId = viva.questions.length + 1;
+    const newQuestion = {
+      id: newQuestionId,
+      text: inputValue["new-question"] || "",
+      status: "Unlocked",
+    };
+
+    setViva((prev) => ({
+      ...prev,
+      questions: [...prev.questions, newQuestion],
+    }));
+
+    hideInput("new-question");
   };
 
   const handleRegenerateQuestion = (questionId: number) => {
@@ -148,8 +177,50 @@ export default function VivaPage({
                   </TableCell>
                 </TableRow>
               ))}
+              {/*Input field for new question */}
+              {inputVisible["new-question"] && (
+                <TableRow>
+                  <TableCell>
+                    <input
+                      type="text"
+                      value={inputValue["new-question"] || ""}
+                      onChange={(e) =>
+                        setInputValue("new-question", e.target.value)
+                      }
+                      className="border rounded p-2 w-full"
+                      placeholder="Enter new question"
+                    />
+                  </TableCell>
+                  <TableCell>New</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={handleAddQuestion}
+                      >
+                        <CheckIcon className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => hideInput("new-question")}
+                      >
+                        <XIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
+          {/* Button to add new question */}
+          {!inputVisible["new-question"] && (
+            <Button className="mt-4" onClick={() => showInput("new-question")}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Add Question
+            </Button>
+          )}
         </CardContent>
       </Card>
 

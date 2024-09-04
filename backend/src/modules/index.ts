@@ -6,6 +6,8 @@ import tutors from './Tutor/Tutor.route';
 import students from './Student/Student.route';
 import assignments from './Assignment/Assignment.route';
 
+import FileIO from './FileIO/FileIO.route';
+
 
 const router: Router = Router();
 
@@ -15,5 +17,6 @@ router.use('/tutors', tutors);
 router.use('/students', students);
 router.use('/assignments', assignments);
 
+router.use('/files',FileIO);
 
 export default router;

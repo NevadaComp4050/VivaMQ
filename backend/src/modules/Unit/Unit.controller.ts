@@ -50,16 +50,16 @@ export default class UnitController extends Api {
 
   public deleteallunits = async (
     req: Request,
-    res: CustomResponse<Unit[]>,
+    res: CustomResponse<number>,
     next: NextFunction
   ) => {
     try {
       const count = await this.unitService.deleteUnits();
-      this.send(res, count, HttpStatusCode.Ok, 'deletedAllUnits' )
+      this.send(res, count, HttpStatusCode.Ok, 'deletedAllUnits');
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 
   public updateUnitName = async (
     req: Request,

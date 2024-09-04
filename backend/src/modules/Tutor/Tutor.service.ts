@@ -11,7 +11,7 @@ export default class TutorService {
   }
 
   public async getTutors() {
-    const tutors = await prisma.unit.findMany();
+    const tutors = await prisma.tutor.findMany();
     return tutors;
   }
 

@@ -1,11 +1,16 @@
 # Backend File Handling
 
-Requirements
+**Requirements**
 1. Files shall be linked with the uploader.
 2. Files shall be optionally linked with a db entity.
    1. Viva-Question: AI-output Format
-   2. 
-3. Files shall be accessible via a BE service for BE processes.
+      - [ ] AI -> FE transformation
+   2. Submission: Accepted upload format
+      - [x] pdf
+      - [ ] zip
+      - [ ] misc
+3. Files shall be accessible via a BE service for BE.processes.
+4. Files shall be tracked by the database.
 
 ## Uploads/
 MVP solution is to store files to an uploads folder.

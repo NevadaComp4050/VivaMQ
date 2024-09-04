@@ -16,13 +16,13 @@ export default function Login() {
       <Card className="w-auto place-content-center p-10">
         <CardTitle>Login</CardTitle>
         <CardContent className="mt-5">
-          <Input placeholder="OneID" className="flex md:w-96 sm:w-auto mb-5" />
+          <Input type="number" placeholder="OneID" className="flex md:w-96 sm:w-auto mb-5" />
           <Input
             type="password"
             placeholder="Password"
             className="flex md:w-96 sm:w-auto mb-5"
           />
-          <Button className="float-right" variant="default" size="default">
+          <Button className="float-right" variant="default" type="submit" size="default">
             <Link href={"/dashboard"}>Login</Link>
           </Button>
           <p className="text-xs opacity-50">

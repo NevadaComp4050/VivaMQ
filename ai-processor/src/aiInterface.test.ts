@@ -1,6 +1,7 @@
 import * as amqp from 'amqplib';
 import { startMessageProcessor } from './aiInterface';
 import { Connection, Channel, ConsumeMessage } from 'amqplib';
+import { pdfToText } from './extractPDF';
 
 
 describe('RabbitMQ Integration Test', () => {
@@ -32,7 +33,7 @@ describe('RabbitMQ Integration Test', () => {
   });
 
   test('should send and receive a message to/from the queue', async () => {
-    const testMessage = 'Explain to me the purpose of life';
+    const testMessage = await pdfToText("src/PDFs/pdf_9.pdf");
     const uuid = '12345';
     const expectedBuffer = Buffer.from(JSON.stringify([testMessage, uuid]));
 
@@ -62,5 +63,5 @@ describe('RabbitMQ Integration Test', () => {
 
     // Verify that the received message is as expected
    // expect(receivedMessages[0]).toEqual(expectedBuffer);
-  });
+  }, 10000);
 });

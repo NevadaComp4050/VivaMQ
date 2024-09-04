@@ -13,7 +13,6 @@ export default class UploadService{
             fs.mkdirSync(this.uploadDir, { recursive: true });
         }
     }
-
     // Configure multer
     private readonly storage = multer.diskStorage({
         destination: (req, file, cb) => {
@@ -27,14 +26,12 @@ export default class UploadService{
     private readonly filesys = multer({ storage: this.storage });
 
     // Upload file
-    // 
     public async upload(field : string){
         // Ensure field = 'file'
         return this.filesys.single(field);
     };
 
     // Download file
-    // 
     public async download(res : Response, URI : string){
         const filePath = path.join(__dirname, '../uploads', URI);
         if (fs.existsSync(filePath)) {
@@ -44,4 +41,14 @@ export default class UploadService{
         }
         return;
     };
+
+    // Service to delete a file
+    public async delete(URI : string){
+        const filepath = path.join(__dirname, '../uploads', URI);
+        fs.rm(filepath, function (err) {
+            if (err) throw err;
+            // if no error, file has been deleted successfully
+            console.log('File deleted!');
+        });
+    }
 }

@@ -14,7 +14,7 @@ export default class FileIOController extends Api {
   
   // Upload TOO Server
   /**
-  * This function takes a request matches on its 
+  * This function takes a request 
   * and passes it to a requestHandler that matches
   * on the 'file' field of that request.
   * The file is saved for later retrieval.
@@ -25,6 +25,7 @@ export default class FileIOController extends Api {
     next: NextFunction
   ) => {
     try {
+      //console.log(req);
       const func = await this.UploadService.upload('file');
       func(req,res,(err) => {
         if (err) {

@@ -18,6 +18,7 @@ export default function Login() {
         <CardContent className="mt-5">
           <Input placeholder="OneID" className="flex md:w-96 sm:w-auto mb-5" />
           <Input
+            type="password"
             placeholder="Password"
             className="flex md:w-96 sm:w-auto mb-5"
           />

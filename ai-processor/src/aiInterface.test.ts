@@ -32,6 +32,21 @@ describe('RabbitMQ Integration Test', () => {
     }
   });
 
+  test('should establish a connection to RabbitMQ', async () => {
+    expect(connection).toBeDefined();
+  });
+
+  test('should create and assert queue', async () => {
+    expect(channel).toBeDefined();
+    const queueName = 'BEtoAI';
+    await channel.assertQueue(queueName, { durable: false });
+    const queue = await channel.checkQueue(queueName);
+    expect(queue).toBeDefined();
+    expect(queue.queue).toBe(queueName);
+  });
+
+
+
   test('should send and receive a message to/from the queue', async () => {
     const testMessage = await pdfToText("src/PDFs/pdf_9.pdf");
     const uuid = '12345';
@@ -54,6 +69,7 @@ describe('RabbitMQ Integration Test', () => {
           console.log(` [x] Received '${msg.content.toString()}'`);
           receivedMessages.push(msg.content);
           channel.ack(msg);
+          expect(receivedMessages).toHaveLength(1);
           if (receivedMessages.length === 1) {
             resolve();
           }

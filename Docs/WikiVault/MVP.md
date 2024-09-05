@@ -38,7 +38,7 @@ If you want to test these endpoints follow these steps
 ## Dataflow
 
 ```mermaid
-flowchart 
+flowchart
 subgraph user
     usrFile[Submission File]
 end

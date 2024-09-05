@@ -6,7 +6,7 @@ dotenv.config();
 
 
 const client = new OpenAI({
-  apiKey: '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',
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 type OpenAIEndpoint = "/v1/chat/completions";

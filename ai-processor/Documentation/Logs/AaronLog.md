@@ -129,8 +129,14 @@ Initial documentation for `Development and Usage guide.md`
 - 
 Created `serviceSimulator.js` to mock BE queries throught RabbitMQ
 
-
+*** need to be more consistent with logs ***
 Wednesday 28/08
+cleaned up src folder
+- moved items to deprecated
+- consolidated documentation
+- updated team log
+
+Saturday 
 
 # Week 7/8 (Sprint 2)
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import {
@@ -12,64 +12,141 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { LockIcon, RefreshCwIcon, CheckIcon, XIcon } from "lucide-react";
+import { LockIcon, RefreshCwIcon, CheckIcon } from "lucide-react";
+
+interface Question {
+  id: string;
+  text: string;
+  status: "Locked" | "Unlocked";
+}
+
+interface Viva {
+  id: string;
+  studentName: string;
+  assignmentName: string;
+  submissionDate: string;
+  content: string;
+  questions: Question[];
+}
 
 export default function VivaPage({
   params,
 }: {
   params: { unitId: string; assignmentId: string; vivaId: string };
 }) {
-  const [viva, setViva] = useState({
-    id: params.vivaId,
-    studentName: "John Doe",
-    assignmentName: "Database Normalization",
-    submissionDate: "2023-06-10",
-    content:
-      "This is the content of John's submission about database normalization...",
-    questions: [
-      {
-        id: 1,
-        text: "Explain the concept of 3NF in database design.",
-        status: "Locked",
-      },
-      {
-        id: 2,
-        text: "Describe the differences between 1NF, 2NF, and 3NF.",
-        status: "Unlocked",
-      },
-      {
-        id: 3,
-        text: "What are the advantages of using BCNF over 3NF?",
-        status: "Unlocked",
-      },
-    ],
-  });
+  const [viva, setViva] = useState<Viva | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLockQuestion = (questionId: number) => {
-    setViva((prev) => ({
-      ...prev,
-      questions: prev.questions.map((q) =>
-        q.id === questionId
-          ? { ...q, status: q.status === "Locked" ? "Unlocked" : "Locked" }
-          : q
-      ),
-    }));
+  useEffect(() => {
+    const fetchViva = async () => {
+      try {
+        const response = await fetch(
+          `/api/units/${params.unitId}/assignments/${params.assignmentId}/vivas/${params.vivaId}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch viva");
+        }
+        const data: Viva = await response.json();
+        setViva(data);
+      } catch (err) {
+        setError("Error fetching viva data");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchViva();
+  }, [params.unitId, params.assignmentId, params.vivaId]);
+
+  const handleLockQuestion = async (questionId: string) => {
+    if (!viva) return;
+    try {
+      const response = await fetch(
+        `/api/vivas/${params.vivaId}/questions/${questionId}/toggle-lock`,
+        {
+          method: "POST",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to toggle question lock");
+      }
+      const updatedQuestion: Question = await response.json();
+      setViva({
+        ...viva,
+        questions: viva.questions.map((q) =>
+          q.id === questionId ? updatedQuestion : q
+        ),
+      });
+    } catch (err) {
+      console.error("Error toggling question lock:", err);
+    }
   };
 
-  const handleRegenerateQuestion = (questionId: number) => {
-    // Handle question regeneration logic here
-    console.log("Regenerating question:", questionId);
+  const handleRegenerateQuestion = async (questionId: string) => {
+    if (!viva) return;
+    try {
+      const response = await fetch(
+        `/api/vivas/${params.vivaId}/questions/${questionId}/regenerate`,
+        {
+          method: "POST",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to regenerate question");
+      }
+      const updatedQuestion: Question = await response.json();
+      setViva({
+        ...viva,
+        questions: viva.questions.map((q) =>
+          q.id === questionId ? updatedQuestion : q
+        ),
+      });
+    } catch (err) {
+      console.error("Error regenerating question:", err);
+    }
   };
 
-  const handleApproveQuestions = () => {
-    // Handle question approval logic here
-    console.log("Approving all questions for viva:", viva.id);
+  const handleApproveQuestions = async () => {
+    try {
+      const response = await fetch(
+        `/api/vivas/${params.vivaId}/approve-questions`,
+        {
+          method: "POST",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to approve questions");
+      }
+      // Handle success (e.g., show a success message or update UI)
+      console.log("Questions approved successfully");
+    } catch (err) {
+      console.error("Error approving questions:", err);
+    }
   };
 
-  const handleMarkComplete = () => {
-    // Handle marking viva as complete
-    console.log("Marking viva as complete:", viva.id);
+  const handleMarkComplete = async () => {
+    try {
+      const response = await fetch(
+        `/api/vivas/${params.vivaId}/mark-complete`,
+        {
+          method: "POST",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to mark viva as complete");
+      }
+      // Handle success (e.g., show a success message or redirect)
+      console.log("Viva marked as complete");
+    } catch (err) {
+      console.error("Error marking viva as complete:", err);
+    }
   };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!viva) return <div>No viva found</div>;
 
   return (
     <div className="p-8">

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -16,24 +16,33 @@ import {
 import Link from "next/link";
 
 export default function UnitPage({ params }: { params: { unitId: string } }) {
-  const [unit, setUnit] = useState({
-    id: params.unitId,
-    name: "Advanced Database Systems",
-    description:
-      "This unit covers advanced topics in database systems including normalization, query optimization, and distributed databases.",
-    assignments: 3,
-    tutors: 2,
-    assignmentStats: [
-      { name: "Assignment 1", submissions: 45, completed: 40, average: 75 },
-      { name: "Assignment 2", submissions: 42, completed: 38, average: 72 },
-      { name: "Assignment 3", submissions: 40, completed: 35, average: 78 },
-    ],
-    vivaStats: [
-      { name: "Viva 1", scheduled: 40, completed: 35, averageScore: 80 },
-      { name: "Viva 2", scheduled: 38, completed: 33, averageScore: 75 },
-      { name: "Viva 3", scheduled: 35, completed: 30, averageScore: 82 },
-    ],
-  });
+  const [unit, setUnit] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUnit = async () => {
+      try {
+        const response = await fetch(`/api/units/${params.unitId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch unit');
+        }
+        const data = await response.json();
+        setUnit(data);
+      } catch (err) {
+        setError('Error fetching unit data');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUnit();
+  }, [params.unitId]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!unit) return <div>No unit found</div>;
 
   return (
     <div className="p-8">

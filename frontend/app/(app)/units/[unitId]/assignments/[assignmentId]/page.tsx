@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import {
@@ -24,35 +24,35 @@ export default function AssignmentPage({
 }: {
   params: { unitId: string; assignmentId: string };
 }) {
-  const [assignment, setAssignment] = useState({
-    id: params.assignmentId,
-    name: "Database Normalization",
-    description: "Analyze and normalize the given database schema.",
-    dueDate: "2023-06-15",
-    submissions: [
-      {
-        id: 1,
-        studentName: "John Doe",
-        submissionDate: "2023-06-10",
-        status: "Submitted",
-        vivaStatus: "Pending",
-      },
-      {
-        id: 2,
-        studentName: "Jane Smith",
-        submissionDate: "2023-06-12",
-        status: "Submitted",
-        vivaStatus: "Completed",
-      },
-      {
-        id: 3,
-        studentName: "Alice Johnson",
-        submissionDate: "-",
-        status: "Not Submitted",
-        vivaStatus: "Not Available",
-      },
-    ],
-  });
+  const [assignment, setAssignment] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAssignment = async () => {
+      try {
+        const response = await fetch(
+          `/api/units/${params.unitId}/assignments/${params.assignmentId}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch assignment");
+        }
+        const data = await response.json();
+        setAssignment(data);
+      } catch (err) {
+        setError("Error fetching assignment data");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAssignment();
+  }, [params.unitId, params.assignmentId]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!assignment) return <div>No assignment found</div>;
 
   return (
     <div className="p-8">
@@ -112,7 +112,7 @@ export default function AssignmentPage({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {assignment.submissions.map((submission) => (
+                  {assignment.submissions.map((submission: any) => (
                     <TableRow key={submission.id}>
                       <TableCell>{submission.studentName}</TableCell>
                       <TableCell>{submission.submissionDate}</TableCell>
@@ -149,7 +149,7 @@ export default function AssignmentPage({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {assignment.submissions.map((submission) => (
+                  {assignment.submissions.map((submission: any) => (
                     <TableRow key={submission.id}>
                       <TableCell>{submission.studentName}</TableCell>
                       <TableCell>{submission.vivaStatus}</TableCell>

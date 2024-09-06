@@ -8,17 +8,12 @@ import { zodResponseFormat } from "openai/helpers/zod";
 // question structure
 const Question = z.object({
   question_text: z.string(),
-});
-
-// idk copied off Deb
-const Category = z.object({
-  category_name: z.string(),
-  questions: z.array(Question),
+  question_category: z.string()
 });
 
 // zod API response: array of categories
 const QuestionResponse = z.object({
-  categories: z.array(Category),
+  questions: z.array(Question),
 });
 
 // env API key

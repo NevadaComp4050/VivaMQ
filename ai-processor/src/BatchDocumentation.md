@@ -18,7 +18,6 @@ An example `.json` file:
 ```
 
 ## Code explanation:
-
 **Import necessary modules and load the environment variable from a '.env' file:**
 ```javascript
 import fs from 'fs';

@@ -149,16 +149,23 @@ Status update:
 - Documentation can be improved by removing 'bloating'
 
 
+
 Issues with sprint
-- Zarin
-- Rahik
-- Eli
-- Aaron
+- Zarin - more than 5 questions, time limit on responses, computer problems,
+- Rahik - billing hard limit, batch limit reached, input file path problem
+- Eli - integrating JEST, 
+- Aaron - 
 
 Next weeks tasks assigned
-- Zarin
-- Rahik
-- Eli
-- Aaron
+- Eli/Zarin - JEST Testing: 
+    - functionality, error handling and performance (around 12ish tests) + 
+    - documentation: general overview, how to set it up and how to run it
+- Rahik - slides created and draft ready by Monday with the criteria from Kates notes on iLearn
+- Aaron - need to make deployable
+
+Successful Integration with BE
+TBA 
 
 All tasks updated on GitHub Projects
+
+Embeddings

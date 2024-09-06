@@ -22,7 +22,7 @@ export async function startMessageProcessor() {
         const contentSplit = JSON.parse(content);
 
         const response = await promptSubUUID(
-          "Generate five viva questions based on this document that assess: the student's understanding of the material, their ability to discuss the concepts, and their capacity to expand on the ideas.",
+          "This is a submission by a university student. Generate five viva questions based on this document that assess: the student's understanding of the material, their ability to discuss the concepts, and their capacity to expand on the ideas.",
           contentSplit[0],
           contentSplit[1]
         );
@@ -36,5 +36,5 @@ export async function startMessageProcessor() {
   }
 }
 
-
+startMessageProcessor();
 // ------------------- debugging --------------------//

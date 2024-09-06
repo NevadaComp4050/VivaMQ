@@ -1,5 +1,5 @@
 import * as amqp from "amqplib";
-import { pdfToText } from "./extractPDF";
+import { pdfToText } from "../src/extractPDF";
 // ------------------- debugging --------------------//
 
 (async () => {
@@ -22,8 +22,8 @@ A key focus in nuclear physics is nuclear reactions, such as fission and fusion.
 Beyond energy, nuclear physics has numerous practical applications. In medicine, radioactive isotopes are used in imaging techniques like PET scans and in radiation therapy to target cancer cells. Radiocarbon dating, a tool in archaeology and geology, relies on the predictable decay of carbon-14 isotopes to determine the age of organic materials, aiding in historical and environmental research. Additionally, nuclear physics has contributed to the development of particle physics, offering insights into the fundamental particles and forces that shape our universe. These diverse applications highlight the profound impact of nuclear physics on both science and everyday life.
 `;
         const u = "12345"; //represents the UUID
-        const pdf = pdfToText('./PDFs/example.pdf')
-        const sendMsg = Buffer.from(JSON.stringify([s,u]));        
+        const pdf = pdfToText('../src/PDFs/pdf_9.pdf')
+        const sendMsg = Buffer.from(JSON.stringify([pdf,u]));        
         channel.sendToQueue(sendQueue, sendMsg);
         channel.consume(receiveQueue, async (msg: amqp.ConsumeMessage | null) => {
             if (msg) {

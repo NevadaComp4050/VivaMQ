@@ -14,17 +14,7 @@ const controller = new Controller();
  * @param {} request.body.required
  * @return {} 
  */
-FileIO.post(
-  '/upload',
-  verifyAuthToken,
-  controller.handleFileUpload,
-  (req, res) => {
-    if (!req.file) {
-      return res.status(400).send('No file uploaded.');
-    }
-    res.send(`File uploaded: ${req.file.originalname}`);
-  }
-);
+FileIO.post('/upload', verifyAuthToken, controller.handleFileUpload);
 
 /**
  * GET /file/download
@@ -33,11 +23,7 @@ FileIO.post(
  * @param None
  * @return {} - return file
  */
-FileIO.get(
-  '/download/:filename',
-  verifyAuthToken,
-  controller.handleFileDownload
-);
+FileIO.get('/download/:filename', verifyAuthToken, controller.handleFileDownload);
 
 // Delete
 

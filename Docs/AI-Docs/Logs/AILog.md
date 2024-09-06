@@ -169,3 +169,20 @@ TBA
 All tasks updated on GitHub Projects
 
 Embeddings
+~~~ js
+mvp process
+user gets on application
+application allows user to CRUD a unit
+application allows user to CRUD an assignment
+application allows user to upload a single document at a time for processing
+application shows user a list of questions generated from the document
+~~~
+
+~~~ js
+mvp process
+user gets on application
+application allows user to CRUD a unit
+application allows user to CRUD an assignment
+application allows user to upload a single document at a time for processing
+application shows user a list of questions generated from the document
+~~~

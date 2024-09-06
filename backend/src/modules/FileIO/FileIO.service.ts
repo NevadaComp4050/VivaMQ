@@ -2,7 +2,6 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { Response } from 'express';
-import { createHash } from 'crypto';
 
 
 export default class UploadService{
@@ -19,33 +18,16 @@ export default class UploadService{
         destination: (req, file, cb) => {
             cb(null, this.uploadDir);
         },
-        //*
         filename: (req, file, cb) => {
             cb(null, file.originalname);
         },
-        // */
     });
     // Define fileIO service
     private readonly filesys = multer({ storage: this.storage });
 
-    // #####
-    // Function to generate a SHA-256 hash from the file's content
-    public generateSHA256Hash(filePath: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const hash = createHash('sha256');
-            const stream = fs.createReadStream(filePath);
-        
-            stream.on('data', (data) => hash.update(data));
-            stream.on('end', () => resolve(hash.digest('hex')));
-            stream.on('error', (err) => reject(err));
-        });
-    }
-
-    
     // Upload file
     public async upload(field : string){
         // Ensure field = 'file'
-        //console.log(createHash);
         return this.filesys.single(field);
     };
 

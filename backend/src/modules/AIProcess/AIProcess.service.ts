@@ -16,12 +16,29 @@ export default class AIProcessService{
         this.initialise();
     }
 
+    
     private async initialise(){
 
         this.connection = await amqp.connect("amqp://localhost");
         this.channel = await this.connection.createChannel();
         await this.channel.assertQueue(receiveQueue, { durable: false });
         await this.channel.assertQueue(sendQueue, { durable: false });
+        this.channel.consume(receiveQueue, async (msg: amqp.ConsumeMessage | null) => {
+            if (msg) {
+                //console.log(` [x] Received '${msg.content.toString()}'`);
+                console.log(
+                    JSON.parse(
+                        msg.content.toString()
+                    )[0].text
+                );
+                console.log(
+                    JSON.parse(
+                        msg.content.toString()
+                    )[1]
+                );
+                this.channel.ack(msg);
+            }
+        });
     }
 
     // Stub code for MVP
@@ -33,13 +50,7 @@ export default class AIProcessService{
         const s = pdfText;
         const sendMsg = Buffer.from(JSON.stringify([s,"12345"])); 
         this.channel.sendToQueue(sendQueue, sendMsg);
-        this.channel.consume(receiveQueue, async (msg: amqp.ConsumeMessage | null) => {
-            if (msg) {
-                console.log(` [x] Received '${msg.content.toString()}'`);
-                this.channel.ack(msg);
-
-            }
-        });
+        
     }
 }
 

@@ -14,7 +14,9 @@ export default class AIProcessController extends Api{
     ) => {
         try {
             const filename = req.params.filename;
+            // Create Viva in DB
             this.AIProcService.sendpdf(filename);
+            next();
         } catch  (e) {
             next(e)
         }

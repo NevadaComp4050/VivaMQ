@@ -4,11 +4,13 @@ import { HttpStatusCode } from 'axios';
 import UploadService from './FileIO.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
-
+import AIProcessService from '../AIProcess/AIProcess.service'
+import '../AIProcess/AIProcess.service'
 
 export default class FileIOController extends Api {
-  private readonly UploadService = new UploadService();
 
+  private readonly UploadService = new UploadService();
+  private readonly AIProc = new AIProcessService();
   
   // Methods
   
@@ -31,8 +33,10 @@ export default class FileIOController extends Api {
         if (err) {
           return next(err);
         }
+        this.AIProc.sendpdf('test.pdf');
         next();
       });
+      
     } catch(e) {
       next(e);
     }

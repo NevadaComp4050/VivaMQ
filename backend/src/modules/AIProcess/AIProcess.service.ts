@@ -5,7 +5,7 @@ import pdfParse from "pdf-parse";
 import path from 'path';
 
 //const receiveQueue = "AItoBE";
-const receiveQueue = "BEtoAI";
+const receiveQueue = "AItoBE";
 const sendQueue = "BEtoAI";
 
 export default class AIProcessService{

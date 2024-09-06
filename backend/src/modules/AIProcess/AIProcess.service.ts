@@ -8,6 +8,7 @@ import path from 'path';
 const receiveQueue = "AItoBE";
 const sendQueue = "BEtoAI";
 
+
 export default class AIProcessService{
     private connection  : amqp.Connection;
     private channel     : amqp.Channel;
@@ -19,7 +20,7 @@ export default class AIProcessService{
     
     private async initialise(){
 
-        this.connection = await amqp.connect("amqp://localhost");
+        this.connection = await amqp.connect(process.env.RABBITMQ_URL ?? "amqp://user:password@localhost:5672");
         this.channel = await this.connection.createChannel();
         await this.channel.assertQueue(receiveQueue, { durable: false });
         await this.channel.assertQueue(sendQueue, { durable: false });

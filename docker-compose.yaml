@@ -59,8 +59,6 @@ services:
       - "5000:5000"
     env_file:
       - ./ai-processor/.env
-    environment:
-      - RABBITMQ_URL=${RABBITMQ_URL}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/"]
       interval: 30s

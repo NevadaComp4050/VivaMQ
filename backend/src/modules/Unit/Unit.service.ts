@@ -14,16 +14,18 @@ export default class UnitService {
     return units;
   }
 
-  public async getUnitById(id: string) {
+  public async getUnit(id: string) {
     const unit = await prisma.unit.findUnique({
       where: { id },
     });
     return unit;
   }
 
-  public async deleteUnits() {
-    const { count } = await prisma.unit.deleteMany();
-    return count;
+  public async deleteUnit(id: string){
+    const unit =  await prisma.unit.delete({
+      where: { id },
+    });
+      return unit;
   }
 
   public async updateUnitName(id: string, name: string) {

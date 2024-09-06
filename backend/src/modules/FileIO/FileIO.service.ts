@@ -1,51 +1,47 @@
-
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { Request, Response, NextFunction } from 'express';
+import { Response } from 'express';
 
 
 export default class UploadService{
-
-    // Upload file
-
-    // Download file
-
-    /*
-    const filedir = '../uploads'
+    // File system configuration
+    private readonly uploadDir = path.join(__dirname, '../uploads');
+    constructor() {
+        // Loadbearing coconut no longer needed :(
+        if (!fs.existsSync(this.uploadDir)) {
+            fs.mkdirSync(this.uploadDir, { recursive: true });
+        }
+    }
 
     // Configure multer
-    const storage = multer.diskStorage({
+    private readonly storage = multer.diskStorage({
         destination: (req, file, cb) => {
-            cb(null, path.join(__dirname, '../uploads'));
+            cb(null, this.uploadDir);
         },
         filename: (req, file, cb) => {
             cb(null, file.originalname);
         },
     });
+    // Define fileIO service
+    private readonly filesys = multer({ storage: this.storage });
 
-    const upload = multer({ storage });
-
-    // Function to handle file uploads
-    const handleFileUpload = upload.single('file');
-
-    const handleFileDownload = async (
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ) => {
-        try {
-            const filename = req.params.filename
-            // Consider forcing this directory to exist
-            const filePath = path.join(__dirname, '../uploads', filename);
-            if (fs.existsSync(filePath)) {
-                res.download(filePath);
-            } else {
-                res.status(404).send('File not found.');
-            }
-        } catch (e) {
-            next(e);
-        }
+    // Upload file
+    // 
+    public async upload(field : string){
+        // Ensure field = 'file'
+        return this.filesys.single(field);
     };
-    */
+
+    // Download file
+    // 
+    public async download(res : Response, URI : string){
+        const filePath = path.join(__dirname, '../uploads', URI);
+        if (fs.existsSync(filePath)) {
+            res.download(filePath);
+        } else {
+            res.status(404).send('File not found.');
+        }
+        return;
+    };
 }

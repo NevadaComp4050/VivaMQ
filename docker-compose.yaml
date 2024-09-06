@@ -13,6 +13,7 @@ services:
     depends_on:
       - mysql
       - rabbitmq
+      - redis
 
   frontend:
     build:
@@ -42,6 +43,11 @@ services:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
 
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
   ai-processor:
     build:
       context: ./ai-processor
@@ -51,7 +57,7 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - rabbitmq
-
+      - redis
 
 volumes:
   mysql-data:

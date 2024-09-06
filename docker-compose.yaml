@@ -4,10 +4,11 @@ services:
       context: ./backend
     ports:
       - "8080:8080"
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - RABBITMQ_URL=${RABBITMQ_URL}
+    env_file:
+      - ./backend/.env
     depends_on:
+      ai-processor:
+        condition: service_healthy
       mysql:
         condition: service_healthy
       rabbitmq:
@@ -60,9 +61,15 @@ services:
       - ./ai-processor/.env
     environment:
       - RABBITMQ_URL=${RABBITMQ_URL}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
       rabbitmq:
         condition: service_healthy
+
 
 volumes:
   mysql-data:

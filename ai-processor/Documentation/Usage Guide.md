@@ -33,8 +33,61 @@ Setup instructions are provided below, here is an overview.
    Make OpenAI API key part of your environment variables (depends on your OS) `export OPENAI_API_KEY='your-openai-api-key'`
 
 
-#### Development Tips
 ### 4. Example Workflow
+1. open two CLIs
+   1. run ts-node aiInterface.ts on on CLI
+   2. run ts-node beSkel.ts (or the BE service) on the other CLI
+2. The input for beSkel.ts is fixed but you can change to any string the `const s = ...` and the `const u = ... `
+### 5. Backend integration
+1. A working implementation can be seen in the beSkel.ts file. 
+2. You will need to initiate the connection using.
+   ```javascript 
+       try {
+        const connection = await amqp.connect("amqp://localhost");
+        const channel = await connection.createChannel();
+    
+        const sendQueue = "BEtoAI";
+        const receiveQueue = "AItoBE";
+    
+        await channel.assertQueue(receiveQueue, { durable: false });
+        await channel.assertQueue(sendQueue, { durable: false });
+
+         //here you will set 's' to be a submission string input and a unique identifier 'u'
+
+        const sendMsg = Buffer.from(JSON.stringify([s,u]));        
+        channel.sendToQueue(sendQueue, sendMsg);
+        channel.consume(receiveQueue, async (msg: amqp.ConsumeMessage | null) => {
+            if (msg) {
+                console.log(` [x] Received '${msg.content.toString()}'`);
+                channel.ack(msg);
+
+            }
+        });
+       }
+   ```
+3. The response will be in json format. Here is an example output (formatted for readability)
+   ```javascript
+   ["{\"categories\":[
+   
+   {\"category_name\":\"Concepts and Definitions\",        
+   \"questions\":
+   [{\"question_text\":\"What are the primary components of atomic nuclei studied in nuclear physics?\"},
+   {\"question_text\":\"Explain the concept of nuclear binding energy and its relation to stability.\"}]},
+   
+   {\"category_name\":\"Forces and Interactions\",
+   \"questions\":
+   [{\"question_text\":\"What is the role of the strong nuclear force in atomic nuclei?\"},
+   {\"question_text\":\"How does Einstein’s equation E=mc^2 relate to nuclear physics?\"}]},
+   
+   {\"category_name\":\"Applications\",
+   \"questions\":[{\"question_text\":\"List and describe three practical applications of nuclear physics in different fields.\"}]}
+   ]
+   }",
+   "12345"]
+   ```
+   
+4. Once you have done your integration of the above code you can run using `## 4.Example workflow`
+
 ### 5. Error Handling
 
 - **Connection Errors**: Ensure RabbitMQ is running and accessible.

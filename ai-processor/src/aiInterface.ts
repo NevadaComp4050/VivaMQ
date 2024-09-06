@@ -1,7 +1,8 @@
 import { promptSubUUID } from "./openAIAPI";
 import * as amqp from "amqplib";
 
-(async () => {
+// Define the function to encapsulate the RabbitMQ logic
+export async function startMessageProcessor() {
   try {
     const connection = await amqp.connect("amqp://localhost");
     const channel = await connection.createChannel();
@@ -16,13 +17,12 @@ import * as amqp from "amqplib";
       ` [*] Waiting for messages in '${receiveQueue}'. To exit press CTRL+C`
     );
     channel.consume(receiveQueue, async (msg: amqp.ConsumeMessage | null) => {
-      
       if (msg) {
         const content = msg.content.toString();
         const contentSplit = JSON.parse(content);
-        
+
         const response = await promptSubUUID(
-          "return five questions to assess understanding of the following prompt",
+          "Generate five viva questions based on this document that assess: the student's understanding of the material, their ability to discuss the concepts, and their capacity to expand on the ideas.",
           contentSplit[0],
           contentSplit[1]
         );
@@ -34,7 +34,7 @@ import * as amqp from "amqplib";
   } catch (error) {
     console.error("Error:", error);
   }
-})();
+}
 
 
 // ------------------- debugging --------------------//

@@ -24,7 +24,7 @@ export default class AIProcessService{
         await this.channel.assertQueue(sendQueue, { durable: false });
     }
 
-
+    // Stub code for MVP
     public async sendpdf(pdfPath : string){
         const filePath = path.join(__dirname, '../uploads', pdfPath);
 

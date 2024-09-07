@@ -108,29 +108,29 @@ export default function EditRubric({ params }: { params: { id: string } }) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setRubric((prev: any) => prev ? { ...prev, [name]: value } : null)
+    setRubric(prev => prev ? { ...prev, [name]: value } : null)
   }
 
   const handleSelectChange = (name: string, value: string) => {
-    setRubric((prev: any) => prev ? { ...prev, [name]: value } : null)
+    setRubric(prev => prev ? { ...prev, [name]: value } : null)
   }
 
   const handleCriterionChange = (id: number, field: 'name' | 'marks', value: string | number) => {
-    setRubric((prev: { criteria: any[] }) => {
+    setRubric(prev => {
       if (!prev) return null
       return {
         ...prev,
-        criteria: prev.criteria.map((c: { id: number }) => c.id === id ? { ...c, [field]: value } : c)
+        criteria: prev.criteria.map(c => c.id === id ? { ...c, [field]: value } : c)
       }
     })
   }
 
   const handleDescriptorChange = (criterionId: number, grade: string, value: string) => {
-    setRubric((prev: { criteria: any[] }) => {
+    setRubric(prev => {
       if (!prev) return null
       return {
         ...prev,
-        criteria: prev.criteria.map((c: { id: number; descriptors: any }) => 
+        criteria: prev.criteria.map(c => 
           c.id === criterionId 
             ? { ...c, descriptors: { ...c.descriptors, [grade]: value } } 
             : c
@@ -140,7 +140,7 @@ export default function EditRubric({ params }: { params: { id: string } }) {
   }
 
   const handleAddCriterion = () => {
-    setRubric((prev: { criteria: string | any[] }) => {
+    setRubric(prev => {
       if (!prev) return null
       return {
         ...prev,
@@ -179,11 +179,11 @@ export default function EditRubric({ params }: { params: { id: string } }) {
       const response = await fetch('/api/generate-rubric', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ criteria: rubric.criteria.map((c: { name: any; marks: any }) => ({ name: c.name, marks: c.marks })) })
+        body: JSON.stringify({ criteria: rubric.criteria.map(c => ({ name: c.name, marks: c.marks })) })
       })
       if (response.ok) {
         const generatedCriteria = await response.json()
-        setRubric((prev: any) => prev ? { ...prev, criteria: generatedCriteria } : null)
+        setRubric(prev => prev ? { ...prev, criteria: generatedCriteria } : null)
       } else {
         throw new Error('Failed to generate rubric')
       }
@@ -233,12 +233,12 @@ export default function EditRubric({ params }: { params: { id: string } }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="unit">Unit</Label>
-                <Select value={rubric.unit} onValueChange={(value: string) => handleSelectChange('unit', value)}>
+                <Select value={rubric.unit} onValueChange={(value) => handleSelectChange('unit', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Unit" />
                   </SelectTrigger>
                   <SelectContent>
-                    {units.map((unit: { id: any; name: any }) => (
+                    {units.map((unit) => (
                       <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -246,12 +246,12 @@ export default function EditRubric({ params }: { params: { id: string } }) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="assignment">Assignment</Label>
-                <Select value={rubric.assignment} onValueChange={(value: string) => handleSelectChange('assignment', value)}>
+                <Select value={rubric.assignment} onValueChange={(value) => handleSelectChange('assignment', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Assignment" />
                   </SelectTrigger>
                   <SelectContent>
-                    {assignments.map((assignment: { id: any; name: any }) => (
+                    {assignments.map((assignment) => (
                       <SelectItem key={assignment.id} value={assignment.id}>{assignment.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -262,7 +262,7 @@ export default function EditRubric({ params }: { params: { id: string } }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="year">Year</Label>
-                <Select value={rubric.year} onValueChange={(value: string) => handleSelectChange('year', value)}>
+                <Select value={rubric.year} onValueChange={(value) => handleSelectChange('year', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Year" />
                   </SelectTrigger>
@@ -274,7 +274,7 @@ export default function EditRubric({ params }: { params: { id: string } }) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="session">Session</Label>
-                <Select value={rubric.session} onValueChange={(value: string) => handleSelectChange('session', value)}>
+                <Select value={rubric.session} onValueChange={(value) => handleSelectChange('session', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Session" />
                   </SelectTrigger>
@@ -288,18 +288,18 @@ export default function EditRubric({ params }: { params: { id: string } }) {
 
             <div className="space-y-2">
               <Label>Criteria</Label>
-              {rubric.criteria.map((criterion: { id: number; name: any; marks: any }) => (
+              {rubric.criteria.map((criterion) => (
                 <div key={criterion.id} className="flex space-x-2">
                   <Input
                     placeholder="Criterion name"
                     value={criterion.name}
-                    onChange={(e: { target: { value: string | number } }) => handleCriterionChange(criterion.id, 'name', e.target.value)}
+                    onChange={(e) => handleCriterionChange(criterion.id, 'name', e.target.value)}
                   />
                   <Input
                     type="number"
                     placeholder="Marks"
                     value={criterion.marks}
-                    onChange={(e: { target: { value: string } }) => handleCriterionChange(criterion.id, 'marks', parseInt(e.target.value))}
+                    onChange={(e) => handleCriterionChange(criterion.id, 'marks', parseInt(e.target.value))}
                   />
                 </div>
               ))}
@@ -336,14 +336,14 @@ export default function EditRubric({ params }: { params: { id: string } }) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {rubric.criteria.map((criterion: { id: number; name: any; descriptors: { [x: string]: any }; marks: any }) => (
+                    {rubric.criteria.map((criterion) => (
                       <TableRow key={criterion.id}>
                         <TableCell>{criterion.name}</TableCell>
                         {gradeDescriptors.map((grade) => (
                           <TableCell key={grade}>
                             <Textarea
                               value={criterion.descriptors[grade] || ''}
-                              onChange={(e: { target: { value: string } }) => handleDescriptorChange(criterion.id, grade, e.target.value)}
+                              onChange={(e) => handleDescriptorChange(criterion.id, grade, e.target.value)}
                               placeholder={`${grade} descriptor`}
                             />
                           </TableCell>

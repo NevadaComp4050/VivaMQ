@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -25,31 +25,36 @@ import Link from "next/link";
 export default function UnitVivasPage({
   params,
 }: {
-  params: { unitId: string };
+  params: { unitId: string; assignmentId: string };
 }) {
-  const [vivas, setVivas] = useState([
-    {
-      id: 1,
-      studentName: "John Doe",
-      assignment: "Database Normalization",
-      status: "Pending",
-    },
-    {
-      id: 2,
-      studentName: "Jane Smith",
-      assignment: "Query Optimization",
-      status: "Completed",
-    },
-    {
-      id: 3,
-      studentName: "Alice Johnson",
-      assignment: "Distributed Databases",
-      status: "In Progress",
-    },
-  ]);
+  const [vivas, setVivas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAssignment, setSelectedAssignment] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+
+  useEffect(() => {
+    const fetchVivas = async () => {
+      try {
+        const response = await fetch(
+          `/api/units/${params.unitId}/assignments/${params.assignmentId}/vivas`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch vivas");
+        }
+        const data = await response.json();
+        setVivas(data);
+      } catch (err) {
+        setError("Error fetching vivas data");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVivas();
+  }, [params.unitId, params.assignmentId]);
 
   const filteredVivas = vivas.filter(
     (viva) =>
@@ -59,12 +64,14 @@ export default function UnitVivasPage({
       (selectedStatus === "" || viva.status === selectedStatus)
   );
 
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-6">
-        Vivas for Unit {params.unitId}
+        Vivas for Unit {params.unitId}, Assignment {params.assignmentId}
       </h1>
-
       <Card>
         <CardHeader>
           <CardTitle>Vivas</CardTitle>

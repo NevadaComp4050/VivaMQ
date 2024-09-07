@@ -4,6 +4,7 @@ import { HttpStatusCode } from 'axios';
 import SubmissionService from './Submission.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
+import { queueVivaGeneration } from '@/vivaGenerationQueue';
 
 export default class SubmissionController extends Api {
   private readonly submissionService = new SubmissionService();
@@ -14,8 +15,22 @@ export default class SubmissionController extends Api {
     next: NextFunction
   ) => {
     try {
-      const newSubmission = await this.submissionService.createSubmission(req.body);
+      
+      const { file } = req;
+      const filePath = file ? file.path : '';
+
+      
+      const submissionData = {
+        ...req.body,
+        submissionFile: filePath,
+      };
+
+      const newSubmission = await this.submissionService.createSubmission(submissionData);
       this.send(res, newSubmission, HttpStatusCode.Created, 'createSubmission');
+
+      queueVivaGeneration(newSubmission.id);
+
+
     } catch (e) {
       next(e);
     }
@@ -36,14 +51,14 @@ export default class SubmissionController extends Api {
 
   public deleteallsubmissions = async (
     req: Request,
-    res: CustomResponse<Submission[]>,
+    res: CustomResponse<number>,
     next: NextFunction
   ) => {
     try {
       const count = await this.submissionService.deleteSubmissions();
-      this.send(res, count, HttpStatusCode.Ok, 'deletedAllSubmissions' )
+      this.send(res, count, HttpStatusCode.Ok, 'deletedAllSubmissions');
     } catch (e) {
-      next(e)
+      next(e);
     }
   };
 }

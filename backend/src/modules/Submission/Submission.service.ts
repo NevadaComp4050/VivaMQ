@@ -15,8 +15,8 @@ export default class SubmissionService {
     return submissions;
   }
 
-  public async deleteSubmissions(){
-    const { count } = await prisma.submission.deleteMany()
-    return count
+  public async deleteSubmissions() {
+    const count = await prisma.submission.deleteMany();
+    return count;
   }
 }

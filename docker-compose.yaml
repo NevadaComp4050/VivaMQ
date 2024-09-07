@@ -15,14 +15,6 @@ services:
       - rabbitmq
       - redis
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
 
   mysql:
     image: mysql:8.0

@@ -106,7 +106,7 @@ export function GlobalSearch() {
             <CommandEmpty>Start typing to search...</CommandEmpty>
           ) : filteredResults.length === 0 ? (
             <CommandEmpty>
-              No results found for "{query}". Try a different search term.
+              No results found for &quot;{query}&quot;. Try a different search term.
             </CommandEmpty>
           ) : (
             Object.entries(groupedResults).map(([category, items]) => (

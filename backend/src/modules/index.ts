@@ -8,8 +8,6 @@ import assignments from './Assignment/Assignment.route';
 import FileIO from './FileIO/FileIO.route';
 import submissions from './Submission/Submission.route';
 
-import AIProcs from './AIProcess/AIProcess.route'
-
 const router: Router = Router();
 
 router.use('/users', users);
@@ -19,6 +17,5 @@ router.use('/students', students);
 router.use('/assignments', assignments);
 router.use('/files', FileIO);
 router.use('/submissions', submissions);
-router.use('/AI', AIProcs);
 
 export default router;

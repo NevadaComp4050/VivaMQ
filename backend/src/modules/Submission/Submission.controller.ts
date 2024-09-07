@@ -4,7 +4,7 @@ import { HttpStatusCode } from 'axios';
 import SubmissionService from './Submission.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
-import { queueVivaGeneration } from '@/vivaGenerationQueue';
+import { queueVivaGeneration } from '@/services/viva-service';
 
 export default class SubmissionController extends Api {
   private readonly submissionService = new SubmissionService();

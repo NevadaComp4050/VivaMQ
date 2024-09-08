@@ -51,8 +51,6 @@ async function promptSubUUID(
   }
 }
 
-
-
 export { promptSubUUID };
 
 // ------------------- debugging --------------------//

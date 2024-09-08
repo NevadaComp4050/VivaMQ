@@ -8,7 +8,7 @@ dotenv.config();
 export async function startMessageProcessor() {
   try {
     const connection = await amqp.connect(
-      process.env.RABBITMQ_URL || "amqp://localhost"
+      "amqp://localhost"
     );
     const channel = await connection.createChannel();
 

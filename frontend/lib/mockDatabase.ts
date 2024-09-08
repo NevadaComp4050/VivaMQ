@@ -1,8 +1,9 @@
-// lib/mockDatabase.ts
-
 export interface Unit {
   id: string;
   name: string;
+  code: string;
+  year: string;
+  session: string;
 }
 
 export interface Assignment {
@@ -63,8 +64,27 @@ export interface Tutor {
 
 const mockDatabase = {
   units: [
-    { id: "1", name: "Introduction to Programming" },
-    { id: "2", name: "Web Development" },
+    {
+      id: "1",
+      name: "Introduction to Programming",
+      code: "COMP101",
+      year: "2023",
+      session: "Session 1",
+    },
+    {
+      id: "2",
+      name: "Web Development",
+      code: "COMP201",
+      year: "2023",
+      session: "Session 2",
+    },
+    {
+      id: "3",
+      name: "Database Systems",
+      code: "COMP301",
+      year: "2024",
+      session: "Session 1",
+    },
   ] as Unit[],
 
   assignments: [
@@ -73,7 +93,7 @@ const mockDatabase = {
       unitId: "1",
       name: "Programming Basics Quiz",
       description: "A quiz covering basic programming concepts",
-      dueDate: "2024-05-15",
+      dueDate: "2023-05-15",
       submissions: 20,
     },
     {
@@ -81,7 +101,7 @@ const mockDatabase = {
       unitId: "1",
       name: "Simple Calculator Project",
       description: "Build a simple calculator using Python",
-      dueDate: "2024-06-01",
+      dueDate: "2023-06-01",
       submissions: 18,
     },
     {
@@ -89,8 +109,17 @@ const mockDatabase = {
       unitId: "2",
       name: "HTML/CSS Portfolio",
       description: "Create a personal portfolio website using HTML and CSS",
-      dueDate: "2024-06-15",
+      dueDate: "2023-06-15",
       submissions: 22,
+    },
+    {
+      id: "4",
+      unitId: "3",
+      name: "Database Design Project",
+      description:
+        "Design and implement a relational database for a given scenario",
+      dueDate: "2024-05-30",
+      submissions: 15,
     },
   ] as Assignment[],
 
@@ -99,7 +128,7 @@ const mockDatabase = {
       id: "1",
       assignmentId: "1",
       studentName: "Alice Johnson",
-      submissionDate: "2024-05-10",
+      submissionDate: "2023-05-10",
       status: "Submitted",
       content: "Quiz answers...",
     },
@@ -107,7 +136,7 @@ const mockDatabase = {
       id: "2",
       assignmentId: "1",
       studentName: "Bob Smith",
-      submissionDate: "2024-05-12",
+      submissionDate: "2023-05-12",
       status: "Submitted",
       content: "Quiz answers...",
     },
@@ -115,9 +144,17 @@ const mockDatabase = {
       id: "3",
       assignmentId: "2",
       studentName: "Charlie Brown",
-      submissionDate: "2024-05-25",
+      submissionDate: "2023-05-25",
       status: "Submitted",
       content: "Calculator code...",
+    },
+    {
+      id: "4",
+      assignmentId: "3",
+      studentName: "Diana Prince",
+      submissionDate: "2023-06-10",
+      status: "Submitted",
+      content: "Portfolio website code...",
     },
   ] as Submission[],
 
@@ -166,8 +203,8 @@ const mockDatabase = {
       name: "Programming Basics Quiz Rubric",
       unit: "1",
       assignment: "1",
-      year: "2024",
-      session: "S1",
+      year: "2023",
+      session: "Session 1",
       criteria: [
         {
           id: 1,
@@ -200,8 +237,8 @@ const mockDatabase = {
       name: "Simple Calculator Project Rubric",
       unit: "1",
       assignment: "2",
-      year: "2024",
-      session: "S1",
+      year: "2023",
+      session: "Session 1",
       criteria: [
         {
           id: 1,
@@ -231,7 +268,7 @@ const mockDatabase = {
     },
   ] as Rubric[],
 
-  years: ["2023", "2024"],
+  years: ["2023", "2024", "2025"],
 
   tutors: [
     {

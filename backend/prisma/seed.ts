@@ -11,6 +11,11 @@ const seedUsers = async (): Promise<void> => {
       name: faker.name.fullName(),
       email: faker.internet.email(),
       phone: faker.phone.number(),
+      password: faker.internet.password(),
+      microsoftId: faker.datatype.uuid(),
+      githubId: faker.datatype.uuid(),
+      createdAt: faker.date.past(),
+      updatedAt: faker.date.recent(),
     }),
     3
   );
@@ -40,4 +45,4 @@ async function main(): Promise<void> {
   }
 }
 
-void main();
+main();

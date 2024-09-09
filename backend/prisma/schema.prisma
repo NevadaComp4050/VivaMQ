@@ -7,16 +7,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Session {
+  id        String   @id @default(cuid())
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
 model User {
   id           String   @id @default(uuid())
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   email        String   @unique
   name         String
   phone        String?
-  password     String
+  password     String?
+  githubId     String?  @unique
   role         Role     @default(STUDENT)
   units        Unit[]   @relation("UnitManager")
 }
+
 
 model Unit {
   id          String       @id @default(uuid())

@@ -4,6 +4,9 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
+import session from 'express-session';
+import passport from 'passport';
+
 import home from './home';
 import environment from './lib/environment';
 import expressJSDocSwaggerConfig from './config/express-jsdoc-swagger.config';
@@ -11,6 +14,11 @@ import appConfig from './config/app.config';
 import errorHandler from '@/middlewares/error-handler';
 import routes from '@/modules/index';
 import prismaClient from '@/lib/prisma';
+const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
+
+
+import './passportConfig';
+import './passportGitHub';
 
 class App {
   public express: express.Application;
@@ -32,6 +40,26 @@ class App {
     this.express.use(express.urlencoded({ extended: true }));
     this.express.use(helmet());
     this.express.use(express.static('public'));
+
+
+    
+    this.express.use(
+      session({
+        secret: process.env.SESSION_SECRET!,
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: false },
+        store: new PrismaSessionStore(
+          prismaClient,
+          {
+            checkPeriod: 2 * 60 * 1000,
+            dbRecordIdIsSessionId: true,
+          }
+        ),
+      })
+    );
+    this.express.use(passport.initialize());
+    this.express.use(passport.session());
   }
 
   private disableSettings(): void {
@@ -45,6 +73,8 @@ class App {
     const { env } = environment;
     this.express.use('/', home);
     this.express.use(`/api/${version}/${env}`, routes);
+
+    this.express.use('/auth', require('./authRoutes').default);
   }
 
   private setErrorHandler(): void {

@@ -33,6 +33,19 @@ describe("RabbitMQ Integration Test", () => {
     }
   });
 
+  beforeEach(async () => {
+    try {
+      // Purge queues to ensure they are empty before each test
+      if (channel) {
+        await channel.purgeQueue("BEtoAI");
+        await channel.purgeQueue("AItoBE");
+      }
+    } catch (error) {
+      console.error("Error purging queues:", error);
+      throw error;
+    }
+  });
+
   test("should establish a connection to RabbitMQ", async () => {
     expect(connection).toBeDefined();
     expect(connection).not.toBeNull();
@@ -49,7 +62,7 @@ describe("RabbitMQ Integration Test", () => {
 
   test("should send and receive a message to/from the queue", async () => {
     // read local file testdoc.txt
-    const testMessage = fs.readFileSync("__tests__/rabbitMQProcessor.test.ts", "utf8");
+    const testMessage = fs.readFileSync("__tests__/testdoc.txt", "utf8");
     const uuid = "12345";
     const expectedBuffer = Buffer.from(JSON.stringify([testMessage, uuid]));
 

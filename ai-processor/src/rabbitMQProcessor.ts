@@ -8,7 +8,7 @@ dotenv.config();
 export async function startMessageProcessor() {
   try {
     const connection = await amqp.connect(
-      process.env.RABBITMQ_URL || "amqp://localhost"
+      process.env.RABBITMQ_URL ?? "amqp://localhost"
     );
     const channel = await connection.createChannel();
 
@@ -28,12 +28,13 @@ export async function startMessageProcessor() {
         const contentSplit = JSON.parse(content);
         console.log("Received message: ", content);
 
+        const submission = contentSplit[0];
+        const uuid = contentSplit[1];
+        const customPrompt = contentSplit.length > 2 ? contentSplit[2] : null;
+
         try {
           const response = await promptSubUUID(
-            "Generate five viva questions based on this document that assess: the student's understanding of the material, their ability to discuss the concepts, and their capacity to expand on the ideas.",
-            contentSplit[0],
-            contentSplit[1]
-          );
+            { prompt: "", submission, uuid, customPrompt }          );
 
           const sendMsg = Buffer.from(
             JSON.stringify([response[0], response[1]])

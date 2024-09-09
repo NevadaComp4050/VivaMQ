@@ -49,7 +49,7 @@ describe("RabbitMQ Integration Test", () => {
 
   test("should send and receive a message to/from the queue", async () => {
     // read local file testdoc.txt
-    const testMessage = fs.readFileSync("testdoc.txt", "utf8");
+    const testMessage = fs.readFileSync("__tests__/rabbitMQProcessor.test.ts", "utf8");
     const uuid = "12345";
     const expectedBuffer = Buffer.from(JSON.stringify([testMessage, uuid]));
 

@@ -25,28 +25,29 @@ const controller = new Controller();
  */
 
 /**
- * POST /units/create
+ * POST /units
  * @summary Create unit
  * @tags Unit
  * @param {CreateUnitBody} request.body.required
  * @return {Unit} 201 - unit created
  */
 units.post(
-  '/create',
+  '/',
   verifyAuthToken,
   RequestValidator.validate(CreateUnitDto),
   controller.createUnit
 );
 
 /**
- * GET /units/getall
- * @summary Get all unit data
+ * GET /units
+ * @summary Get all unit data with pagination
  * @tags Unit
- * @param None
+ * @param {number} limit.query - The number of units to return (pagination)
+ * @param {number} offset.query - The number of units to skip (pagination)
  * @return {Array.<Unit>} 200 - unit list
  */
 units.get(
-  '/getall',
+  '/',
   verifyAuthToken,
   controller.getallunits
 );

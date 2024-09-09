@@ -9,10 +9,14 @@ export default class UnitService {
     return unit;
   }
 
-  public async getUnits() {
-    const units = await prisma.unit.findMany();
+  public async getUnits(limit: number, offset: number) {
+    const units = await prisma.unit.findMany({
+      skip: offset,
+      take: limit,
+    });
     return units;
   }
+  
 
   public async getUnitById(id: string) {
     const unit = await prisma.unit.findUnique({

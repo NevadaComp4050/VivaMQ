@@ -27,12 +27,16 @@ export default class UnitController extends Api {
     next: NextFunction
   ) => {
     try {
-      const unitList = await this.unitService.getUnits();
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = parseInt(req.query.offset as string) || 0;
+  
+      const unitList = await this.unitService.getUnits(limit, offset);
       this.send(res, unitList, HttpStatusCode.Ok, 'gotAllUnits');
     } catch (e) {
       next(e);
     }
   };
+  
 
   public getUnitById = async (
     req: Request,

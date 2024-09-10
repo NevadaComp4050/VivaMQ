@@ -1,62 +1,42 @@
 import { type NextFunction, type Request } from 'express';
-import { type Submission } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import SubmissionService from './Submission.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
-import { queueVivaGeneration } from '@/services/viva-service';
 
 export default class SubmissionController extends Api {
   private readonly submissionService = new SubmissionService();
 
-  public createSubmission = async (
+  // Retrieve Viva Questions for a specific submission
+  public getVivaQuestions = async (
     req: Request,
-    res: CustomResponse<Submission>,
+    res: CustomResponse<any>,
     next: NextFunction
   ) => {
     try {
-      
-      const { file } = req;
-      const filePath = file ? file.path : '';
-
-      
-      const submissionData = {
-        ...req.body,
-        submissionFile: filePath,
-      };
-
-      const newSubmission = await this.submissionService.createSubmission(submissionData);
-      this.send(res, newSubmission, HttpStatusCode.Created, 'createSubmission');
-
-      queueVivaGeneration(newSubmission.id);
-
-
+      const { submissionId } = req.params;
+      const vivaQuestions = await this.submissionService.getVivaQuestions(submissionId);
+      this.send(res, vivaQuestions, HttpStatusCode.Ok, 'getVivaQuestions');
     } catch (e) {
       next(e);
     }
   };
 
-  public getallsubmissions = async (
+  // Trigger Viva Questions generation for a specific submission
+  public generateVivaQuestions = async (
     req: Request,
-    res: CustomResponse<Submission[]>,
+    res: CustomResponse<void>,
     next: NextFunction
   ) => {
     try {
-      const submissionList = await this.submissionService.getSubmissions();
-      this.send(res, submissionList, HttpStatusCode.Ok, 'gotAllSubmissions');
-    } catch (e) {
-      next(e);
-    }
-  };
+      const { submissionId } = req.params;
 
-  public deleteallsubmissions = async (
-    req: Request,
-    res: CustomResponse<number>,
-    next: NextFunction
-  ) => {
-    try {
-      const count = await this.submissionService.deleteSubmissions();
-      this.send(res, count, HttpStatusCode.Ok, 'deletedAllSubmissions');
+   
+      this.submissionService.generateVivaQuestions(submissionId);
+
+      res.status(HttpStatusCode.Accepted).send({
+        message: 'Viva questions are being generated. Please check back later.',
+      });
     } catch (e) {
       next(e);
     }

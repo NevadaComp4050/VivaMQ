@@ -1,4 +1,4 @@
-import { type Unit } from '@prisma/client';
+import { type Assignment, type Unit } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
 
@@ -37,4 +37,25 @@ export default class UnitService {
     });
     return updatedUnit;
   }
+
+  public async createAssignment(unitId: string, data: Assignment) {
+    const assignment = await prisma.assignment.create({
+      data: {
+        ...data,
+        unitId,
+      },
+    });
+    return assignment;
+  }
+
+  
+  public async getAssignments(unitId: string, limit: number, offset: number) {
+    const assignments = await prisma.assignment.findMany({
+      where: { unitId },
+      skip: offset,
+      take: limit,
+    });
+    return assignments;
+  }
+
 }

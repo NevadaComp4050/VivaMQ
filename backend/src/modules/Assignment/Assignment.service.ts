@@ -1,4 +1,4 @@
-import { type Assignment } from '@prisma/client';
+import { type Assignment,type Submission } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
 
@@ -15,8 +15,22 @@ export default class AssignmentService {
     return assignments;
   }
 
-  public async deleteAssignments(){
-    const { count } = await prisma.assignment.deleteMany()
-    return count
+  public async deleteAssignments() {
+    const { count } = await prisma.assignment.deleteMany();
+    return count;
+  }
+
+  public async createSubmission(data: Submission) {
+    const submission = await prisma.submission.create({ data });
+    return submission;
+  }
+
+  public async getSubmissions(assignmentId: string, limit: number, offset: number) {
+    const submissions = await prisma.submission.findMany({
+      where: { assignmentId },
+      skip: offset,
+      take: limit,
+    });
+    return submissions;
   }
 }

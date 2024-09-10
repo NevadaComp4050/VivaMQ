@@ -1,5 +1,5 @@
 import { type NextFunction, type Request } from 'express';
-import { type Unit } from '@prisma/client';
+import { type Assignment, type Unit } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import UnitService from './Unit.service';
 import { type CustomResponse } from '@/types/common.type';
@@ -81,4 +81,39 @@ export default class UnitController extends Api {
       next(e);
     }
   };
+
+
+  public createAssignment = async (
+    req: Request,
+    res: CustomResponse<Assignment>,
+    next: NextFunction
+  ) => {
+    try {
+      const { unitId } = req.params;
+      const assignmentData = req.body;
+      const newAssignment = await this.unitService.createAssignment(unitId, assignmentData);
+      this.send(res, newAssignment, HttpStatusCode.Created, 'createAssignment');
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  
+  public getAssignments = async (
+    req: Request,
+    res: CustomResponse<Assignment[]>,
+    next: NextFunction
+  ) => {
+    try {
+      const { unitId } = req.params;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = parseInt(req.query.offset as string) || 0;
+      const assignments = await this.unitService.getAssignments(unitId, limit, offset);
+      this.send(res, assignments, HttpStatusCode.Ok, 'gotAssignments');
+    } catch (e) {
+      next(e);
+    }
+  };
+
+
 }

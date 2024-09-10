@@ -16,6 +16,59 @@ interface Message {
   uuid: string;
 }
 
+export async function processMessage(message: Message): Promise<any> {
+  try {
+    let response;
+    switch (message.type) {
+      case "vivaQuestions":
+        response = await promptSubUUID({
+          prompt: "",
+          submission: message.data.submission,
+          uuid: message.uuid,
+          customPrompt: message.data.customPrompt,
+        });
+        break;
+      case "writingQuality":
+        response = await assessWritingQuality(
+          message.data.document,
+          message.data.criteria
+        );
+        break;
+      case "summaryAndReport":
+        response = await generateSummaryAndReport(message.data.document);
+        break;
+      case "automatedMarksheet":
+        response = await generateAutomatedMarksheet(
+          message.data.document,
+          message.data.rubric,
+          message.data.learningOutcomes
+        );
+        break;
+      case "optimizePrompt":
+        response = await optimizePromptAndConfig(
+          message.data.originalPrompt,
+          message.data.configParams
+        );
+        break;
+      case "createRubric":
+        response = await createRubric(
+          message.data.assessmentTask,
+          message.data.criteria,
+          message.data.keywords,
+          message.data.learningObjectives,
+          message.data.existingGuide
+        );
+        break;
+      default:
+        throw new Error(`Unknown message type: ${message.type}`);
+    }
+    return { type: message.type, data: response, uuid: message.uuid };
+  } catch (error) {
+    console.error("Error processing message:", error);
+    return { type: "error", data: error, uuid: message.uuid };
+  }
+}
+
 export async function startMessageProcessor() {
   try {
     const connection = await amqp.connect(

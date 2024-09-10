@@ -18,7 +18,7 @@ const controller = new Controller();
 /**
  * @typedef {object} User
  * @property {string} id - Unique ID of the user
- * @property {Date} createdAt - User creation date
+ * @property {string} createdAt - User creation date
  * @property {string} email - Email of the user
  * @property {string} name - Name of the user
  * @property {string} phone - Phone number of the user
@@ -34,7 +34,7 @@ const controller = new Controller();
  */
 
 /**
- * @route POST /users
+ * POST /users
  * @summary Create a new user
  * @tags User
  * @param {CreateUserBody} request.body.required - The user creation payload
@@ -48,7 +48,7 @@ users.post(
 );
 
 /**
- * @route GET /users
+ * GET /users
  * @summary Get all users
  * @tags User
  * @return {Array.<User>} 200 - A list of users
@@ -60,7 +60,7 @@ users.get(
 );
 
 /**
- * @route GET /users/{id}
+ * GET /users/{id}
  * @summary Get a user by ID
  * @tags User
  * @param {string} id.path.required - The ID of the user to retrieve
@@ -73,7 +73,7 @@ users.get(
 );
 
 /**
- * @route DELETE /users/{id}
+ * DELETE /users/{id}
  * @summary Delete a user by ID
  * @tags User
  * @param {string} id.path.required - The ID of the user to delete
@@ -86,7 +86,7 @@ users.delete(
 );
 
 /**
- * @route POST /users/login
+ * POST /users/login
  * @summary Dummy login to create or return the test user
  * @tags User
  * @return {User} 200 - The test user
@@ -94,11 +94,11 @@ users.delete(
 users.post('/login', controller.dummyLogin);
 
 /**
- * @route GET /users/me
+ * GET /users/me
  * @summary Get the current logged-in user
  * @tags User
  * @return {User} 200 - The current user
  */
-users.get('/me', controller.getCurrentUser);
+users.get('/me', verifyAuthToken, controller.getCurrentUser);
 
 export default users;

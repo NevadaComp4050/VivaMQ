@@ -1,5 +1,5 @@
 import * as amqp from "amqplib";
-import { startMessageProcessor } from "../src/rabbitMQProcessor";
+import { startMessageProcessor } from "../rabbitMQProcessor";
 import { Connection, Channel, ConsumeMessage } from "amqplib";
 import * as fs from "fs";
 

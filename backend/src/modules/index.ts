@@ -7,6 +7,7 @@ import students from './Student/Student.route';
 import assignments from './Assignment/Assignment.route';
 import FileIO from './FileIO/FileIO.route';
 import submissions from './Submission/Submission.route';
+import vivaQuestions from './VivaQuestion/VivaQuestion.route';
 
 import AIProcs from './AIProcess/AIProcess.route'
 
@@ -19,6 +20,7 @@ router.use('/students', students);
 router.use('/assignments', assignments);
 router.use('/files', FileIO);
 router.use('/submissions', submissions);
+router.use('/vivaQuestions', vivaQuestions);
 router.use('/AI', AIProcs);
 
 export default router;

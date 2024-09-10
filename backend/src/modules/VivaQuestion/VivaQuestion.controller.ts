@@ -1,49 +1,54 @@
 import { type NextFunction, type Request } from 'express';
-import { type Tutor } from '@prisma/client';
+import { type VivaQuestion, Submission, Role } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
-import TutorService from './Tutor.service';
+import VivaQuestionService from './VivaQuestion.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
 
-export default class TutorController extends Api {
-  private readonly tutorService = new TutorService();
+// import { v4 as uuidv4 } from 'uuid';
+// Should this be here? No probably not
+import prisma from '@/lib/prisma';
 
-  public createTutor = async (
+
+export default class VivaQuestionController extends Api {
+  private readonly vivaQuestionService = new VivaQuestionService();
+
+  public createVivaQuestion = async (
     req: Request,
-    res: CustomResponse<Tutor>,
+    res: CustomResponse<VivaQuestion>,
     next: NextFunction
   ) => {
     try {
-      const newTutor = await this.tutorService.createTutor(req.body);
-      this.send(res, newTutor, HttpStatusCode.Created, 'createTutor');
+      const newVivaQuestion = await this.vivaQuestionService.createVivaQuestion(req.body);
+      this.send(res, newVivaQuestion, HttpStatusCode.Created, 'createVivaQuestion');
     } catch (e) {
       next(e);
     }
   };
 
-  public getalltutors = async (
+  public getAll = async (
     req: Request,
-    res: CustomResponse<Tutor[]>,
+    res: CustomResponse<VivaQuestion[]>,
     next: NextFunction
   ) => {
     try {
-      const tutorList = await this.tutorService.getTutors();
-      this.send(res, tutorList, HttpStatusCode.Ok, 'gotAllTutors');
-    } catch (e) {
-      next(e);
-    }
-  };
-
-  public deletealltutors = async (
-    req: Request,
-    res: CustomResponse<Tutor[]>,
-    next: NextFunction
-  ) => {
-    try {
-      const count = await this.tutorService.deleteTutors();
-      this.send(res, count, HttpStatusCode.Ok, 'deletedAllTutors' )
+      const vivaQuestionList = await this.vivaQuestionService.getAll();
+      this.send(res, vivaQuestionList, HttpStatusCode.Ok, 'gotAllVivaQuestions' )
     } catch (e) {
       next(e)
     }
-  };
+  }
+
+  public deleteAll = async (
+    req: Request,
+    res: CustomResponse<VivaQuestion[]>,
+    next: NextFunction
+  ) => {
+    try {
+      const count = await this.vivaQuestionService.deleteAll();
+      this.send(res, count, HttpStatusCode.Ok, 'deletedAllVivaQuestions' )
+    } catch (e) {
+      next(e)
+    }
+  }
 }

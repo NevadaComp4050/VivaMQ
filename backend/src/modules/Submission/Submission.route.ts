@@ -23,7 +23,7 @@ submissions.get(
  * @summary Trigger generation of viva questions for a specific submission
  * @tags VivaQuestion
  * @param {string} submissionId.path.required - Submission ID
- * @return {void} 202 - Viva questions generation initiated
+ * @return {string} 202 - Viva questions generation initiated
  */
 submissions.post(
   '/:submissionId/generate-viva-questions',
@@ -36,7 +36,7 @@ submissions.post(
  * @summary Export viva questions for all submissions
  * @tags VivaQuestion
  * @param {string} format.query.required - Format (csv or pdf)
- * @return {void} 501 - Not implemented
+ * @return {string} 501 - Not implemented
  */
 submissions.get(
   '/export-viva-questions',

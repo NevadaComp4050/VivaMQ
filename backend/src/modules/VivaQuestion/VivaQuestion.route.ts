@@ -3,7 +3,7 @@ import Controller from './VivaQuestion.controller';
 import { CreateVivaQuestionDto } from '@/dto/vivaQuestion.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
-//import { Submission, VivaQuestion } from '@prisma/client';
+import { Submission, VivaQuestion } from '@prisma/client';
 
 
 const vivaQuestions: Router = Router();

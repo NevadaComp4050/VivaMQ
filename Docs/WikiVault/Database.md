@@ -31,6 +31,36 @@ serv --Used by--> cont
 cont --Called by--> html
 ```
 
+#### Changing 
+When modifing the database schema switch to database branch, then merge main before making new changes to database schema. Tag this commit. From this foundation build your feature, and create a pull request after your tagged changes are in main.
+
+- `git checkout database-changes`
+- `git merge main`
+- `git commit -m "feat: new database schema"`
+- `git tag db-typeXXXXXXXXXX`
+- `git checkout -b feat/newfeature`
+```mermaid
+gitGraph
+  commit 
+  commit 
+  branch database-changes
+  commit tag: "DB-Type1"
+  branch feat/feat1
+  commit
+  checkout database-changes
+  checkout main
+  commit
+  merge database-changes
+  checkout database-changes
+  merge main
+  commit tag: "DB-Type2"
+  branch feat/feat2
+  commit
+  checkout main
+  merge feat/feat1
+  
+```
+
 ### Dependencies
 - npm / npx
 - npm install called in backend

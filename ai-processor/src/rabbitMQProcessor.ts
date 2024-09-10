@@ -1,9 +1,20 @@
 import * as amqp from "amqplib";
 import { promptSubUUID } from "./openAIAPI";
+import { assessWritingQuality } from "./writingQualityAssessment";
+import { generateSummaryAndReport } from "./summarizationAndReportGeneration";
+import { generateAutomatedMarksheet } from "./automatedMarksheetGeneration";
+import { optimizePromptAndConfig } from "./promptEngineeringAndAIModelConfiguration";
+import { createRubric } from "./rubricCreationAndConversion";
 import dotenv from "dotenv";
 
 // Load environment variables
 dotenv.config();
+
+interface Message {
+  type: string;
+  data: any;
+  uuid: string;
+}
 
 export async function startMessageProcessor() {
   try {
@@ -25,19 +36,61 @@ export async function startMessageProcessor() {
     channel.consume(receiveQueue, async (msg: amqp.ConsumeMessage | null) => {
       if (msg) {
         const content = msg.content.toString();
-        const contentSplit = JSON.parse(content);
+        const message: Message = JSON.parse(content);
         console.log("Received message: ", content);
 
-        const submission = contentSplit[0];
-        const uuid = contentSplit[1];
-        const customPrompt = contentSplit.length > 2 ? contentSplit[2] : null;
-
         try {
-          const response = await promptSubUUID(
-            { prompt: "", submission, uuid, customPrompt }          );
+          let response;
+          switch (message.type) {
+            case "vivaQuestions":
+              response = await promptSubUUID({
+                prompt: "",
+                submission: message.data.submission,
+                uuid: message.uuid,
+                customPrompt: message.data.customPrompt,
+              });
+              break;
+            case "writingQuality":
+              response = await assessWritingQuality(
+                message.data.document,
+                message.data.criteria
+              );
+              break;
+            case "summaryAndReport":
+              response = await generateSummaryAndReport(message.data.document);
+              break;
+            case "automatedMarksheet":
+              response = await generateAutomatedMarksheet(
+                message.data.document,
+                message.data.rubric,
+                message.data.learningOutcomes
+              );
+              break;
+            case "optimizePrompt":
+              response = await optimizePromptAndConfig(
+                message.data.originalPrompt,
+                message.data.configParams
+              );
+              break;
+            case "createRubric":
+              response = await createRubric(
+                message.data.assessmentTask,
+                message.data.criteria,
+                message.data.keywords,
+                message.data.learningObjectives,
+                message.data.existingGuide
+              );
+              break;
+            default:
+              throw new Error(`Unknown message type: ${message.type}`);
+          }
 
           const sendMsg = Buffer.from(
-            JSON.stringify([response[0], response[1]])
+            JSON.stringify({
+              type: message.type,
+              data: response,
+              uuid: message.uuid,
+            })
           );
           channel.sendToQueue(sendQueue, sendMsg);
           console.log("Sent response: ", sendMsg.toString());
@@ -47,6 +100,15 @@ export async function startMessageProcessor() {
             msg.content.toString(),
             error
           );
+          // Send error response
+          const errorMsg = Buffer.from(
+            JSON.stringify({
+              type: "error",
+              data: error,
+              uuid: message.uuid,
+            })
+          );
+          channel.sendToQueue(sendQueue, errorMsg);
         }
 
         channel.ack(msg);

@@ -33,4 +33,29 @@ export default class AssignmentService {
     });
     return submissions;
   }
+
+  public async mapStudentToSubmission(submissionId: string, studentId: string) {
+    const submission = await prisma.submission.update({
+      where: { id: submissionId },
+      data: { studentId },
+    });
+    return submission;
+  }
+
+  public async getStudentSubmissionMapping(assignmentId: string) {
+    const mappings = await prisma.submission.findMany({
+      where: { assignmentId },
+      include: { student: true },
+    });
+
+   
+    const mappingResult = mappings.map((submission) => ({
+      submissionId: submission.id,
+      studentId: submission.studentId,
+      studentName: submission.student?.name,
+    }));
+
+    return mappingResult;
+  }
+
 }

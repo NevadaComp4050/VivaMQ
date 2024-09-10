@@ -7,7 +7,6 @@ import Api from '@/lib/api';
 import multer from 'multer';
 import { uploadToS3 } from '@/lib/s3';
 
-const upload = multer({ dest: 'uploads/' });
 
 export default class AssignmentController extends Api {
   private readonly assignmentService = new AssignmentService();
@@ -63,12 +62,14 @@ export default class AssignmentController extends Api {
       if (!file) throw new Error('No file uploaded');
 
      
-      const submissionFileUrl = await uploadToS3(file);
+      // This is not yet implemented
+
+      //const submissionFileUrl = await uploadToS3(file);
 
       const newSubmission = await this.assignmentService.createSubmission({
         ...req.body,
         assignmentId,
-        submissionFile: submissionFileUrl,
+        submissionFile: file,
       });
 
       this.send(res, newSubmission, HttpStatusCode.Created, 'createSubmission');
@@ -92,4 +93,38 @@ export default class AssignmentController extends Api {
       next(e);
     }
   };
+
+  public mapStudentToSubmission = async (
+    req: Request,
+    res: CustomResponse<Submission>,
+    next: NextFunction
+  ) => {
+    try {
+      const { submissionId } = req.params;
+      const { studentId } = req.body;
+
+      if (!studentId) throw new Error('Student ID is required');
+
+      const updatedSubmission = await this.assignmentService.mapStudentToSubmission(submissionId, studentId);
+      this.send(res, updatedSubmission, HttpStatusCode.Ok, 'studentMappedToSubmission');
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  public getStudentSubmissionMapping = async (
+    req: Request,
+    res: CustomResponse<any>, 
+    next: NextFunction
+  ) => {
+    try {
+      const { assignmentId } = req.params;
+
+      const mappings = await this.assignmentService.getStudentSubmissionMapping(assignmentId);
+      this.send(res, mappings, HttpStatusCode.Ok, 'studentSubmissionMapping');
+    } catch (e) {
+      next(e);
+    }
+  };
+
 }

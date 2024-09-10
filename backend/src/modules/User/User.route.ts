@@ -7,41 +7,38 @@ import { verifyAuthToken } from '@/middlewares/auth';
 const users: Router = Router();
 const controller = new Controller();
 
-// Define CreateUserBody
-// Comments after property do render
 /**
- * Create user body
  * @typedef {object} CreateUserBody
- * @property {string} email.required - email of user
- * @property {string} name.required - name of user
- * @property {string} phone - phone number
- * @property {string} password.required - password
+ * @property {string} email.required - Email of the user
+ * @property {string} name.required - Name of the user
+ * @property {string} phone - Phone number of the user
+ * @property {string} password.required - Password of the user
  */
 
 /**
- * Create idField
- * @typedef {object} idField
- * @property {string} id.required
- */
-/**
- * User
  * @typedef {object} User
- * @property {string} id - Unique ID
- * @property {DateTime} createdAt - date of registration
- * @property {string} email - email of user
- * @property {string} name - name of user
- * @property {string} phone - phone number
- * @property {string} password - password of user
- * @property {role} role - Users role, default Student
+ * @property {string} id - Unique ID of the user
+ * @property {Date} createdAt - User creation date
+ * @property {string} email - Email of the user
+ * @property {string} name - Name of the user
+ * @property {string} phone - Phone number of the user
+ * @property {string} password - Hashed password of the user
+ * @property {Role} role - Role of the user, default is STUDENT
  */
 
-// Use CreateUserBody
 /**
- * POST /users
- * @summary Create user
+ * @typedef {object} Role
+ * @property {string} ADMIN - Role for admin users
+ * @property {string} TEACHER - Role for teacher users
+ * @property {string} STUDENT - Role for student users
+ */
+
+/**
+ * @route POST /users
+ * @summary Create a new user
  * @tags User
- * @param {CreateUserBody} request.body.required
- * @return {User} 201 - user created
+ * @param {CreateUserBody} request.body.required - The user creation payload
+ * @return {User} 201 - The created user
  */
 users.post(
   '/',
@@ -51,11 +48,10 @@ users.post(
 );
 
 /**
- * GET /users
- * @summary Get all user data
+ * @route GET /users
+ * @summary Get all users
  * @tags User
- * @param None
- * @return {User} 200 - user list
+ * @return {Array.<User>} 200 - A list of users
  */
 users.get(
   '/',
@@ -64,11 +60,11 @@ users.get(
 );
 
 /**
- * GET /users/{id}
- * @summary Get a single user data
+ * @route GET /users/{id}
+ * @summary Get a user by ID
  * @tags User
- * @param {string} id.path.required
- * @return {User} 200 - user list
+ * @param {string} id.path.required - The ID of the user to retrieve
+ * @return {User} 200 - The retrieved user
  */
 users.get(
   '/:id',
@@ -77,16 +73,32 @@ users.get(
 );
 
 /**
- * DELETE /users/{id}
- * @summary Delete a single user data
+ * @route DELETE /users/{id}
+ * @summary Delete a user by ID
  * @tags User
- * @param {string} id.path.required
- * @return {User} 200 - user deleted
+ * @param {string} id.path.required - The ID of the user to delete
+ * @return {User} 200 - The deleted user
  */
 users.delete(
   '/:id',
   verifyAuthToken,
   controller.delete
 );
+
+/**
+ * @route POST /users/login
+ * @summary Dummy login to create or return the test user
+ * @tags User
+ * @return {User} 200 - The test user
+ */
+users.post('/login', controller.dummyLogin);
+
+/**
+ * @route GET /users/me
+ * @summary Get the current logged-in user
+ * @tags User
+ * @return {User} 200 - The current user
+ */
+users.get('/me', controller.getCurrentUser);
 
 export default users;

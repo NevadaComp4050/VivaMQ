@@ -31,4 +31,17 @@ submissions.post(
   controller.generateVivaQuestions
 );
 
+/**
+ * GET /api/submissions/export-viva-questions
+ * @summary Export viva questions for all submissions
+ * @tags VivaQuestion
+ * @param {string} format.query.required - Format (csv or pdf)
+ * @return {void} 501 - Not implemented
+ */
+submissions.get(
+  '/export-viva-questions',
+  verifyAuthToken,
+  controller.exportVivaQuestions
+);
+
 export default submissions;

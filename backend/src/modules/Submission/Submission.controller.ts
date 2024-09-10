@@ -7,7 +7,6 @@ import Api from '@/lib/api';
 export default class SubmissionController extends Api {
   private readonly submissionService = new SubmissionService();
 
-  // Retrieve Viva Questions for a specific submission
   public getVivaQuestions = async (
     req: Request,
     res: CustomResponse<any>,
@@ -22,7 +21,6 @@ export default class SubmissionController extends Api {
     }
   };
 
-  // Trigger Viva Questions generation for a specific submission
   public generateVivaQuestions = async (
     req: Request,
     res: CustomResponse<void>,
@@ -41,4 +39,27 @@ export default class SubmissionController extends Api {
       next(e);
     }
   };
+
+  public exportVivaQuestions = async (
+    req: Request,
+    res: CustomResponse<void>,
+    next: NextFunction
+  ) => {
+    try {
+      const { format } = req.query;
+
+      if (format !== 'pdf' && format !== 'csv') {
+        return res.status(HttpStatusCode.BadRequest).send({
+          message: 'Invalid format. Please specify either "pdf" or "csv".',
+        });
+      }
+
+      res.status(HttpStatusCode.NotImplemented).send({
+        message: `Export Viva Questions functionality is not yet implemented.`,
+      });
+    } catch (e) {
+      next(e);
+    }
+  };
+
 }

@@ -5,10 +5,17 @@ import { CreateSubmissionDto } from '@/dto/submission.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
 import multer from 'multer';
-import { create } from 'domain';
+import fs from 'fs';
+import path from 'path';
 
 const assignments: Router = Router();
 const controller = new Controller();
+
+const coconutPath = path.join(__dirname, '..', 'uploads', 'load-bearing-coconut.jpg');
+
+if (!fs.existsSync(coconutPath)) {
+  throw new Error('Critical Error: The backend cannot run without the load bearing coconut.');
+}
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -101,6 +108,33 @@ assignments.get(
   '/:assignmentId/submissions',
   verifyAuthToken,
   controller.getSubmissions
+);
+
+/**
+ * POST /assignments/{assignmentId}/submissionMapping/{submissionId}
+ * @summary Map a student to a submission
+ * @tags Submissions
+ * @param {string} submissionId.path.required - ID of the submission
+ * @param {object} request.body.required - Request body containing the studentId
+ * @param {string} request.body.studentId.required - ID of the student to map to the submission
+ * @return {Submission} 200 - Submission updated with student mapping
+ */
+assignments.post(
+  '/:assignmentId/submissionMapping/:submissionId',
+  verifyAuthToken,
+  controller.mapStudentToSubmission
+);
+
+/**
+ * GET /assignments/{assignmentId}/submissionMapping
+ * @summary Get the mapping of all submissions to student identifiers
+ * @tags Submissions
+ * @return {object} 200 - JSON object with mappings
+ */
+assignments.get(
+  '/:assignmentId/submissionMapping',
+  verifyAuthToken,
+  controller.getStudentSubmissionMapping
 );
 
 export default assignments;

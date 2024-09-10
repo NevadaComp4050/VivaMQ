@@ -1,15 +1,14 @@
-import { type User } from '@prisma/client';
+import { type User, Role } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
 import argon2 from 'argon2';
 
 export default class UserService {
+  
   @LogMessage<[User]>({ message: 'test-decorator' })
   public async createUser(data: User) {
-    
     const hashedPassword = await argon2.hash(data.password);
 
-    
     const user = await prisma.user.create({
       data: {
         ...data,
@@ -41,5 +40,36 @@ export default class UserService {
   public async deleteAll() {
     const { count } = await prisma.user.deleteMany();
     return count;
+  }
+
+  
+  public async dummyLogin() {
+    let user = await prisma.user.findFirst({
+      where: { email: "test@example.com" },
+    });
+
+    if (!user) {
+      
+      const hashedPassword = await argon2.hash("password123");
+      user = await prisma.user.create({
+        data: {
+          email: "test@example.com",
+          name: "Test User",
+          password: hashedPassword,
+          role: Role.ADMIN,
+        },
+      });
+    }
+
+    return user;
+  }
+
+  
+  public async getCurrentUser() {
+    const user = await prisma.user.findFirst({
+      where: { email: "test@example.com" },
+    });
+    
+    return user;
   }
 }

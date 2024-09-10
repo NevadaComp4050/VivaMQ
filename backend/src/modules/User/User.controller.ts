@@ -1,12 +1,9 @@
 import { type NextFunction, type Request } from 'express';
-import { type User, Role } from '@prisma/client';
+import { type User } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import UserService from './User.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
-
-import prisma from '@/lib/prisma';
-
 
 export default class UserController extends Api {
   private readonly userService = new UserService();
@@ -17,7 +14,6 @@ export default class UserController extends Api {
     next: NextFunction
   ) => {
     try {
-     
       const newUser = await this.userService.createUser(req.body);
       this.send(res, newUser, HttpStatusCode.Created, 'createUser');
     } catch (e) {
@@ -78,4 +74,32 @@ export default class UserController extends Api {
       next(e)
     }
   }
+
+  
+  public dummyLogin = async (
+    req: Request,
+    res: CustomResponse<User>,
+    next: NextFunction
+  ) => {
+    try {
+      const user = await this.userService.dummyLogin();
+      this.send(res, user, HttpStatusCode.Ok, 'loggedInTestUser');
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  
+  public getCurrentUser = async (
+    req: Request,
+    res: CustomResponse<User>,
+    next: NextFunction
+  ) => {
+    try {
+      const user = await this.userService.getCurrentUser();
+      this.send(res, user, HttpStatusCode.Ok, 'gotCurrentUser');
+    } catch (e) {
+      next(e);
+    }
+  };
 }

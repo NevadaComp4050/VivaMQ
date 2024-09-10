@@ -5,8 +5,8 @@ import units from './Unit/Unit.route';
 import tutors from './Tutor/Tutor.route';
 import students from './Student/Student.route';
 import assignments from './Assignment/Assignment.route';
-import FileIO from './FileIO/FileIO.route';
 import submissions from './Submission/Submission.route';
+import FileIO from './FileIO/FileIO.route';
 
 const router: Router = Router();
 

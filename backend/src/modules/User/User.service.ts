@@ -32,6 +32,6 @@ export default class UserService {
 
   public async deleteAll(){
     const { count } = await prisma.user.deleteMany()
-    return count
+    return count;
   }
 }

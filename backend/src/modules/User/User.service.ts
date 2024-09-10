@@ -42,7 +42,7 @@ export default class UserService {
     return count;
   }
 
-  
+
   public async dummyLogin() {
     let user = await prisma.user.findFirst({
       where: { email: "test@example.com" },

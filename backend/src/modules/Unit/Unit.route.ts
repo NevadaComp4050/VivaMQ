@@ -65,7 +65,7 @@ units.get(
 
 /**
  * GET /units/{id}
- * @summary Get single unit data
+ * @summary Get single unit record
  * @tags Unit
  * @param {string} id.path.required - ID of the unit to retrieve
  * @return {Unit} 200 - unit data
@@ -73,20 +73,20 @@ units.get(
 units.get(
   '/:id',
   verifyAuthToken,
-  controller.getUnitById
+  controller.getUnit
 );
 
 /**
- * GET /units/deleteall
- * @summary Delete all unit data
+ * POST /units/{id}
+ * @summary Delete a single unit record
  * @tags Unit
- * @param None
- * @return {number} 200 - unit list
+ * @param {string} id.path.required - ID of the unit to delete
+ * @return {User} 200 - user list
  */
-units.get(
-  '/deleteall',
+units.post(
+  '/:id',
   verifyAuthToken,
-  controller.deleteallunits
+  controller.deleteUnit
 );
 
 /**

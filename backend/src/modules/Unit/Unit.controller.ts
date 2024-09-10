@@ -38,32 +38,33 @@ export default class UnitController extends Api {
   };
   
 
-  public getUnitById = async (
+  public getUnit = async (
     req: Request,
     res: CustomResponse<Unit>,
     next: NextFunction
   ) => {
     try {
       const { id } = req.params;
-      const unit = await this.unitService.getUnitById(id);
-      this.send(res, unit, HttpStatusCode.Ok, 'gotUnitById');
+      const unit = await this.unitService.getUnit(id);
+      this.send(res, unit, HttpStatusCode.Ok, 'gotUnit');
     } catch (e) {
       next(e);
     }
   };
 
-  public deleteallunits = async (
+  public deleteUnit = async (
     req: Request,
-    res: CustomResponse<number>,
+    res: CustomResponse<Unit>,
     next: NextFunction
   ) => {
     try {
-      const count = await this.unitService.deleteUnits();
-      this.send(res, count, HttpStatusCode.Ok, 'deletedAllUnits');
+      const { id } = req.params;
+      const user = await this.unitService.deleteUnit(id);
+      this.send(res, user, HttpStatusCode.Ok, 'deletedUnit' )
     } catch (e) {
-      next(e);
+      next(e)
     }
-  };
+  }
 
   public updateUnitName = async (
     req: Request,

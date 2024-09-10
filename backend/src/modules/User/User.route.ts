@@ -53,14 +53,14 @@ users.post(
 );
 
 /**
- * GET /users/getall
+ * GET /users/
  * @summary Get all user data
  * @tags User
  * @param None
  * @return {User} 200 - user list
  */
 users.get(
-  '/getall',
+  '/',
   verifyAuthToken,
   controller.getAll
 );
@@ -79,27 +79,27 @@ users.get(
 );
 
 /**
- * POST /users/{id}
+ * DELETE /users/{id}
  * @summary Delete a single user data
  * @tags User
  * @param {string} id.path.required
  * @return {User} 200 - user list
  */
-users.post(
+users.delete(
   '/:id',
   verifyAuthToken,
   controller.delete
 );
 
 /**
- * GET /users/deleteall
+ * DELETE /users/
  * @summary Delete all user data
  * @tags User
  * @param None
  * @return {number} 200 - user list
  */
-users.get(
-  '/deleteall',
+users.delete(
+  '/',
   verifyAuthToken,
   controller.deleteAll
 );

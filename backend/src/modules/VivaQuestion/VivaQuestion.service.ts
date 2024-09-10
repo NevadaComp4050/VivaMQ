@@ -1,22 +1,25 @@
-import { type Tutor } from '@prisma/client';
+import {type VivaQuestion} from '@prisma/client';
 import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
 
-export default class TutorService {
-  @LogMessage<[Tutor]>({ message: 'test-decorator' })
+export default class VivaQuestionService {
 
-  public async createTutor(data: Tutor) {
-    const tutor = await prisma.tutor.create({ data });
-    return tutor;
+  @LogMessage<[VivaQuestion]>({ message: 'test-decorator' })
+  public async createVivaQuestion(data: VivaQuestion) {
+    const vivaQuestion = await prisma.vivaQuestion.create({ data });
+    return vivaQuestion;
   }
 
-  public async getTutors() {
-    const tutors = await prisma.unit.findMany();
-    return tutors;
+  // TODO log the calls
+  //@LogMessage<[users]>({message: 'get all'})
+  public async getAll() {
+    const vivaQuestion = await prisma.vivaQuestion.findMany()
+    return vivaQuestion;
   }
 
-  public async deleteTutors(){
-    const { count } = await prisma.tutor.deleteMany()
+  public async deleteAll(){
+    const { count } = await prisma.vivaQuestion.deleteMany()
     return count
   }
 }
+//

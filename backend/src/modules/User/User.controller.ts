@@ -21,6 +21,21 @@ export default class UserController extends Api {
     }
   };
 
+  public getreq = async (
+    req: Request,
+    res: CustomResponse<User>,
+    next: NextFunction
+  ) => {
+  try {
+    const { email, password } = req.params;
+    const user = await this.userService.getEmail(email);
+    req.body = {user, password};
+    next();
+  } catch (e) {
+      next(e);
+    }
+  }
+
   public get = async (
     req: Request,
     res: CustomResponse<User>,

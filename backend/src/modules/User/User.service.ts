@@ -64,7 +64,14 @@ export default class UserService {
     return user;
   }
 
-  
+  public async getEmail(email: string) {
+
+    const user = await prisma.user.findFirst({
+      where: { email },
+    });
+    return user;
+  }
+
   public async getCurrentUser() {
     const user = await prisma.user.findFirst({
       where: { email: "test@example.com" },

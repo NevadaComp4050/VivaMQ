@@ -1,6 +1,73 @@
 # Authentication notes
 Need some form of authentication to implement access controls and just to verify users.
 
+## Dirty Auth
+Request for Auth again, this time it was clearer what was being asked for.
+
+```mermaid
+flowchart
+subgraph auth
+  create
+  verify
+end
+subgraph FE
+  FEp1[Login]
+  token
+  FEp2[privledged]
+end
+FEp1 --login--> create
+create --JWT--> token --Used by--> FEp2
+FEp2 --Access--> verify
+```
+
+For the Dirty Auth solution, the JWT is simply a AES encrypted JSON object that contains a UNIX EPOCH (For a time stamp) and user id (For uniqueness). This allows for stateless verification of authorisation.
+
+### Tech used
+
+Crypto example in ts provided below, this is verified to work.
+```ts
+import * as crypto from 'crypto';
+
+const algorithm = 'aes-256-cbc';
+// Key changes everytime
+//const key = crypto.randomBytes(32);
+// Static key
+const secret = "Nevada";
+const key = crypto.createHash('sha256').update(secret).digest().slice(0, 32);
+const iv = crypto.randomBytes(16);
+
+//// In express function, after reading in from body
+const { email } = req.body;
+// Crypto buffers I believe
+const cipher = crypto.createCipheriv(algorithm, key, iv);
+const decipher = crypto.createDecipheriv(algorithm, key, iv);
+if (email) {
+  console.log(email);
+  const encrypted = cipher.update(email, 'utf8', 'hex');
+  const enc  = encrypted+cipher.final('hex');
+  console.log(enc);
+  const decrypted = decipher.update(enc, 'hex', 'utf8');
+  const dec = decrypted+decipher.final('utf8');
+  console.log(dec);
+}
+```
+
+The token needs to be useable to Identify the owner and verify its valididity
+```ts
+interface DirtyJWT {
+  userID: string;
+  Epoch: number;
+}
+
+const token: DirtyJWT = {
+Epoch: Math.floor(Date.now() / 1000),
+userID: user.id
+};
+
+```
+
+
+
 ## [Auth.js](https://authjs.dev/) notes
 
 ## Implementation following [this guide](https://benjamin-chavez.com/blog/integrating-next.js-with-express.js-using-auth0-for-authentication)

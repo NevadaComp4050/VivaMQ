@@ -10,7 +10,7 @@ const {
 const baseDir = path.join(__dirname, '../../');
 const expressJSDocSwaggerConfig = {
   info: {
-    version: '1.0.0',
+    version: '3.0.0',
     title: 'Rest Api',
     description: 'Api specs for',
     license: {

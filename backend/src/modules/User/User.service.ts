@@ -16,6 +16,13 @@ export default class UserService {
       return ret;
   }
 
+  public async getEmail(email: string){
+    const ret =  await prisma.user.findUnique({
+      where: { email },
+    });
+      return ret;
+  }
+
   // TODO log the calls
   //@LogMessage<[users]>({message: 'get all'})
   public async getAll() {

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import Controller from './Submission.controller';
-// import { CreateSubmissionDto } from '@/dto/submission.dto';
+import { CreateSubmissionDto } from '@/dto/submission.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
 
@@ -24,7 +24,7 @@ const controller = new Controller();
  * @property {string} submissionFile - submission file
  * @property {string} status - status of submission
  * @property {Assignment} assignment - assignment of submission
- * @property {Student} student - student pf submission
+ * @property {Student} student - student of submission
  */
 
 /**
@@ -37,6 +37,7 @@ const controller = new Controller();
 submissions.post(
   '/create',
   verifyAuthToken,
+  RequestValidator.validate(CreateSubmissionDto),
   controller.createSubmission
 );
 

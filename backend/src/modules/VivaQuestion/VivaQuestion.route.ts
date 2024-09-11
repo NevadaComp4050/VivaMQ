@@ -3,39 +3,35 @@ import Controller from './VivaQuestion.controller';
 import { CreateVivaQuestionDto } from '@/dto/vivaQuestion.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
-//import { Submission, VivaQuestion } from '@prisma/client';
-
 
 const vivaQuestions: Router = Router();
 const controller = new Controller();
 
-
 // Define CreateVivaQuestionBody
 // Comments after property do render
 /**
- * CreateVivaQuestion
+ * Create viva question
  * @typedef {object} CreateVivaQuestion
- * @property {string} submissionId.required - submissionId
- * @property {string} question.required - question text
+ * @property {string} submissionId.required - ID of submission of viva question
+ * @property {string} question.required - viva question text
+ * @property {string} status.required - status of viva question
  */
 /**
  * VivaQuestion
  * @typedef {object} VivaQuestion
- * @property {string} id - Unique ID
- * @property {string} submissionId - submissionId
- * @property {string} question - question text
- * @property {string} status - status
- * @property {Submission} submission - @relation(fields: [submissionId], references: [id])
+ * @property {string} id - unique ID
+ * @property {string} submissionId - ID of submission of viva question
+ * @property {string} question - viva question text
+ * @property {string} status - status of viva question
+ * @property {submission} submission - submission of viva question
  */
-
 
 /**
  * POST /vivaQuestions/create
- * @summary Create vivaQuestion
+ * @summary Create viva question
  * @tags VivaQuestion
  * @param {CreateVivaQuestion} request.body.required
  * @return {VivaQuestion} 201 - vivaQuestion created
-
  */
 vivaQuestions.post(
   '/create',
@@ -70,5 +66,4 @@ vivaQuestions.delete(
   controller.deleteAll
 );
 
-// TODO this needs to be modified
 export default vivaQuestions;

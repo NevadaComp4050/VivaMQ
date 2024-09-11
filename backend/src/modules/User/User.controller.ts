@@ -27,7 +27,7 @@ export default class UserController extends Api {
     next: NextFunction
   ) => {
     try {
-      const newUser: User = await this.userService.createUser(req.body);
+      const newUser: User = await this.userService.create(req.body);
       const ID = newUser.id;
       req.body = { ID };
       next();

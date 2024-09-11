@@ -35,46 +35,33 @@ units.post(
   '/create',
   verifyAuthToken,
   RequestValidator.validate(CreateUnitDto),
-  controller.createUnit
+  controller.create
 );
 
 /**
- * GET /units/getall
+ * GET /units/{id}
+ * @summary Get a single unit
+ * @tags Unit
+ * @param {string} id.path.required
+ * @return {Unit} 200 - unit list
+ */
+units.get(
+  '/:id',
+  verifyAuthToken,
+  controller.get
+);
+
+/**
+ * GET /units/
  * @summary Get all unit data
  * @tags Unit
  * @param None
  * @return {Array.<Unit>} 200 - unit list
  */
 units.get(
-  '/getall',
+  '/',
   verifyAuthToken,
-  controller.getallunits
-);
-
-/**
- * GET /units/{id}
- * @summary Get single unit record
- * @tags Unit
- * @param {string} id.path.required - ID of the unit to retrieve
- * @return {Unit} 200 - unit data
- */
-units.get(
-  '/:id',
-  verifyAuthToken,
-  controller.getUnit
-);
-
-/**
- * POST /units/{id}
- * @summary Delete a single unit record
- * @tags Unit
- * @param {string} id.path.required - ID of the unit to delete
- * @return {User} 200 - user list
- */
-units.post(
-  '/:id',
-  verifyAuthToken,
-  controller.deleteUnit
+  controller.getAll
 );
 
 /**
@@ -89,6 +76,32 @@ units.put(
   '/update-name/:id',
   verifyAuthToken,
   controller.updateUnitName
+);
+
+/**
+ * DELETE /units/{id}
+ * @summary Delete a single unit
+ * @tags Unit
+ * @param {string} id.path.required - ID of the unit to delete
+ * @return {Unit} 200 - unit list
+ */
+units.delete(
+  '/:id',
+  verifyAuthToken,
+  controller.delete
+);
+
+/**
+ * DELETE /units/
+ * @summary Delete all unit data
+ * @tags Unit
+ * @param None
+ * @return {number} 200 - unit clear
+ */
+units.delete(
+  '/',
+  verifyAuthToken,
+  controller.deleteAll
 );
 
 export default units;

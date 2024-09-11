@@ -35,33 +35,59 @@ tutors.post(
   '/create',
   verifyAuthToken,
   RequestValidator.validate(CreateTutorDto),
-  controller.createTutor
+  controller.create
 );
 
 /**
- * GET /tutors/getall
+ * GET /tutors/{id}
+ * @summary Get a single tutor
+ * @tags Tutor
+ * @param {string} id.path.required
+ * @return {Tutor} 200 - tutor list
+ */
+tutors.get(
+  '/:id',
+  verifyAuthToken,
+  controller.get
+);
+
+/**
+ * GET /tutors/
  * @summary Get all tutor data
  * @tags Tutor
  * @param None
  * @return {Array.<Tutor>} 200 - tutor list
  */
 tutors.get(
-  '/getall',
+  '/',
   verifyAuthToken,
-  controller.getalltutors
+  controller.getAll
 );
 
 /**
- * GET /tutors/deleteall
+ * DELETE /tutors/{id}
+ * @summary Delete a single tutor
+ * @tags Tutor
+ * @param {string} id.path.required - ID of the tutor to delete
+ * @return {Tutor} 200 - tutor list
+ */
+tutors.delete(
+  '/:id',
+  verifyAuthToken,
+  controller.delete
+);
+
+/**
+ * DELETE /tutors/
  * @summary Delete all tutor data
  * @tags Tutor
  * @param None
  * @return {number} 200 - tutor clear
  */
-tutors.get(
-  '/deleteall',
+tutors.delete(
+  '/',
   verifyAuthToken,
-  controller.deletealltutors
+  controller.deleteAll
 );
 
 export default tutors;

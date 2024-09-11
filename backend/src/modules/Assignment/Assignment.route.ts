@@ -39,33 +39,59 @@ assignments.post(
   '/create',
   verifyAuthToken,
   RequestValidator.validate(CreateAssignmentDto),
-  controller.createAssignment
+  controller.create
 );
 
 /**
- * GET /assignments/getall
+ * GET /assignments/{id}
+ * @summary Get a single assignment
+ * @tags Assignment
+ * @param {string} id.path.required
+ * @return {Assignment} 200 - assignment list
+ */
+assignments.get(
+  '/:id',
+  verifyAuthToken,
+  controller.get
+);
+
+/**
+ * GET /assignments/
  * @summary Get all assignment data
  * @tags Assignment
  * @param None
  * @return {Array.<Assignment>} 200 - assignment list
  */
 assignments.get(
-  '/getall',
+  '/',
   verifyAuthToken,
-  controller.getallassignments
+  controller.getAll
 );
 
 /**
- * GET /assignments/deleteall
+ * DELETE /assignments/{id}
+ * @summary Delete a single assignment
+ * @tags Assignment
+ * @param {string} id.path.required - ID of the assignment to delete
+ * @return {Assignment} 200 - assignment list
+ */
+assignments.delete(
+  '/:id',
+  verifyAuthToken,
+  controller.delete
+);
+
+/**
+ * DELETE /assignments/
  * @summary Delete all assignment data
  * @tags Assignment
  * @param None
  * @return {number} 200 - assignment clear
  */
-assignments.get(
-  '/deleteall',
+assignments.delete(
+  '/',
   verifyAuthToken,
-  controller.deleteallassignments
+  controller.deleteAll
 );
 
 export default assignments;

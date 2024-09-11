@@ -37,7 +37,20 @@ vivaQuestions.post(
   '/create',
   verifyAuthToken,
   RequestValidator.validate(CreateVivaQuestionDto),
-  controller.createVivaQuestion
+  controller.create
+);
+
+/**
+ * GET /vivaQuestions/{id}
+ * @summary Get a single viva question
+ * @tags VivaQuestion
+ * @param {string} id.path.required
+ * @return {VivaQuestion} 200 - vivaQuestion list
+ */
+vivaQuestions.get(
+  '/:id',
+  verifyAuthToken,
+  controller.get
 );
 
 /**
@@ -54,6 +67,19 @@ vivaQuestions.get(
 );
 
 /**
+ * DELETE /vivaQuestions/{id}
+ * @summary Delete a single viva question
+ * @tags VivaQuestion
+ * @param {string} id.path.required - ID of the viva question to delete
+ * @return {VivaQuestion} 200 - vivaQuestion list
+ */
+vivaQuestions.delete(
+  '/:id',
+  verifyAuthToken,
+  controller.delete
+);
+
+/**
  * DELETE /vivaQuestions/
  * @summary Delete all vivaQuestion data
  * @tags VivaQuestion
@@ -66,4 +92,6 @@ vivaQuestions.delete(
   controller.deleteAll
 );
 
+
 export default vivaQuestions;
+

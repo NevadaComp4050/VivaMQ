@@ -37,7 +37,6 @@ const controller = new Controller();
  * @property {role} role - Users role, default Student
  */
 
-// Use CreateUserBody
 /**
  * POST /users/create
  * @summary Create user
@@ -49,25 +48,12 @@ users.post(
   '/create',
   verifyAuthToken,
   RequestValidator.validate(CreateUserDto),
-  controller.createUser
-);
-
-/**
- * GET /users/
- * @summary Get all user data
- * @tags User
- * @param None
- * @return {User} 200 - user list
- */
-users.get(
-  '/',
-  verifyAuthToken,
-  controller.getAll
+  controller.create
 );
 
 /**
  * GET /users/{id}
- * @summary Get a single user data
+ * @summary Get a single user
  * @tags User
  * @param {string} id.path.required
  * @return {User} 200 - user list
@@ -79,10 +65,23 @@ users.get(
 );
 
 /**
- * DELETE /users/{id}
- * @summary Delete a single user data
+ * GET /users/
+ * @summary Get all user data
  * @tags User
- * @param {string} id.path.required
+ * @param None
+ * @return {Array.<User>} 200 - user list
+ */
+users.get(
+  '/',
+  verifyAuthToken,
+  controller.getAll
+);
+
+/**
+ * DELETE /users/{id}
+ * @summary Delete a single user
+ * @tags User
+ * @param {string} id.path.required - ID of the user to delete
  * @return {User} 200 - user list
  */
 users.delete(
@@ -96,7 +95,7 @@ users.delete(
  * @summary Delete all user data
  * @tags User
  * @param None
- * @return {number} 200 - user list
+ * @return {number} 200 - user clear
  */
 users.delete(
   '/',
@@ -104,5 +103,4 @@ users.delete(
   controller.deleteAll
 );
 
-// TODO this needs to be modified
 export default users;

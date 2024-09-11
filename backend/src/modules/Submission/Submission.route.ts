@@ -38,33 +38,59 @@ submissions.post(
   '/create',
   verifyAuthToken,
   RequestValidator.validate(CreateSubmissionDto),
-  controller.createSubmission
+  controller.create
 );
 
 /**
- * GET /submissions/getall
+ * GET /submissions/{id}
+ * @summary Get a single submission
+ * @tags Submission
+ * @param {string} id.path.required
+ * @return {Submission} 200 - submission list
+ */
+submissions.get(
+  '/:id',
+  verifyAuthToken,
+  controller.get
+);
+
+/**
+ * GET /submissions/
  * @summary Get all submission data
  * @tags Submission
  * @param None
  * @return {Array.<Submission>} 200 - submission list
  */
 submissions.get(
-  '/getall',
+  '/',
   verifyAuthToken,
-  controller.getallsubmissions
+  controller.getAll
 );
 
 /**
- * GET /submissions/deleteall
+ * DELETE /submissions/{id}
+ * @summary Delete a single submission
+ * @tags Submission
+ * @param {string} id.path.required - ID of the submission to delete
+ * @return {Submission} 200 - submission list
+ */
+submissions.delete(
+  '/:id',
+  verifyAuthToken,
+  controller.delete
+);
+
+/**
+ * DELETE /submissions/
  * @summary Delete all submission data
  * @tags Submission
  * @param None
  * @return {number} 200 - submission clear
  */
-submissions.get(
-  '/deleteall',
+submissions.delete(
+  '/',
   verifyAuthToken,
-  controller.deleteallsubmissions
+  controller.deleteAll
 );
 
 export default submissions;

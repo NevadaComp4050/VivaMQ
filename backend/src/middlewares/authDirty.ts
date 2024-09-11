@@ -18,7 +18,7 @@ interface DirtyJWT {
 }
 
 // 5mins valid
-const validPeriod = 300;
+const validPeriod = 36000;
 
 export default class AuthDirty extends Api {
 
@@ -55,7 +55,7 @@ export default class AuthDirty extends Api {
     const tokenReq: DirtyJWT = JSON.parse(dec);
     //console.log(tokenReq);
     if (Math.floor(Date.now() / 1000)>tokenReq.Epoch){
-      console.log('Token has expired')
+      console.log('Token has expired');
       //next('token has expired')
     }
     //console.log('token still valid for %d sec',tokenReq.Epoch-(Math.floor(Date.now() / 1000)))
@@ -63,7 +63,7 @@ export default class AuthDirty extends Api {
     // Check if user is valid
     // Does this even make sense? This token is encrypted.
     // Maybe pass forward user info in some way
-    next()
+    next();
   }
 
 

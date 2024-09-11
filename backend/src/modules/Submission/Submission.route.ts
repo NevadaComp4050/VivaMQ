@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import Controller from './Submission.controller';
-// import { CreateSubmissionDto } from '@/dto/submission.dto';
+import { CreateSubmissionDto } from '@/dto/submission.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
 
@@ -24,7 +24,7 @@ const controller = new Controller();
  * @property {string} submissionFile - submission file
  * @property {string} status - status of submission
  * @property {Assignment} assignment - assignment of submission
- * @property {Student} student - student pf submission
+ * @property {Student} student - student of submission
  */
 
 /**
@@ -37,33 +37,60 @@ const controller = new Controller();
 submissions.post(
   '/create',
   verifyAuthToken,
-  controller.createSubmission
+  RequestValidator.validate(CreateSubmissionDto),
+  controller.create
 );
 
 /**
- * GET /submissions/getall
+ * GET /submissions/{id}
+ * @summary Get a single submission
+ * @tags Submission
+ * @param {string} id.path.required
+ * @return {Submission} 200 - submission list
+ */
+submissions.get(
+  '/:id',
+  verifyAuthToken,
+  controller.get
+);
+
+/**
+ * GET /submissions/
  * @summary Get all submission data
  * @tags Submission
  * @param None
  * @return {Array.<Submission>} 200 - submission list
  */
 submissions.get(
-  '/getall',
+  '/',
   verifyAuthToken,
-  controller.getallsubmissions
+  controller.getAll
 );
 
 /**
- * GET /submissions/deleteall
+ * DELETE /submissions/{id}
+ * @summary Delete a single submission
+ * @tags Submission
+ * @param {string} id.path.required - ID of the submission to delete
+ * @return {Submission} 200 - submission list
+ */
+submissions.delete(
+  '/:id',
+  verifyAuthToken,
+  controller.delete
+);
+
+/**
+ * DELETE /submissions/
  * @summary Delete all submission data
  * @tags Submission
  * @param None
  * @return {number} 200 - submission clear
  */
-submissions.get(
-  '/deleteall',
+submissions.delete(
+  '/',
   verifyAuthToken,
-  controller.deleteallsubmissions
+  controller.deleteAll
 );
 
 export default submissions;

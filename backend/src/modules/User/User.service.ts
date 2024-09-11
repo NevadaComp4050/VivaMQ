@@ -4,41 +4,33 @@ import LogMessage from '@/decorators/log-message.decorator';
 
 export default class UserService {
   @LogMessage<[User]>({ message: 'test-decorator' })
-  public async createUser(data: User) {
+  
+  public async create(data: User) {
     const user = await prisma.user.create({ data });
     return user;
   }
 
   public async get(id: string){
-    const ret =  await prisma.user.findUnique({
+    const user =  await prisma.user.findUnique({
       where: { id },
     });
-      return ret;
+      return user;
   }
 
-  public async getEmail(email: string){
-    const ret =  await prisma.user.findUnique({
-      where: { email },
-    });
-      return ret;
-  }
-
-  // TODO log the calls
-  //@LogMessage<[users]>({message: 'get all'})
   public async getAll() {
-    const user = await prisma.user.findMany()
-    return user;
+    const users = await prisma.user.findMany();
+    return users;
   }
 
-  public async delete(id:string){
-    const ret =  await prisma.user.delete({
+  public async delete(id: string){
+    const user =  await prisma.user.delete({
       where: { id },
     });
-      return ret;
+      return user;
   }
 
   public async deleteAll(){
     const { count } = await prisma.user.deleteMany()
-    return count;
+    return count
   }
 }

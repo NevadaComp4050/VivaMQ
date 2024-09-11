@@ -6,6 +6,7 @@ export default class VivaQuestionService {
   @LogMessage<[VivaQuestion]>({ message: 'test-decorator' })
   
   public async create(data: VivaQuestion) {
+
     const vivaQuestion = await prisma.vivaQuestion.create({ data });
     return vivaQuestion;
   }

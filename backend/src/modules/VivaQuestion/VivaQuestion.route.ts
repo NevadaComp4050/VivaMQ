@@ -92,4 +92,6 @@ vivaQuestions.delete(
   controller.deleteAll
 );
 
+
 export default vivaQuestions;
+

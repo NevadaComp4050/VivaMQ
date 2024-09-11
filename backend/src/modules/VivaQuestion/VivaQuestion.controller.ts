@@ -5,11 +5,6 @@ import VivaQuestionService from './VivaQuestion.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
 
-// import { v4 as uuidv4 } from 'uuid';
-// Should this be here? No probably not
-import prisma from '@/lib/prisma';
-
-
 export default class VivaQuestionController extends Api {
   private readonly vivaQuestionService = new VivaQuestionService();
 

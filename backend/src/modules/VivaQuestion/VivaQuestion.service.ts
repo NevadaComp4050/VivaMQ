@@ -3,8 +3,8 @@ import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
 
 export default class VivaQuestionService {
-
   @LogMessage<[VivaQuestion]>({ message: 'test-decorator' })
+  
   public async createVivaQuestion(data: VivaQuestion) {
     const vivaQuestion = await prisma.vivaQuestion.create({ data });
     return vivaQuestion;
@@ -22,4 +22,3 @@ export default class VivaQuestionService {
     return count
   }
 }
-//

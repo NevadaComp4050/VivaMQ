@@ -4,7 +4,6 @@ import { HttpStatusCode } from 'axios';
 import UploadService from './FileIO.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
-import AIProcessService from '../AIProcess/AIProcess.service'
 
 // Testing, would call the anon function
 //import '../AIProcess/AIProcess.service'
@@ -12,7 +11,6 @@ import AIProcessService from '../AIProcess/AIProcess.service'
 export default class FileIOController extends Api {
 
   private readonly UploadService = new UploadService();
-  private readonly AIProc = new AIProcessService();
   
   // Methods
   

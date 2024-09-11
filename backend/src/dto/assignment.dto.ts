@@ -1,12 +1,23 @@
-import { IsString } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class CreateAssignmentDto {
   @IsString()
+  @IsNotEmpty()
   name: string;
 
-  /*@IsString()
-  unit: string;
+  @IsString()
+  @IsNotEmpty()
+  aiModel: string;
 
   @IsString()
-  description: string;*/
+  @IsNotEmpty()
+  specs: string;
+
+  @IsString()
+  @IsNotEmpty()
+  settings: string;
+
+  @IsString()
+  @IsNotEmpty()
+  unitId: string;
 }

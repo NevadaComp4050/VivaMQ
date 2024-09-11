@@ -70,7 +70,7 @@ CREATE TABLE `Submission` (
 CREATE TABLE `VivaQuestion` (
     `id` VARCHAR(191) NOT NULL,
     `submissionId` VARCHAR(191) NOT NULL,
-    `question` VARCHAR(191) NOT NULL,
+    `question` VARCHAR(5000) NOT NULL,
     `status` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)

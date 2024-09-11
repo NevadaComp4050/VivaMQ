@@ -4,7 +4,8 @@ import LogMessage from '@/decorators/log-message.decorator';
 
 export default class UserService {
   @LogMessage<[User]>({ message: 'test-decorator' })
-  public async createUser(data: User) {
+  
+  public async create(data: User) {
     const user = await prisma.user.create({ data });
     return user;
   }
@@ -23,8 +24,6 @@ export default class UserService {
     return ret;
   }
 
-  // TODO log the calls
-  //@LogMessage<[users]>({message: 'get all'})
   public async getAll() {
     const user = await prisma.user.findMany();
     return user;

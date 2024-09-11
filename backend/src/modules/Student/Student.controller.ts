@@ -8,39 +8,67 @@ import Api from '@/lib/api';
 export default class StudentController extends Api {
   private readonly studentService = new StudentService();
 
-  public createStudent = async (
+  public create = async (
     req: Request,
     res: CustomResponse<Student>,
     next: NextFunction
   ) => {
     try {
-      const newStudent = await this.studentService.createStudent(req.body);
+      const newStudent = await this.studentService.create(req.body);
       this.send(res, newStudent, HttpStatusCode.Created, 'createStudent');
     } catch (e) {
       next(e);
     }
   };
 
-  public getallstudents = async (
+  public get = async (
+    req: Request,
+    res: CustomResponse<Student>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const student = await this.studentService.get(id);
+      this.send(res, student, HttpStatusCode.Ok, 'gotStudent:'+id )
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  public getAll = async (
     req: Request,
     res: CustomResponse<Student[]>,
     next: NextFunction
   ) => {
     try {
-      const studentList = await this.studentService.getStudents();
+      const studentList = await this.studentService.getAll();
       this.send(res, studentList, HttpStatusCode.Ok, 'gotAllStudents');
     } catch (e) {
       next(e);
     }
   };
 
-  public deleteallstudents = async (
+  public delete = async (
+    req: Request,
+    res: CustomResponse<Student>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const student = await this.studentService.delete(id);
+      this.send(res, student, HttpStatusCode.Ok, 'deletedStudent' )
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  public deleteAll = async (
     req: Request,
     res: CustomResponse<Student[]>,
     next: NextFunction
   ) => {
     try {
-      const count = await this.studentService.deleteStudents();
+      const count = await this.studentService.deleteAll();
       this.send(res, count, HttpStatusCode.Ok, 'deletedAllStudents' )
     } catch (e) {
       next(e)

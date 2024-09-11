@@ -8,39 +8,67 @@ import Api from '@/lib/api';
 export default class AssignmentController extends Api {
   private readonly assignmentService = new AssignmentService();
 
-  public createAssignment = async (
+  public create = async (
     req: Request,
     res: CustomResponse<Assignment>,
     next: NextFunction
   ) => {
     try {
-      const newAssignment = await this.assignmentService.createAssignment(req.body);
+      const newAssignment = await this.assignmentService.create(req.body);
       this.send(res, newAssignment, HttpStatusCode.Created, 'createAssignment');
     } catch (e) {
       next(e);
     }
   };
 
-  public getallassignments = async (
+  public get = async (
+    req: Request,
+    res: CustomResponse<Assignment>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const assignment = await this.assignmentService.get(id);
+      this.send(res, assignment, HttpStatusCode.Ok, 'gotAssignment:'+id )
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  public getAll = async (
     req: Request,
     res: CustomResponse<Assignment[]>,
     next: NextFunction
   ) => {
     try {
-      const assignmentList = await this.assignmentService.getAssignments();
+      const assignmentList = await this.assignmentService.getAll();
       this.send(res, assignmentList, HttpStatusCode.Ok, 'gotAllAssignments');
     } catch (e) {
       next(e);
     }
   };
 
-  public deleteallassignments = async (
+  public delete = async (
+    req: Request,
+    res: CustomResponse<Assignment>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const assignment = await this.assignmentService.delete(id);
+      this.send(res, assignment, HttpStatusCode.Ok, 'deletedAssignment' )
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  public deleteAll = async (
     req: Request,
     res: CustomResponse<Assignment[]>,
     next: NextFunction
   ) => {
     try {
-      const count = await this.assignmentService.deleteAssignments();
+      const count = await this.assignmentService.deleteAll();
       this.send(res, count, HttpStatusCode.Ok, 'deletedAllAssignments' )
     } catch (e) {
       next(e)

@@ -1,6 +1,8 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import * as crypto from 'crypto';
 import Api from '@/lib/api';
+import { Http } from 'winston/lib/winston/transports';
+import { HttpStatusCode } from 'axios';
 
 const algorithm = 'aes-256-cbc';
 // Key changes everytime
@@ -29,8 +31,9 @@ export default class AuthDirty extends Api {
   ) => {
     // Take a newly created user from req
     const { ID } = req.body;
-    console.log(ID)
-    next()
+    console.log(ID);
+    res.status(HttpStatusCode.Ok);
+    next();
   }
 
   public static verifyAuthToken = async (
@@ -93,8 +96,7 @@ export default class AuthDirty extends Api {
     res.setHeader('Authorization', `Bearer ${token}`);
     //res.json({ message: 'Logged in successfully' });
     //res.json(null)
-    next()
+    res.status(HttpStatusCode.Ok).send();
+    //next();
   }
-
-
 }

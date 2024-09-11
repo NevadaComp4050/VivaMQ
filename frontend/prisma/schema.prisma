@@ -1,0 +1,96 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  TUTOR
+  CONVENOR
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  units     Unit[] // Only used if the user is a CONVENOR
+}
+
+model Unit {
+  id          String       @id @default(uuid())
+  name        String
+  code        String
+  year        String
+  session     String
+  convenorId  String
+  convenor    User         @relation(fields: [convenorId], references: [id])
+  assignments Assignment[]
+}
+
+model Assignment {
+  id                String       @id @default(uuid())
+  unitId            String
+  name              String
+  description       String?
+  dueDate           DateTime?
+  submissions       Int?
+  unit              Unit         @relation(fields: [unitId], references: [id])
+  submissionRecords Submission[]
+  vivas             Viva[]
+}
+
+model Submission {
+  id             String     @id @default(uuid())
+  assignmentId   String
+  studentName    String
+  submissionDate DateTime
+  status         String
+  content        String
+  assignment     Assignment @relation(fields: [assignmentId], references: [id])
+}
+
+model Viva {
+  id           String         @id @default(uuid())
+  assignmentId String
+  studentName  String
+  status       String
+  assignment   Assignment     @relation(fields: [assignmentId], references: [id])
+  questions    VivaQuestion[]
+}
+
+model VivaQuestion {
+  id     String @id @default(uuid())
+  vivaId String
+  text   String
+  status String
+  viva   Viva   @relation(fields: [vivaId], references: [id])
+}
+
+model Rubric {
+  id           String      @id @default(uuid())
+  name         String
+  unitId       String
+  assignmentId String
+  year         String
+  session      String
+  criteria     Criterion[]
+}
+
+model Criterion {
+  id          Int    @id @default(autoincrement())
+  rubricId    String
+  name        String
+  marks       Int
+  descriptors Json
+  rubric      Rubric @relation(fields: [rubricId], references: [id])
+}

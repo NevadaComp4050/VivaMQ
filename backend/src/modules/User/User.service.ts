@@ -9,36 +9,36 @@ export default class UserService {
     return user;
   }
 
-  public async get(id: string){
-    const ret =  await prisma.user.findUnique({
+  public async get(id: string) {
+    const ret = await prisma.user.findUnique({
       where: { id },
     });
-      return ret;
+    return ret;
   }
 
-  public async getEmail(email: string){
-    const ret =  await prisma.user.findUnique({
+  public async getEmail(email: string) {
+    const ret = await prisma.user.findUnique({
       where: { email },
     });
-      return ret;
+    return ret;
   }
 
   // TODO log the calls
   //@LogMessage<[users]>({message: 'get all'})
   public async getAll() {
-    const user = await prisma.user.findMany()
+    const user = await prisma.user.findMany();
     return user;
   }
 
-  public async delete(id:string){
-    const ret =  await prisma.user.delete({
+  public async delete(id: string) {
+    const ret = await prisma.user.delete({
       where: { id },
     });
-      return ret;
+    return ret;
   }
 
-  public async deleteAll(){
-    const { count } = await prisma.user.deleteMany()
+  public async deleteAll() {
+    const { count } = await prisma.user.deleteMany();
     return count;
   }
 }

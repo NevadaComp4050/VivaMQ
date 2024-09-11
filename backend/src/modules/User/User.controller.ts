@@ -9,7 +9,6 @@ import Api from '@/lib/api';
 // Should this be here? No probably not
 import prisma from '@/lib/prisma';
 
-
 export default class UserController extends Api {
   private readonly userService = new UserService();
 
@@ -52,20 +51,39 @@ export default class UserController extends Api {
     }
   };
 
+  public createreq = async (
+    req: Request,
+    res: CustomResponse<User>,
+    next: NextFunction
+  ) => {
+    try {
+      const newUser: User = await this.userService.createUser(req.body);
+      const ID = newUser.id;
+      req.body = { ID };
+      next();
+    } catch (e) {
+      next(e);
+    }
+  };
+
   public getreq = async (
     req: Request,
     res: CustomResponse<User>,
     next: NextFunction
   ) => {
-  try {
-    const { email, password } = req.params;
-    const user = await this.userService.getEmail(email);
-    req.body = {user, password};
-    next();
-  } catch (e) {
+    try {
+      const { email, password } = req.body;
+      const user = await this.userService.getEmail(email);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      const ID = user.id;
+      req.body = { ID };
+      next();
+    } catch (e) {
       next(e);
     }
-  }
+  };
 
   public get = async (
     req: Request,
@@ -75,11 +93,14 @@ export default class UserController extends Api {
     try {
       const { id } = req.params;
       const user = await this.userService.get(id);
-      this.send(res, user, HttpStatusCode.Ok, 'gotUser:'+id )
+      if (!user) {
+        throw new Error('User not found');
+      }
+      this.send(res, user, HttpStatusCode.Ok, 'gotUser:' + id);
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 
   public getAll = async (
     req: Request,
@@ -88,11 +109,11 @@ export default class UserController extends Api {
   ) => {
     try {
       const userList = await this.userService.getAll();
-      this.send(res, userList, HttpStatusCode.Ok, 'gotAllUsers' )
+      this.send(res, userList, HttpStatusCode.Ok, 'gotAllUsers');
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 
   public delete = async (
     req: Request,
@@ -102,11 +123,11 @@ export default class UserController extends Api {
     try {
       const { id } = req.params;
       const user = await this.userService.delete(id);
-      this.send(res, user, HttpStatusCode.Ok, 'deletedUser:+id' )
+      this.send(res, user, HttpStatusCode.Ok, 'deletedUser:+id');
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 
   public deleteAll = async (
     req: Request,
@@ -115,9 +136,9 @@ export default class UserController extends Api {
   ) => {
     try {
       const count = await this.userService.deleteAll();
-      this.send(res, count, HttpStatusCode.Ok, 'deletedAllUsers' )
+      this.send(res, count, HttpStatusCode.Ok, 'deletedAllUsers');
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 }

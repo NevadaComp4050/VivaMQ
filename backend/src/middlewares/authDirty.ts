@@ -27,7 +27,10 @@ export default class AuthDirty extends Api {
     res: Response,
     next: NextFunction
   ) => {
-    
+    // Take a newly created user from req
+    const { ID } = req.body;
+    console.log(ID)
+    next()
   }
 
   public static verifyAuthToken = async (
@@ -89,6 +92,7 @@ export default class AuthDirty extends Api {
 
     res.setHeader('Authorization', `Bearer ${token}`);
     //res.json({ message: 'Logged in successfully' });
+    //res.json(null)
     next()
   }
 

@@ -60,16 +60,16 @@ export function getMenuList(pathname: string): Group[] {
           icon: Bookmark,
           submenus: [],
         },
-        {
+        /* {
           href: "/dashboard/rubrics",
           label: "Rubrics",
           active: pathname === "/dashboard/rubrics",
           icon: BookOpenText,
           submenus: [],
-        },
+        }, */
       ],
     },
-    {
+    /* {
       groupLabel: "Users",
       menus: [
         {
@@ -80,8 +80,8 @@ export function getMenuList(pathname: string): Group[] {
           submenus: [],
         },
       ],
-    },
-    {
+    }, */
+    /* {
       groupLabel: "System",
       menus: [
         {
@@ -92,6 +92,6 @@ export function getMenuList(pathname: string): Group[] {
           submenus: [],
         },
       ],
-    },
+    }, */
   ];
 }

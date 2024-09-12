@@ -163,15 +163,9 @@ export default function UnitsPage() {
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/units/${unit.id}`}>Manage</Link>
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
                         <Link href={`/dashboard/units/${unit.id}/assignments`}>
                           Assignments
                         </Link>
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/units/${unit.id}/tutors`}>Tutors</Link>
                       </Button>
                     </div>
                   </TableCell>

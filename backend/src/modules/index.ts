@@ -5,11 +5,10 @@ import units from './Unit/Unit.route';
 import tutors from './Tutor/Tutor.route';
 import students from './Student/Student.route';
 import assignments from './Assignment/Assignment.route';
-import FileIO from './FileIO/FileIO.route';
 import submissions from './Submission/Submission.route';
 import vivaQuestions from './VivaQuestion/VivaQuestion.route';
 
-import AIProcs from './AIProcess/AIProcess.route';
+//import AIProcs from './AIProcess/AIProcess.route';
 import misc from './misc.route';
 
 const router: Router = Router();
@@ -19,10 +18,8 @@ router.use('/units', units);
 router.use('/tutors', tutors);
 router.use('/students', students);
 router.use('/assignments', assignments);
-router.use('/files', FileIO);
 router.use('/submissions', submissions);
-router.use('/vivaQuestions', vivaQuestions);
-router.use('/AI', AIProcs);
+router.use('/viva-questions', vivaQuestions);
 
 router.use('/misc', misc);
 

@@ -68,7 +68,7 @@ model Submission {
 model VivaQuestion {
   id           String     @id @default(uuid())
   submissionId String
-  question     String
+  questions    Json       @db.Json
   status       String
   submission   Submission @relation(fields: [submissionId], references: [id])
 }

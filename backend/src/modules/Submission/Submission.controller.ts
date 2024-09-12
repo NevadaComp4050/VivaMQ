@@ -1,5 +1,4 @@
 import { type NextFunction, type Request } from 'express';
-import { type Submission } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import SubmissionService from './Submission.service';
 import { type CustomResponse } from '@/types/common.type';
@@ -8,45 +7,61 @@ import Api from '@/lib/api';
 export default class SubmissionController extends Api {
   private readonly submissionService = new SubmissionService();
 
-  public create = async (
+  public getVivaQuestions = async (
     req: Request,
-    res: CustomResponse<Submission>,
+    res: CustomResponse<any>,
     next: NextFunction
   ) => {
     try {
-      const newSubmission = await this.submissionService.create(req.body);
-      this.send(res, newSubmission, HttpStatusCode.Created, 'createSubmission');
+      const { submissionId } = req.params;
+      const vivaQuestions = await this.submissionService.getVivaQuestions(submissionId);
+      this.send(res, vivaQuestions, HttpStatusCode.Ok, 'getVivaQuestions');
     } catch (e) {
       next(e);
     }
   };
 
-  public get = async (
+  public generateVivaQuestions = async (
     req: Request,
-    res: CustomResponse<Submission>,
+    res: CustomResponse<void>,
     next: NextFunction
   ) => {
     try {
-      const { id } = req.params;
-      const submission = await this.submissionService.get(id);
-      this.send(res, submission, HttpStatusCode.Ok, 'gotSubmission:'+id )
-    } catch (e) {
-      next(e)
-    }
-  }
+      const { submissionId } = req.params;
 
-  public getAll = async (
-    req: Request,
-    res: CustomResponse<Submission[]>,
-    next: NextFunction
-  ) => {
-    try {
-      const submissionList = await this.submissionService.getAll();
-      this.send(res, submissionList, HttpStatusCode.Ok, 'gotAllSubmissions');
+   
+      this.submissionService.generateVivaQuestions(submissionId);
+
+      res.status(HttpStatusCode.Accepted).send({
+        message: 'Viva questions are being generated. Please check back later.',
+      });
     } catch (e) {
       next(e);
     }
   };
+
+  public exportVivaQuestions = async (
+    req: Request,
+    res: CustomResponse<void>,
+    next: NextFunction
+  ) => {
+    try {
+      const { format } = req.query;
+
+      if (format !== 'pdf' && format !== 'csv') {
+        return res.status(HttpStatusCode.BadRequest).send({
+          message: 'Invalid format. Please specify either "pdf" or "csv".',
+        });
+      }
+
+      res.status(HttpStatusCode.NotImplemented).send({
+        message: `Export Viva Questions functionality is not yet implemented.`,
+      });
+    } catch (e) {
+      next(e);
+    }
+  };
+
 
   public delete = async (
     req: Request,
@@ -74,4 +89,5 @@ export default class SubmissionController extends Api {
       next(e)
     }
   };
+
 }

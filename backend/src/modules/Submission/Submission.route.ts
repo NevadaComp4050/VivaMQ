@@ -1,71 +1,49 @@
 import { Router } from 'express';
-import Controller from './Submission.controller';
-import { CreateSubmissionDto } from '@/dto/submission.dto';
-import RequestValidator from '@/middlewares/request-validator';
+import SubmissionController from './Submission.controller';
 import { verifyAuthToken } from '@/middlewares/auth';
 
 const submissions: Router = Router();
-const controller = new Controller();
+const controller = new SubmissionController();
 
 /**
- * Create submission body
- * @typedef {object} CreateSubmissionBody
- * @property {string} assignmentId.required - ID of assignment of submission
- * @property {string} studentId.required - ID of student of assignment
- * @property {string} submissionFile.required - submission file
- * @property {string} status.required - status of submission
+ * GET /api/submissions/{submissionId}/viva-questions
+ * @summary Retrieve viva questions for a specific submission
+ * @tags VivaQuestion
+ * @param {string} submissionId.path.required - Submission ID
+ * @return {Array.<VivaQuestion>} 200 - List of viva questions
  */
-/**
- * Submission
- * @typedef {object} Submission
- * @property {string} id - unique ID
- * @property {string} assignmentId - ID of assignment of submission
- * @property {string} studentId - ID of student of assignment
- * @property {string} submissionFile - submission file
- * @property {string} status - status of submission
- * @property {Assignment} assignment - assignment of submission
- * @property {Student} student - student of submission
- */
+submissions.get(
+  '/:submissionId/viva-questions',
+  verifyAuthToken,
+  controller.getVivaQuestions
+);
 
 /**
- * POST /submissions/create
- * @summary Create submission
- * @tags Submission
- * @param {CreateSubmissionBody} request.body.required
- * @return {Submission} 201 - submission created
+ * POST /api/submissions/{submissionId}/generate-viva-questions
+ * @summary Trigger generation of viva questions for a specific submission
+ * @tags VivaQuestion
+ * @param {string} submissionId.path.required - Submission ID
+ * @return {string} 202 - Viva questions generation initiated
  */
 submissions.post(
-  '/create',
+  '/:submissionId/generate-viva-questions',
   verifyAuthToken,
-  RequestValidator.validate(CreateSubmissionDto),
-  controller.create
+  controller.generateVivaQuestions
 );
 
 /**
- * GET /submissions/{id}
- * @summary Get a single submission
- * @tags Submission
- * @param {string} id.path.required
- * @return {Submission} 200 - submission list
+ * GET /api/submissions/export-viva-questions
+ * @summary Export viva questions for all submissions
+ * @tags VivaQuestion
+ * @param {string} format.query.required - Format (csv or pdf)
+ * @return {string} 501 - Not implemented
  */
 submissions.get(
-  '/:id',
+  '/export-viva-questions',
   verifyAuthToken,
-  controller.get
+  controller.exportVivaQuestions
 );
 
-/**
- * GET /submissions/
- * @summary Get all submission data
- * @tags Submission
- * @param None
- * @return {Array.<Submission>} 200 - submission list
- */
-submissions.get(
-  '/',
-  verifyAuthToken,
-  controller.getAll
-);
 
 /**
  * DELETE /submissions/{id}
@@ -92,5 +70,6 @@ submissions.delete(
   verifyAuthToken,
   controller.deleteAll
 );
+
 
 export default submissions;

@@ -1,5 +1,5 @@
 import { type NextFunction, type Request } from 'express';
-import { type User, Role } from '@prisma/client';
+import { type User } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import UserService from './User.service';
 import { type CustomResponse } from '@/types/common.type';
@@ -107,6 +107,34 @@ export default class UserController extends Api {
     try {
       const count = await this.userService.deleteAll();
       this.send(res, count, HttpStatusCode.Ok, 'deletedAllUsers');
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  
+  public dummyLogin = async (
+    req: Request,
+    res: CustomResponse<User>,
+    next: NextFunction
+  ) => {
+    try {
+      const user = await this.userService.dummyLogin();
+      this.send(res, user, HttpStatusCode.Ok, 'loggedInTestUser');
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  
+  public getCurrentUser = async (
+    req: Request,
+    res: CustomResponse<User>,
+    next: NextFunction
+  ) => {
+    try {
+      const user = await this.userService.getCurrentUser();
+      this.send(res, user, HttpStatusCode.Ok, 'gotCurrentUser');
     } catch (e) {
       next(e);
     }

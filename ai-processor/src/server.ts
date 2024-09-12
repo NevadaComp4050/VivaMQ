@@ -5,7 +5,7 @@ import { startMessageProcessor } from "./rabbitMQProcessor";
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT ?? 5000;
+const port = process.env.PORT ?? 5009;
 
 app.get("/", (req, res) => {
   res.send("AI processor is running");

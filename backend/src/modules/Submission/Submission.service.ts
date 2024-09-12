@@ -1,25 +1,19 @@
-import { type Submission } from '@prisma/client';
 import prisma from '@/lib/prisma';
+import { type VivaQuestion } from '@prisma/client';
 import LogMessage from '@/decorators/log-message.decorator';
+import { queueVivaGeneration } from '@/services/viva-service';
 
 export default class SubmissionService {
-  @LogMessage<[Submission]>({ message: 'test-decorator' })
-
-  public async create(data: Submission) {
-    const submission = await prisma.submission.create({ data });
-    return submission;
-  }
-
-  public async get(id: string){
-    const submission =  await prisma.submission.findUnique({
-      where: { id },
+  
+  public async getVivaQuestions(submissionId: string) {
+    const vivaQuestions = await prisma.vivaQuestion.findMany({
+      where: { submissionId },
     });
-      return submission;
+    return vivaQuestions;
   }
 
-  public async getAll() {
-    const submissions = await prisma.submission.findMany();
-    return submissions;
+  public async generateVivaQuestions(submissionId: string) {
+    await queueVivaGeneration(submissionId);
   }
 
   public async delete(id: string){

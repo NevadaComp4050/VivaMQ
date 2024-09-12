@@ -47,23 +47,23 @@ export function getMenuList(pathname: string): Group[] {
       groupLabel: "Manage",
       menus: [
         {
-          href: "/units",
+          href: "/dashboard/units",
           label: "Units",
-          active: pathname.startsWith("/units"),
+          active: pathname.startsWith("/dashboard/units"),
           icon: SquarePen,
           submenus: [],
         },
         {
-          href: "/assignments",
+          href: "/dashboard/assignments",
           label: "All Assignments",
-          active: pathname === "/assignments",
+          active: pathname === "/dashboard/assignments",
           icon: Bookmark,
           submenus: [],
         },
         {
-          href: "/rubrics",
+          href: "/dashboard/rubrics",
           label: "Rubrics",
-          active: pathname === "/rubrics",
+          active: pathname === "/dashboard/rubrics",
           icon: BookOpenText,
           submenus: [],
         },
@@ -73,9 +73,9 @@ export function getMenuList(pathname: string): Group[] {
       groupLabel: "Users",
       menus: [
         {
-          href: "/tutors",
+          href: "/dashboard/tutors",
           label: "Tutors",
-          active: pathname === "/tutors",
+          active: pathname === "/dashboard/tutors",
           icon: Users,
           submenus: [],
         },
@@ -85,9 +85,9 @@ export function getMenuList(pathname: string): Group[] {
       groupLabel: "System",
       menus: [
         {
-          href: "/settings",
+          href: "/dashboard/settings",
           label: "Settings",
-          active: pathname === "/settings",
+          active: pathname === "/dashboard/settings",
           icon: Settings,
           submenus: [],
         },

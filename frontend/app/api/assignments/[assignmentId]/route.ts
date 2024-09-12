@@ -1,19 +1,28 @@
-// app/api/units/[unitId]/assignments/[assignmentId]/route.ts
 import { NextResponse } from "next/server";
-import mockDatabase from "~/lib/mockDatabase";
+import prisma from "~/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { unitId: string; assignmentId: string } }
+  { params }: { params: { assignmentId: string } }
 ) {
-  const assignment = mockDatabase.assignments.find(
-    (a) => a.id === params.assignmentId && a.unitId === params.unitId
-  );
-  if (assignment) {
-    const submissions = mockDatabase.submissions.filter(
-      (s) => s.assignmentId === assignment.id
+  try {
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: params.assignmentId },
+      include: { submissionRecords: true },
+    });
+
+    if (assignment) {
+      return NextResponse.json(assignment);
+    }
+    return NextResponse.json(
+      { error: "Assignment not found" },
+      { status: 404 }
     );
-    return NextResponse.json({ ...assignment, submissions });
+  } catch (error) {
+    console.error("Error fetching assignment:", error);
+    return NextResponse.json(
+      { error: "An error occurred while fetching the assignment" },
+      { status: 500 }
+    );
   }
-  return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
 }

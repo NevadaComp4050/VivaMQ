@@ -25,6 +25,7 @@ interface Assignment {
 
 export default function Component({ params }: { params: { unitId: string } }) {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [unitName, setUnitName] = useState("");
   const [newAssignmentName, setNewAssignmentName] = useState("");
   const [newAssignmentDueDate, setNewAssignmentDueDate] = useState("");
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,24 @@ export default function Component({ params }: { params: { unitId: string } }) {
 
   useEffect(() => {
     fetchAssignments();
+    fetchUnitName(params.unitId).then((name) => {
+      setUnitName(name);
+    });
   }, [params.unitId]);
+
+  const fetchUnitName = async (unitId: string) => {
+    try {
+      const response = await fetch(`/api/units/${unitId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch unit name");
+      }
+      const data = await response.json();
+      return data.name;
+    } catch (err) {
+      console.error(err);
+      return "Unit";
+    }
+  };
 
   const fetchAssignments = async () => {
     try {
@@ -100,9 +118,7 @@ export default function Component({ params }: { params: { unitId: string } }) {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">
-        Assignments for Unit {params.unitId}
-      </h1>
+      <h1 className="text-3xl font-bold mb-6">Assignments for Unit {unitName}</h1>
 
       <Card className="mb-6">
         <CardHeader>

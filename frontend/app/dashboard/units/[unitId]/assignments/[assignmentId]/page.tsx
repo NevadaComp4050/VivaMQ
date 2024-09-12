@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import {
   FileTextIcon,
   UsersIcon,
-  ClipboardCheckIcon,
   FileEditIcon,
   Loader2,
   UploadIcon,
@@ -47,7 +46,6 @@ interface Assignment {
   name: string;
   description: string;
   dueDate: string;
-  submissions: Submission[];
 }
 
 export default function Component({
@@ -56,6 +54,7 @@ export default function Component({
   params: { unitId: string; assignmentId: string };
 }) {
   const [assignment, setAssignment] = useState<Assignment | null>(null);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -63,25 +62,33 @@ export default function Component({
   const [studentName, setStudentName] = useState("");
 
   useEffect(() => {
-    fetchAssignment();
+    fetchAssignmentAndSubmissions();
   }, [params.unitId, params.assignmentId]);
 
-  const fetchAssignment = async () => {
+  const fetchAssignmentAndSubmissions = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `/api/units/${params.unitId}/assignments/${params.assignmentId}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch assignment");
+      const [assignmentResponse, submissionsResponse] = await Promise.all([
+        fetch(`/api/units/${params.unitId}/assignments/${params.assignmentId}`),
+        fetch(
+          `/api/units/${params.unitId}/assignments/${params.assignmentId}/submissions`
+        ),
+      ]);
+
+      if (!assignmentResponse.ok || !submissionsResponse.ok) {
+        throw new Error("Failed to fetch data");
       }
-      const data: Assignment = await response.json();
-      setAssignment(data);
+
+      const assignmentData: Assignment = await assignmentResponse.json();
+      const submissionsData: Submission[] = await submissionsResponse.json();
+
+      setAssignment(assignmentData);
+      setSubmissions(submissionsData);
     } catch (err) {
       console.error(err);
       toast({
         title: "Error",
-        description: "Failed to fetch assignment data. Please try again.",
+        description: "Failed to fetch data. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -126,7 +133,7 @@ export default function Component({
         description: "Submission uploaded successfully.",
       });
       setUploadDialogOpen(false);
-      fetchAssignment();
+      fetchAssignmentAndSubmissions();
     } catch (error) {
       console.error("Error uploading submission:", error);
       toast({
@@ -189,9 +196,7 @@ export default function Component({
                 </div>
                 <div>
                   <h3 className="font-semibold">Total Submissions</h3>
-                  <p>
-                    {assignment.submissions ? assignment.submissions.length : 0}
-                  </p>
+                  <p>{submissions.length}</p>
                 </div>
                 <Button asChild>
                   <Link
@@ -248,7 +253,7 @@ export default function Component({
                   </DialogContent>
                 </Dialog>
               </div>
-              {assignment.submissions && assignment.submissions.length === 0 ? (
+              {submissions.length === 0 ? (
                 <p className="text-center text-muted-foreground">
                   No submissions yet.
                 </p>
@@ -265,31 +270,28 @@ export default function Component({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {assignment.submissions &&
-                      assignment.submissions.map((submission) => (
-                        <TableRow key={submission.id}>
-                          <TableCell>{submission.studentName}</TableCell>
-                          <TableCell>{submission.studentId}</TableCell>
-                          <TableCell>
-                            {new Date(
-                              submission.submissionDate
-                            ).toLocaleString()}
-                          </TableCell>
-                          <TableCell>{submission.status}</TableCell>
-                          <TableCell>
-                            {submission.pdfSubmission?.fileName || "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            <Button variant="outline" size="sm" asChild>
-                              <Link
-                                href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${submission.id}`}
-                              >
-                                Review
-                              </Link>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                    {submissions.map((submission) => (
+                      <TableRow key={submission.id}>
+                        <TableCell>{submission.studentName}</TableCell>
+                        <TableCell>{submission.studentId}</TableCell>
+                        <TableCell>
+                          {new Date(submission.submissionDate).toLocaleString()}
+                        </TableCell>
+                        <TableCell>{submission.status}</TableCell>
+                        <TableCell>
+                          {submission.pdfSubmission?.fileName || "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="outline" size="sm" asChild>
+                            <Link
+                              href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${submission.id}`}
+                            >
+                              Review
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               )}

@@ -7,9 +7,15 @@ dotenv.config();
 
 export async function startMessageProcessor() {
   try {
-    const connection = await amqp.connect(
-      process.env.RABBITMQ_URL ?? "amqp://localhost"
+    console.log(
+      "Connecting to RabbitMQ at: ",
+      process.env.RABBITMQ_URL ?? "amqp://user:password@rabbitmq:5672"
     );
+    const connection = await amqp.connect(
+      process.env.RABBITMQ_URL ?? "amqp://user:password@rabbitmq:5672"
+    );
+    console.log("Connected to RabbitMQ successfully");
+
     const channel = await connection.createChannel();
 
     const receiveQueue = "BEtoAI";

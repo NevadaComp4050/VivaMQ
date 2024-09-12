@@ -1,17 +1,8 @@
 "use client";
-import {
-  useState,
-  useEffect,
-  AwaitedReactNode,
-  JSXElementConstructor,
-  Key,
-  ReactElement,
-  ReactNode,
-  ReactPortal,
-} from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
   Table,
@@ -22,23 +13,36 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { LockIcon, RefreshCwIcon, CheckIcon, XIcon } from "lucide-react";
+import { Loader2 } from "lucide-react";
+
+interface Question {
+  id: string;
+  text: string;
+  category: string;
+}
+
+interface Submission {
+  id: string;
+  studentName: string;
+  studentId: string;
+  submissionDate: string;
+  status: string;
+  content?: string;
+  pdfSubmission?: {
+    fileName: string;
+    extractedText?: string;
+  };
+  questions: Question[];
+}
 
 export default function SingleSubmissionReviewPage({
   params,
 }: {
-  params: {
-    unitId: string;
-    assignmentId: string;
-    vivaId: string;
-    submissionId: string;
-  };
+  params: { unitId: string; assignmentId: string; submissionId: string };
 }) {
-  const [submission, setSubmission] = useState<any>(null);
+  const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Update in the SingleSubmissionReviewPage component
 
   useEffect(() => {
     const fetchSubmission = async () => {
@@ -62,89 +66,17 @@ export default function SingleSubmissionReviewPage({
     fetchSubmission();
   }, [params.unitId, params.assignmentId, params.submissionId]);
 
-  const handleLockQuestion = async (questionId: number) => {
-    try {
-      const response = await fetch(
-        `/api/vivas/${params.vivaId}/questions/${questionId}/toggle-lock`,
-        {
-          method: "POST",
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to toggle question lock");
-      }
-      const updatedQuestion = await response.json();
-      setSubmission((prev: { questions: any[] }) => ({
-        ...prev,
-        questions: prev.questions.map((q: any) =>
-          q.id === questionId ? updatedQuestion : q
-        ),
-      }));
-    } catch (err) {
-      console.error("Error toggling question lock:", err);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
-  const handleRegenerateQuestion = async (questionId: number) => {
-    try {
-      const response = await fetch(
-        `/api/vivas/${params.vivaId}/questions/${questionId}/regenerate`,
-        {
-          method: "POST",
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to regenerate question");
-      }
-      const updatedQuestion = await response.json();
-      setSubmission((prev: { questions: any[] }) => ({
-        ...prev,
-        questions: prev.questions.map((q: any) =>
-          q.id === questionId ? updatedQuestion : q
-        ),
-      }));
-    } catch (err) {
-      console.error("Error regenerating question:", err);
-    }
-  };
-
-  const handleApproveQuestions = async () => {
-    try {
-      const response = await fetch(
-        `/api/vivas/${params.vivaId}/approve-questions`,
-        {
-          method: "POST",
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to approve questions");
-      }
-      // Handle success (e.g., show a success message or update UI)
-    } catch (err) {
-      console.error("Error approving questions:", err);
-    }
-  };
-
-  const handleMarkComplete = async () => {
-    try {
-      const response = await fetch(
-        `/api/vivas/${params.vivaId}/mark-complete`,
-        {
-          method: "POST",
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to mark viva as complete");
-      }
-      // Handle success (e.g., show a success message or redirect)
-    } catch (err) {
-      console.error("Error marking viva as complete:", err);
-    }
-  };
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!submission) return <div>No submission found</div>;
+  if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
+  if (!submission)
+    return <div className="p-8 text-center">No submission found</div>;
 
   return (
     <div className="p-8">
@@ -152,7 +84,7 @@ export default function SingleSubmissionReviewPage({
         Review Submission: {submission.studentName}
       </h1>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Submission Details</CardTitle>
@@ -164,13 +96,25 @@ export default function SingleSubmissionReviewPage({
                 <div>{submission.studentName}</div>
               </div>
               <div>
-                <Label>Assignment</Label>
-                <div>{submission.assignmentName}</div>
+                <Label>Student ID</Label>
+                <div>{submission.studentId}</div>
               </div>
               <div>
                 <Label>Submission Date</Label>
-                <div>{submission.submissionDate}</div>
+                <div>
+                  {new Date(submission.submissionDate).toLocaleString()}
+                </div>
               </div>
+              <div>
+                <Label>Status</Label>
+                <div>{submission.status}</div>
+              </div>
+              {submission.pdfSubmission && (
+                <div>
+                  <Label>PDF File</Label>
+                  <div>{submission.pdfSubmission.fileName}</div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -180,8 +124,12 @@ export default function SingleSubmissionReviewPage({
             <CardTitle>Submission Content</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[200px] w-full rounded-md border p-4">
-              <p>{submission.content}</p>
+            <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+              <p>
+                {submission.pdfSubmission?.extractedText ||
+                  submission.content ||
+                  "No content available"}
+              </p>
             </ScrollArea>
           </CardContent>
         </Card>
@@ -189,82 +137,35 @@ export default function SingleSubmissionReviewPage({
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Viva Questions</CardTitle>
+          <CardTitle>Generated Questions</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Question</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Category</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {submission.questions.map(
-                (question: {
-                  id: Key | null | undefined;
-                  text:
-                    | string
-                    | number
-                    | bigint
-                    | boolean
-                    | ReactElement<any, string | JSXElementConstructor<any>>
-                    | Iterable<ReactNode>
-                    | ReactPortal
-                    | Promise<AwaitedReactNode>
-                    | null
-                    | undefined;
-                  status:
-                    | string
-                    | number
-                    | bigint
-                    | boolean
-                    | ReactElement<any, string | JSXElementConstructor<any>>
-                    | Iterable<ReactNode>
-                    | Promise<AwaitedReactNode>
-                    | null
-                    | undefined;
-                }) => (
-                  <TableRow key={question.id}>
-                    <TableCell>{question.text}</TableCell>
-                    <TableCell>{question.status}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant={
-                            question.status === "Locked" ? "default" : "outline"
-                          }
-                          onClick={() => handleLockQuestion(question.id)}
-                        >
-                          <LockIcon className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRegenerateQuestion(question.id)}
-                          disabled={question.status === "Locked"}
-                        >
-                          <RefreshCwIcon className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              )}
+              {submission.questions.map((question) => (
+                <TableRow key={question.id}>
+                  <TableCell>{question.text}</TableCell>
+                  <TableCell>{question.category}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      <div className="mt-6 flex justify-end space-x-2">
-        <Button variant="outline" onClick={handleApproveQuestions}>
-          Approve Questions
-        </Button>
-        <Button onClick={handleMarkComplete}>
-          <CheckIcon className="mr-2 h-4 w-4" />
-          Mark Complete
+      <div className="mt-6 flex justify-end">
+        <Button asChild>
+          <a
+            href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}`}
+          >
+            Back to Assignment
+          </a>
         </Button>
       </div>
     </div>

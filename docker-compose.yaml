@@ -68,3 +68,9 @@ services:
 volumes:
   mysql-data:
   postgres-data:
+
+
+networks:
+  default:
+    driver: bridge
+

@@ -108,13 +108,15 @@ model Assignment {
 }
 
 model Submission {
-  id             String     @id @default(uuid())
+  id             String         @id @default(uuid())
   assignmentId   String
   studentName    String
+  studentId      String
   submissionDate DateTime
   status         String
-  content        String
-  assignment     Assignment @relation(fields: [assignmentId], references: [id])
+  content        String?
+  assignment     Assignment     @relation(fields: [assignmentId], references: [id])
+  pdfSubmission  PDFSubmission?
 }
 
 model Viva {
@@ -151,4 +153,15 @@ model Criterion {
   marks       Int
   descriptors Json
   rubric      Rubric @relation(fields: [rubricId], references: [id])
+}
+
+// Add this to your existing Prisma schema
+
+model PDFSubmission {
+  id            String     @id @default(uuid())
+  submissionId  String     @unique
+  fileName      String
+  fileContent   Bytes
+  extractedText String?
+  submission    Submission @relation(fields: [submissionId], references: [id])
 }

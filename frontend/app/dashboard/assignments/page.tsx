@@ -21,7 +21,19 @@ import {
 } from "~/components/ui/select";
 import { SearchIcon } from "lucide-react";
 import Link from "next/link";
-import { Assignment, Unit } from "~/lib/mockDatabase";
+
+interface Assignment {
+  id: string;
+  name: string;
+  unitId: string;
+  dueDate: string;
+  submissions: number;
+}
+
+interface Unit {
+  id: string;
+  name: string;
+}
 
 export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -110,12 +122,12 @@ export default function AssignmentsPage() {
                   <TableCell>
                     {units.find((u) => u.id === assignment.unitId)?.name}
                   </TableCell>
-                  <TableCell>{assignment.dueDate ?? "N/A"}</TableCell>
-                  <TableCell>{assignment.submissions ?? "N/A"}</TableCell>
+                  <TableCell>{assignment.dueDate}</TableCell>
+                  <TableCell>{assignment.submissions}</TableCell>
                   <TableCell>
                     <Button variant="outline" size="sm" asChild>
                       <Link
-                        href={`units/${assignment.unitId}/assignments/${assignment.id}`}
+                        href={`/dashboard/units/${assignment.unitId}/assignments/${assignment.id}`}
                       >
                         Manage
                       </Link>

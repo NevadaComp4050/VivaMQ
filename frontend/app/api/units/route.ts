@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "~/auth";
 import prisma from "~/lib/prisma";
 
 export async function GET() {
@@ -18,14 +19,20 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { name, code, year, session, convenorId } = await request.json();
+    const { name, code, year, session } = await request.json();
+
+    // get the convenorId from the session
+    const UserSession = await auth()
+
     const newUnit = await prisma.unit.create({
       data: {
         name,
         code,
         year,
         session,
-        convenorId,
+        convenor: {
+          connect: { id: UserSession?.user.id },
+        },
       },
     });
     return NextResponse.json(newUnit, { status: 201 });

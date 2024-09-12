@@ -124,10 +124,10 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
 
       <div className="flex space-x-4">
         <Button asChild>
-          <Link href={`/units/${unit.id}/assignments`}>Manage Assignments</Link>
+          <Link href={`/dashboard/units/${unit.id}/assignments`}>Manage Assignments</Link>
         </Button>
         <Button asChild>
-          <Link href={`/units/${unit.id}/tutors`}>Manage Tutors</Link>
+          <Link href={`/dashboard/units/${unit.id}/tutors`}>Manage Tutors</Link>
         </Button>
       </div>
     </div>

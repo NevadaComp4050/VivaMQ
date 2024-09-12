@@ -154,30 +154,29 @@ export default function UnitsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {units.length > 0 &&
-                units.map((unit) => (
-                  <TableRow key={unit.id}>
-                    <TableCell>{unit.name}</TableCell>
-                    <TableCell>{unit.code}</TableCell>
-                    <TableCell>{unit.year}</TableCell>
-                    <TableCell>{unit.session}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/units/${unit.id}`}>Manage</Link>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/units/${unit.id}/assignments`}>
-                            Assignments
-                          </Link>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/units/${unit.id}/tutors`}>Tutors</Link>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+              {units.map((unit) => (
+                <TableRow key={unit.id}>
+                  <TableCell>{unit.name}</TableCell>
+                  <TableCell>{unit.code}</TableCell>
+                  <TableCell>{unit.year}</TableCell>
+                  <TableCell>{unit.session}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/dashboard/units/${unit.id}`}>Manage</Link>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/dashboard/units/${unit.id}/assignments`}>
+                          Assignments
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/dashboard/units/${unit.id}/tutors`}>Tutors</Link>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>

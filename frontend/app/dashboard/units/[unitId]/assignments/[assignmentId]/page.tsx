@@ -1,73 +1,99 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
-import { Button } from "~/components/ui/button"
-import { Input } from "~/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
-import { FileTextIcon, UsersIcon, ClipboardCheckIcon, FileEditIcon, Loader2, UploadIcon } from "lucide-react"
-import Link from "next/link"
-import { toast } from "~/components/ui/use-toast"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import {
+  FileTextIcon,
+  UsersIcon,
+  ClipboardCheckIcon,
+  FileEditIcon,
+  Loader2,
+  UploadIcon,
+} from "lucide-react";
+import Link from "next/link";
+import { toast } from "~/components/ui/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 
 interface Submission {
-  id: string
-  studentName: string
-  studentId: string
-  submissionDate: string
-  status: string
+  id: string;
+  studentName: string;
+  studentId: string;
+  submissionDate: string;
+  status: string;
   pdfSubmission?: {
-    fileName: string
-  }
+    fileName: string;
+  };
 }
 
 interface Assignment {
-  id: string
-  name: string
-  description: string
-  dueDate: string
-  submissions?: Submission[]
+  id: string;
+  name: string;
+  description: string;
+  dueDate: string;
+  submissions: Submission[];
 }
 
-export default function Component({ params }: { params: { unitId: string; assignmentId: string } }) {
-  const [assignment, setAssignment] = useState<Assignment | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [studentId, setStudentId] = useState("")
-  const [studentName, setStudentName] = useState("")
+export default function Component({
+  params,
+}: {
+  params: { unitId: string; assignmentId: string };
+}) {
+  const [assignment, setAssignment] = useState<Assignment | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [studentId, setStudentId] = useState("");
+  const [studentName, setStudentName] = useState("");
 
   useEffect(() => {
-    fetchAssignment()
-  }, [params.unitId, params.assignmentId])
+    fetchAssignment();
+  }, [params.unitId, params.assignmentId]);
 
   const fetchAssignment = async () => {
     try {
-      setLoading(true)
-      const response = await fetch(`/api/units/${params.unitId}/assignments/${params.assignmentId}`)
+      setLoading(true);
+      const response = await fetch(
+        `/api/units/${params.unitId}/assignments/${params.assignmentId}`
+      );
       if (!response.ok) {
-        throw new Error("Failed to fetch assignment")
+        throw new Error("Failed to fetch assignment");
       }
-      const data = await response.json()
-      setAssignment(data)
+      const data: Assignment = await response.json();
+      setAssignment(data);
     } catch (err) {
-      console.error(err)
+      console.error(err);
       toast({
         title: "Error",
         description: "Failed to fetch assignment data. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0])
+      setSelectedFile(event.target.files[0]);
     }
-  }
+  };
 
   const handleUpload = async () => {
     if (!selectedFile || !studentId || !studentName) {
@@ -75,60 +101,60 @@ export default function Component({ params }: { params: { unitId: string; assign
         title: "Error",
         description: "Please fill in all fields and select a file.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    const formData = new FormData()
-    formData.append('file', selectedFile)
-    formData.append('assignmentId', params.assignmentId)
-    formData.append('studentId', studentId)
-    formData.append('studentName', studentName)
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("assignmentId", params.assignmentId);
+    formData.append("studentId", studentId);
+    formData.append("studentName", studentName);
 
     try {
-      const response = await fetch('/api/submissions/upload', {
-        method: 'POST',
+      const response = await fetch("/api/submissions/upload", {
+        method: "POST",
         body: formData,
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to upload submission')
+        throw new Error("Failed to upload submission");
       }
 
       toast({
         title: "Success",
         description: "Submission uploaded successfully.",
-      })
-      setUploadDialogOpen(false)
-      fetchAssignment()
+      });
+      setUploadDialogOpen(false);
+      fetchAssignment();
     } catch (error) {
-      console.error('Error uploading submission:', error)
+      console.error("Error uploading submission:", error);
       toast({
         title: "Error",
         description: "Failed to upload submission. Please try again.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
-    )
+    );
   }
 
   if (!assignment) {
     return (
       <div className="p-8 text-center">
         <h1 className="text-3xl font-bold mb-4">Assignment Not Found</h1>
-        <p className="text-muted-foreground">The requested assignment could not be found.</p>
+        <p className="text-muted-foreground">
+          The requested assignment could not be found.
+        </p>
       </div>
-    )
+    );
   }
-
-  const submissions = assignment.submissions || []
 
   return (
     <div className="p-8">
@@ -163,10 +189,14 @@ export default function Component({ params }: { params: { unitId: string; assign
                 </div>
                 <div>
                   <h3 className="font-semibold">Total Submissions</h3>
-                  <p>{submissions.length}</p>
+                  <p>
+                    {assignment.submissions ? assignment.submissions.length : 0}
+                  </p>
                 </div>
                 <Button asChild>
-                  <Link href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/rubrics`}>
+                  <Link
+                    href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/rubrics`}
+                  >
                     <FileEditIcon className="w-4 h-4 mr-2" />
                     Manage Rubric
                   </Link>
@@ -183,7 +213,10 @@ export default function Component({ params }: { params: { unitId: string; assign
             </CardHeader>
             <CardContent>
               <div className="mb-4">
-                <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+                <Dialog
+                  open={uploadDialogOpen}
+                  onOpenChange={setUploadDialogOpen}
+                >
                   <DialogTrigger asChild>
                     <Button>
                       <UploadIcon className="w-4 h-4 mr-2" />
@@ -195,7 +228,11 @@ export default function Component({ params }: { params: { unitId: string; assign
                       <DialogTitle>Upload Submission</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
-                      <Input type="file" onChange={handleFileChange} accept=".pdf" />
+                      <Input
+                        type="file"
+                        onChange={handleFileChange}
+                        accept=".pdf"
+                      />
                       <Input
                         placeholder="Student ID"
                         value={studentId}
@@ -211,8 +248,10 @@ export default function Component({ params }: { params: { unitId: string; assign
                   </DialogContent>
                 </Dialog>
               </div>
-              {submissions.length === 0 ? (
-                <p className="text-center text-muted-foreground">No submissions yet.</p>
+              {assignment.submissions && assignment.submissions.length === 0 ? (
+                <p className="text-center text-muted-foreground">
+                  No submissions yet.
+                </p>
               ) : (
                 <Table>
                   <TableHeader>
@@ -226,22 +265,31 @@ export default function Component({ params }: { params: { unitId: string; assign
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {submissions.map((submission) => (
-                      <TableRow key={submission.id}>
-                        <TableCell>{submission.studentName}</TableCell>
-                        <TableCell>{submission.studentId}</TableCell>
-                        <TableCell>{new Date(submission.submissionDate).toLocaleString()}</TableCell>
-                        <TableCell>{submission.status}</TableCell>
-                        <TableCell>{submission.pdfSubmission?.fileName || 'N/A'}</TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm" asChild>
-                            <Link href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${submission.id}`}>
-                              Review
-                            </Link>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {assignment.submissions &&
+                      assignment.submissions.map((submission) => (
+                        <TableRow key={submission.id}>
+                          <TableCell>{submission.studentName}</TableCell>
+                          <TableCell>{submission.studentId}</TableCell>
+                          <TableCell>
+                            {new Date(
+                              submission.submissionDate
+                            ).toLocaleString()}
+                          </TableCell>
+                          <TableCell>{submission.status}</TableCell>
+                          <TableCell>
+                            {submission.pdfSubmission?.fileName || "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="outline" size="sm" asChild>
+                              <Link
+                                href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${submission.id}`}
+                              >
+                                Review
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
               )}
@@ -250,5 +298,5 @@ export default function Component({ params }: { params: { unitId: string; assign
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

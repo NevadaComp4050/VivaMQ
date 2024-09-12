@@ -1,27 +1,11 @@
 services:
-  backend:
-    build:
-      context: ./backend
-    ports:
-      - "8080:8080"
-    env_file:
-      - ./backend/.env
-    depends_on:
-      ai-processor:
-        condition: service_healthy
-      mysql:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-
   frontend:
     build:
       context: ./frontend
     ports:
       - "3000:3000"
     depends_on:
-      backend:
-        condition: service_healthy
+      - postgres
 
   mysql:
     image: mysql:8.0
@@ -84,7 +68,3 @@ services:
 volumes:
   mysql-data:
   postgres-data:
-
-networks:
-  default:
-    driver: bridge

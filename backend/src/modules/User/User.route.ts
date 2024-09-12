@@ -44,14 +44,15 @@ users.post(
   '/',
   verifyAuthToken,
   RequestValidator.validate(CreateUserDto),
-  controller.createUser
+  controller.create
 );
 
 /**
- * GET /users
- * @summary Get all users
+ * GET /users/
+ * @summary Get all user data
  * @tags User
- * @return {Array.<User>} 200 - A list of users
+ * @param None
+ * @return {User} 200 - user list
  */
 users.get(
   '/',
@@ -61,7 +62,7 @@ users.get(
 
 /**
  * GET /users/{id}
- * @summary Get a user by ID
+ * @summary Get a single user data
  * @tags User
  * @param {string} id.path.required - The ID of the user to retrieve
  * @return {User} 200 - The retrieved user
@@ -70,6 +71,19 @@ users.get(
   '/:id',
   verifyAuthToken,
   controller.get
+);
+
+/**
+ * GET /users/
+ * @summary Get all user data
+ * @tags User
+ * @param None
+ * @return {Array.<User>} 200 - user list
+ */
+users.get(
+  '/',
+  verifyAuthToken,
+  controller.getAll
 );
 
 /**
@@ -85,6 +99,20 @@ users.delete(
   controller.delete
 );
 
+
+/**
+ * DELETE /users/
+ * @summary Delete all user data
+ * @tags User
+ * @param None
+ * @return {number} 200 - user clear
+ */
+users.delete(
+  '/',
+  verifyAuthToken,
+  controller.deleteAll
+);
+
 /**
  * POST /users/login
  * @summary Dummy login to create or return the test user
@@ -97,7 +125,8 @@ users.post('/login', controller.dummyLogin);
  * GET /users/me
  * @summary Get the current logged-in user
  * @tags User
- * @return {User} 200 - The current user
+ * @param None
+ * @return {number} 200 - user list
  */
 users.get('/me', verifyAuthToken, controller.getCurrentUser);
 

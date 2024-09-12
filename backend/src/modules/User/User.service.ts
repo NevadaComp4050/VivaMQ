@@ -6,14 +6,17 @@ import argon2 from 'argon2';
 export default class UserService {
   
   @LogMessage<[User]>({ message: 'test-decorator' })
-  public async createUser(data: User) {
+  public async create(data: User) {
     const hashedPassword = await argon2.hash(data.password);
 
-    const user = await prisma.user.create({
+    const user = await prisma.user.create({ 
+      data // Changes below need to be integrated properly
+      /*
       data: {
         ...data,
         password: hashedPassword,
       },
+      */
     });
     return user;
   }
@@ -25,6 +28,15 @@ export default class UserService {
     return ret;
   }
 
+  public async getEmail(email: string){
+    const ret =  await prisma.user.findUnique({
+      where: { email },
+    });
+      return ret;
+  }
+
+  // TODO log the calls
+  //@LogMessage<[users]>({message: 'get all'})
   public async getAll() {
     const user = await prisma.user.findMany();
     return user;
@@ -41,8 +53,9 @@ export default class UserService {
     const { count } = await prisma.user.deleteMany();
     return count;
   }
+  // Removed getEmail from here, other func returned a variable called user
 
-
+  // TODO why is this here?
   public async dummyLogin() {
     let user = await prisma.user.findFirst({
       where: { email: "test@example.com" },
@@ -50,7 +63,10 @@ export default class UserService {
 
     if (!user) {
       
-      const hashedPassword = await argon2.hash("password123");
+      //TODO Purpose of User.service is to require service calls
+      //const hashedPassword = await argon2.hash("password123");
+      const hashedPassword = "password123";
+      
       user = await prisma.user.create({
         data: {
           email: "test@example.com",
@@ -64,14 +80,8 @@ export default class UserService {
     return user;
   }
 
-  public async getEmail(email: string) {
 
-    const user = await prisma.user.findFirst({
-      where: { email },
-    });
-    return user;
-  }
-
+  // TODO this needs explanation
   public async getCurrentUser() {
     const user = await prisma.user.findFirst({
       where: { email: "test@example.com" },

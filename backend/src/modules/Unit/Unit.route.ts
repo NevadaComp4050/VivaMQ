@@ -9,6 +9,14 @@ const units: Router = Router();
 const controller = new Controller();
 
 /**
+ * Create unit body
+ * @typedef {object} CreateUnitBody
+ * @property {string} name.required - name of unit
+ * @property {number} year.required - year of unit
+ * @property {string} convenorId.required - ID of convenor of unit
+ */
+
+/**
  * @typedef {object} Unit
  * @property {string} id - unique ID
  * @property {string} name - name of unit
@@ -46,11 +54,11 @@ units.post(
   '/',
   verifyAuthToken,
   RequestValidator.validate(CreateUnitDto),
-  controller.createUnit
+  controller.create
 );
 
 /**
- * GET /units
+ * GET /units/getall
  * @summary Get all unit data with pagination
  * @tags Unit
  * @param {number} limit.query - The number of units to return (pagination)
@@ -58,17 +66,17 @@ units.post(
  * @return {Array.<Unit>} 200 - unit list
  */
 units.get(
-  '/',
+  '/getall',
   verifyAuthToken,
-  controller.getallunits
+  controller.getAll
 );
 
 /**
  * GET /units/{id}
- * @summary Get single unit record
+ * @summary Get a single unit
  * @tags Unit
- * @param {string} id.path.required - ID of the unit to retrieve
- * @return {Unit} 200 - unit data
+ * @param {string} id.path.required
+ * @return {Unit} 200 - unit list
  */
 units.get(
   '/:id',
@@ -76,18 +84,6 @@ units.get(
   controller.getUnit
 );
 
-/**
- * POST /units/{id}
- * @summary Delete a single unit record
- * @tags Unit
- * @param {string} id.path.required - ID of the unit to delete
- * @return {User} 200 - user list
- */
-units.post(
-  '/:id',
-  verifyAuthToken,
-  controller.deleteUnit
-);
 
 /**
  * PUT /units/update-name/{id}
@@ -101,6 +97,32 @@ units.put(
   '/update-name/:id',
   verifyAuthToken,
   controller.updateUnitName
+);
+
+/**
+ * DELETE /units/{id}
+ * @summary Delete a single unit
+ * @tags Unit
+ * @param {string} id.path.required - ID of the unit to delete
+ * @return {Unit} 200 - unit list
+ */
+units.delete(
+  '/:id',
+  verifyAuthToken,
+  controller.delete
+);
+
+/**
+ * DELETE /units/
+ * @summary Delete all unit data
+ * @tags Unit
+ * @param None
+ * @return {number} 200 - unit clear
+ */
+units.delete(
+  '/',
+  verifyAuthToken,
+  controller.deleteAll
 );
 
 /**
@@ -132,5 +154,7 @@ units.get(
   verifyAuthToken,
   controller.getAssignments
 );
+
+
 
 export default units;

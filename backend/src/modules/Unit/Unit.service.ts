@@ -4,7 +4,8 @@ import LogMessage from '@/decorators/log-message.decorator';
 
 export default class UnitService {
   @LogMessage<[Unit]>({ message: 'test-decorator' })
-  public async createUnit(data: Unit) {
+
+  public async create(data: Unit) {
     const unit = await prisma.unit.create({ data });
     return unit;
   }
@@ -22,14 +23,12 @@ export default class UnitService {
     const unit = await prisma.unit.findUnique({
       where: { id },
     });
-    return unit;
+      return unit;
   }
 
-  public async deleteUnit(id: string){
-    const unit =  await prisma.unit.delete({
-      where: { id },
-    });
-      return unit;
+  public async getAll() {
+    const units = await prisma.unit.findMany();
+    return units;
   }
 
   public async updateUnitName(id: string, name: string) {
@@ -39,6 +38,19 @@ export default class UnitService {
     });
     return updatedUnit;
   }
+
+  public async delete(id: string){
+    const unit =  await prisma.unit.delete({
+      where: { id },
+    });
+      return unit;
+  }
+
+  public async deleteAll(){
+    const { count } = await prisma.unit.deleteMany()
+    return count
+  }
+
 
   public async createAssignment(unitId: string, data: Assignment) {
     const assignment = await prisma.assignment.create({

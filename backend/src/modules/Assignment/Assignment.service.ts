@@ -5,19 +5,33 @@ import LogMessage from '@/decorators/log-message.decorator';
 export default class AssignmentService {
   @LogMessage<[Assignment]>({ message: 'test-decorator' })
 
-  public async createAssignment(data: Assignment) {
+  public async create(data: Assignment) {
     const assignment = await prisma.assignment.create({ data });
     return assignment;
   }
 
-  public async getAssignments() {
+  public async get(id: string){
+    const assignment =  await prisma.assignment.findUnique({
+      where: { id },
+    });
+      return assignment;
+  }
+
+  public async getAll() {
     const assignments = await prisma.assignment.findMany();
     return assignments;
   }
 
-  public async deleteAssignments() {
-    const { count } = await prisma.assignment.deleteMany();
-    return count;
+  public async delete(id: string){
+    const assignment =  await prisma.assignment.delete({
+      where: { id },
+    });
+      return assignment;
+  }
+
+  public async deleteAll(){
+    const { count } = await prisma.assignment.deleteMany()
+    return count
   }
 
   public async createSubmission(data: Submission) {

@@ -1,6 +1,10 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import * as crypto from 'crypto';
 import Api from '@/lib/api';
+import { Http } from 'winston/lib/winston/transports';
+import { HttpStatusCode } from 'axios';
+
+const auth_en:boolean = true;
 
 const algorithm = 'aes-256-cbc';
 // Key changes everytime
@@ -18,7 +22,7 @@ interface DirtyJWT {
 }
 
 // 5mins valid
-const validPeriod = 300;
+const validPeriod = 36000;
 
 export default class AuthDirty extends Api {
 
@@ -27,7 +31,11 @@ export default class AuthDirty extends Api {
     res: Response,
     next: NextFunction
   ) => {
-    
+    // Take a newly created user from req
+    const { ID } = req.body;
+    console.log(ID);
+    res.status(HttpStatusCode.Ok);
+    next();
   }
 
   public static verifyAuthToken = async (
@@ -40,7 +48,9 @@ export default class AuthDirty extends Api {
     console.log(req.body);
     if(!authorization){
       console.log('Caught unauthorised access attempt');
-      //return next("failed");
+      if(auth_en){
+        return next("Failed: No authorisation");
+      }
       return next();
     }
     const token = authorization.split(' ')[1];
@@ -52,15 +62,17 @@ export default class AuthDirty extends Api {
     const tokenReq: DirtyJWT = JSON.parse(dec);
     //console.log(tokenReq);
     if (Math.floor(Date.now() / 1000)>tokenReq.Epoch){
-      console.log('Token has expired')
-      //next('token has expired')
+      console.log('Token has expired');
+      if(auth_en){
+        next('Failed: Token has expired');
+      }
     }
     //console.log('token still valid for %d sec',tokenReq.Epoch-(Math.floor(Date.now() / 1000)))
 
     // Check if user is valid
     // Does this even make sense? This token is encrypted.
     // Maybe pass forward user info in some way
-    next()
+    next();
   }
 
 
@@ -89,8 +101,8 @@ export default class AuthDirty extends Api {
 
     res.setHeader('Authorization', `Bearer ${token}`);
     //res.json({ message: 'Logged in successfully' });
-    next()
+    //res.json(null)
+    res.status(HttpStatusCode.Ok).send();
+    //next();
   }
-
-
 }

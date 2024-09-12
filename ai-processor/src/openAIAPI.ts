@@ -1,24 +1,21 @@
-import * as dotenv from "dotenv";
-dotenv.config();
-
 import { z } from "zod";
 import { OpenAI } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
+
 // question structure
 const Question = z.object({
   question_text: z.string(),
-});
-
-// idk copied off Deb
-const Category = z.object({
-  category_name: z.string(),
-  questions: z.array(Question),
+  question_category: z.string()
 });
 
 // zod API response: array of categories
 const QuestionResponse = z.object({
-  categories: z.array(Category),
+  questions: z.array(Question),
 });
 
 // env API key
@@ -27,9 +24,13 @@ const client = new OpenAI({
 });
 
 // function to prompt OpenAI and parse the response using Zod
-async function promptSubUUID(prompt: string, submission: string, uuid: string): Promise<[string, string]> {
+async function promptSubUUID(
+  prompt: string,
+  submission: string,
+  uuid: string
+): Promise<[string, string]> {
   try {
-    console.log("[x] Sending to OpenAI: \n prompt:", prompt + "\nsubmission:\n" + submission)
+    // console.log("[x] Sending to OpenAI: \n prompt:", prompt + "\nsubmission:\n" + submission)
     const response = await client.chat.completions.create({
       model: "gpt-4o-2024-08-06", // Use the appropriate model
       messages: [{ role: "user", content: prompt + "\n\n" + submission }],
@@ -55,7 +56,9 @@ if (debug) {
     try {
       const response = await promptSubUUID(
         // student submission , prompt used, UUID
-       "photosynthesis", "please provide three questions to assess my understanding of the text submission", "1324"
+        "photosynthesis",
+        "please provide three questions to assess my understanding of the text submission",
+        "1324"
       );
       if (response) console.log("The response is: ", response);
     } catch (error) {
@@ -63,4 +66,3 @@ if (debug) {
     }
   })();
 }
-

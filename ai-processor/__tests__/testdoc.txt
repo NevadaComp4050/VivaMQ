@@ -1,0 +1,51 @@
+High level overview shows each ‘slave’ Arduino communicating using UART using a single communication line, the data is sent across the communication line which can be received by any or all of the individual marble machines. This allows the master Arduino to dictate the overall aesthetics of the greater sculpture. Each marble machine shall contain a ‘slave’ Arduino that receives serial data from the ‘master’. Only the ‘master’ Arduino will be able to send data to all the boxes. The master will be separate and not contained in any individual marble machine, but still a part of the larger sculpture. Specifications of the Open System Interconnection(OSI) model(Alani 2014) each layer and its role in this are outlined here.
+
+The Physical Layer will manage the physical connection between devices, allowing raw binary data to be transferred over the physical medium. The connection required for the Arduino to connect to the overall sculpture will be soldered using 20 Awg (Appendix B) to the Arduino pins D0(RX) and D1(TX) and connected to a 2 Pin Female Polarized Header Connector. This includes the TX and RX pins, common ground and their respective cabling for transferring the data. Using a two wire balanced signalling scheme and bus topology connecting the ‘master’ Arduino to all the slaves, allows quick and easy connection between the greater sculpture for maintenance and diagnostics.
+
+The bitrate is set for this protocol at 9600 bits/s, sufficient speed for the colour variables to be updated, it also aligns with the typical bitrate set on other teams' Arduinos. The physical layer of this communication method will be following the RS232 standards(O’Reilly 2019), this is the most commonly used and defined by the Serial Communication Standards.
+
+The Data Link Layer will handle data framing, error detection and flow control. In this design the serial communication protocol will be managed by the SoftwareSerial package. Including start and stop bits for framing and error checking.
+
+The Network, Transport, Session and Presentation Layers functionalities are handled at the Application layer. The functionality of data being sent to slave Arduino’s requires no session management, no formatting/encryption or compression, no routing or error handling. All devices receive all communication sent by the master and choose to disregard or receive, allowing many of the OSI model layers to use the Application layer and its functionalities.
+
+The Application Layer will handle the user interface of updating and maintaining the system and any updates coming from the ‘master’ Arduino. Any custom implementations of the LEDs including time of day settings or lighting levels. The protocol implementations between the master and slave Arduino for data formatting and how data is structured. The ability to translate the received data into a behavioural change on the LED colours and logic. As a ball passes a sensor in the box it must incorporate a lighting pattern and the received colour values. If no message has been received from the master in a predetermined amount of time, a default lighting sequence will be initiated.
+
+This will be used for communication between the box being designed by our team and the greater sculpture, allowing all cubes participating to coordinate the lighting aesthetic. Its ease of integration, inexpensive additional hardware requirements and simple message structure makes it ideal for this application. Modifications to this design will allow two way communication, no error handling simplifying communication of the overall structure. In this iteration of the project only colour and brightness values will be transmitted to each box, in further iterations of this design numerous characteristics can be monitored with two way communication introduced to the overall sculpture. This will however require some additional hardware components.
+
+Once the marble enters from the bottom of the cube, the beam break sensor will indicate to the arduino that a marble has entered the system and will indicate this through the LEDs (ReqF03). The marble will hit a physical barrier which deflects the marble trajectory onto a wire track. The marble traverses through the cube in between lengths of galvanised wire that is 15mm apart. The track will lead the ball to the Achmedies Spiral (refer to Appendix A.4). The Achmedies spiral raises the marble to the top of the box that takes around five seconds (ReqF16). Every five seconds the motor which drives the Achmedies Spiral will be toggled off for 0.75 seconds (ReqF15). At the top of the spiral the marble will transfer to another wire track which will guide the marble around the box, changing the direction of the marble in two dimensions (ReqF14).
+
+The marble travels around the box until it reaches the other side of the Achmedies spiral where it will again be lifted to the top of the box. It will then travel along a track to the ejection mechanism. The ejection mechanism is a rubber wheel attached to a motor. The speed is predefined speed (ReqF13) such that the marble meets appropriate speed requirements. This speed is managed using PID through a control on the Arduino. When the marble passes underneath the rubber wheel, momentum is transferred from the wheels circular momentum to the marble such that the marble has sufficient momentum to travel up an arc, through the expulsion hole and into the next box (ReqF12). Refer to Appendix A.5.
+
+This allows the Marble Machine to meet all requirements without the use of compressed gas or liquids (ReqF10). 
+
+6.1.9 Arduino Pin usage
+
+Arduino Pin Peripheral Set to Read/Write
+
+D0 (RX) Interbox communication receive Read
+
+D1 Interbox communication transmit Write
+
+D2 L293D motor driver for Ejection motor Write
+
+D3 (PWM)
+
+D4
+
+D5 (PWM) LED light strip control 2 Read
+
+D6 (PWM) LED light strip control 3 Read
+
+D7
+
+D8 IR break beam sensor Write
+
+D9 (PWM) Mosfet for Archimedes screw Write
+
+D10 (PWM)
+
+D11 (PWM)
+
+D12
+
+D13 Arduino Light to display errors Write

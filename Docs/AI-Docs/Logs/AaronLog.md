@@ -139,6 +139,25 @@ cleaned up src folder
 Saturday 
 
 # Week 7/8 (Sprint 2)
+***Keeping the team updated:***
+Big news is that the ai-microservice implementation has also been updated to be able to be deployable on docker. The details to get this working on your machine are in `ai-development.md`.  This is very exciting.
+
+To keep you up to date and informed so changes to the repo have occurred.
+File name change and add.
+change: aiIntegration.ts -> rabbitMQProcessor.ts
+add: index.ts, server.ts - these are industry standards and are to help with deployment
+the tests have been modified as well, I will give you an update when I talk to Deb next(or you can just ask Deb)
+
+To reduce bloating Deb has had a look through our ai-processor and had a little spring cleaning for MVP, so don't freak out if you do git pull and things look a little different.
+- Documentation has merged into Docs in the root directory.
+- tests have been moved into __tests__ in the ai-processor dir
+- all deprecated files have been moved exclusively to the ai-microservice branch
+
+The documentation has been updated as well. Since we have no client facing systems, we can reduce our documentation to the AILog, development and testing. I have already consolidated these for us, Eli, Zarin there is a testing section in `ai-development.md` for when you are working on this weeks milestone.
+Hoping to reduce as much overhead as possible but the idea here is that if we loose all our work, or want to give the project away we can just go through these docs.
+
+As always let me know if you have questions, otherwise have a good weekend :)
+
 
 # Week 9/10 (Sprint 3)
 

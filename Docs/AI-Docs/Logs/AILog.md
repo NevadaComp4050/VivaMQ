@@ -178,11 +178,42 @@ application allows user to upload a single document at a time for processing
 application shows user a list of questions generated from the document
 ~~~
 
-~~~ js
-mvp process
-user gets on application
-application allows user to CRUD a unit
-application allows user to CRUD an assignment
-application allows user to upload a single document at a time for processing
-application shows user a list of questions generated from the document
-~~~
+## Mid week meeting 10/09
+any mission critical issues raised from the tests
+program functioning (a few additions/modifications)
+client slides (rahik will have final version done tonight)
+integration between teams (Wednesday MVP Jam)
+address any repo restructure questions
+
+Rate limit function created in openAIAPI.ts of 30,000 token per minute limit
+Batch queue limit 90,000 tokens per minute 
+
+### Eli and Zarin on testing regiment
+#### Test 1) Test Message Rejection
+Verify that message rejection works as expected:
+
+Send a message to a queue.
+Consume the message and reject it.
+Ensure that the message is re-queued or moved to a dead-letter queue, if configured.
+
+#### Test 2) Test Queue Deletion
+Test whether queues can be deleted and re-created:
+
+Assert that a queue exists.
+Delete the queue.
+Recreate the queue.
+Verify that the queue can be re-created without issues.
+#### Test 3) Test Different Queue Configurations
+Test various queue configurations (e.g., durable vs. non-durable, exclusive queues):
+
+Send and receive messages in queues with different configurations.
+Verify that each configuration behaves as expected.
+#### Test 4) + write tests on the token limits
+
+Performance testing not worth doing as OpenAI is setting the limit
+
+### future implementations
+fix error handling and talk to BE about persistent storage
+address any repo restructure questions
+client slides (rahik will have final version done tonight)
+integration between teams (Wednesday MVP Jam)

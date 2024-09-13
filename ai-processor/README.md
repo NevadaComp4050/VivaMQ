@@ -27,3 +27,64 @@ Setup a `.env` environment file to store the API Key. Replace `OPENAI_API_KEY` w
 
 Execute the command to run the application in TypeScript code in `index.ts` using Node.js.
 CLI: `npx ts-node index.ts`
+
+
+## Interface
+```json
+{
+  type: "vivaQuestions",
+  data: {
+    submission: "...",
+    customPrompt: "..."
+  },
+  uuid: "..."
+}
+
+{
+  type: "writingQuality",
+  data: {
+    document: "...",
+    criteria: "..."
+  },
+  uuid: "..."
+}
+
+{
+  type: "summaryAndReport",
+  data: {
+    document: "..."
+  },
+  uuid: "..."
+}
+
+{
+  type: "automatedMarksheet",
+  data: {
+    document: "...",
+    rubric: "...",
+    learningOutcomes: "..."
+  },
+  uuid: "..."
+}
+
+{
+  type: "optimizePrompt",
+  data: {
+    originalPrompt: "...",
+    configParams: {...}
+  },
+  uuid: "..."
+}
+
+{
+  type: "createRubric",
+  data: {
+    assessmentTask: "...",
+    criteria: [...],
+    keywords: [...],
+    learningObjectives: [...],
+    existingGuide: "..."
+  },
+  uuid: "..."
+}
+```

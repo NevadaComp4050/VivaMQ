@@ -14,7 +14,7 @@ interface Message {
   type: string;
   data: any;
   uuid: string;
-}
+} 
 
 export async function processMessage(message: Message): Promise<any> {
   try {

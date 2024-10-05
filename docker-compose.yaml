@@ -2,13 +2,11 @@ version: "3.8"
 
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: megapz/vivamq-backend:latest
     ports:
       - "8080:8080"
     environment:
-      - DATABASE_URL=mysql://root:databasepassword@mysql:3306/vivamq
+      - DATABASE_URL=mysql://root:example@mysql:3306/vivamq
     depends_on:
       mysql:
         condition: service_healthy
@@ -22,7 +20,7 @@ services:
     ports:
       - "3307:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: databasepassword
+      MYSQL_ROOT_PASSWORD: example
       MYSQL_DATABASE: vivamq
     volumes:
       - mysql-data:/var/lib/mysql
@@ -54,9 +52,7 @@ services:
       retries: 5
 
   ai-processor:
-    build:
-      context: ./ai-processor
-      dockerfile: Dockerfile
+    image: megapz/vivamq-ai-processor:latest
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
@@ -66,8 +62,7 @@ services:
         condition: service_healthy
 
   frontend:
-    build:
-      context: ./frontend
+    image: megapz/vivamq-frontend:latest
     ports:
       - "3000:3000"
     depends_on:

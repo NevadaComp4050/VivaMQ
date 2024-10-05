@@ -1,7 +1,6 @@
-// File: app/api/units/[unitId]/assignments/[assignmentId]/submissions/[submissionId]/route.ts
-
+// app/api/units/[unitId]/assignments/[assignmentId]/submissions/[submissionId]/route.ts
 import { NextResponse } from "next/server";
-import mockDatabase from "~/lib/mockDatabase";
+import prisma from "~/lib/prisma";
 
 export async function GET(
   request: Request,
@@ -9,27 +8,30 @@ export async function GET(
     params,
   }: { params: { unitId: string; assignmentId: string; submissionId: string } }
 ) {
-  const submission = mockDatabase.submissions.find(
-    (s) =>
-      s.id === params.submissionId && s.assignmentId === params.assignmentId
-  );
+  try {
+    const submission = await prisma.submission.findUnique({
+      where: {
+        id: params.submissionId,
+        assignmentId: params.assignmentId,
+      },
+      include: {
+        questions: true,
+        pdfSubmission: true,
+      },
+    });
 
-  if (submission) {
-    // Find the corresponding viva for this submission
-    const viva = mockDatabase.vivas.find(
-      (v) =>
-        v.assignmentId === params.assignmentId &&
-        v.studentName === submission.studentName
+    if (submission) {
+      return NextResponse.json(submission);
+    }
+    return NextResponse.json(
+      { error: "Submission not found" },
+      { status: 404 }
     );
-
-    // Combine submission and viva data
-    const responseData = {
-      ...submission,
-      questions: viva ? viva.questions : [],
-    };
-
-    return NextResponse.json(responseData);
+  } catch (error) {
+    console.error("Error fetching submission:", error);
+    return NextResponse.json(
+      { error: "An error occurred while fetching the submission" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({ error: "Submission not found" }, { status: 404 });
 }

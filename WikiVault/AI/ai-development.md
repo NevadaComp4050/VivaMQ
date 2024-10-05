@@ -39,13 +39,20 @@ JEST: all tests located in `/ai-processor/__test__`
   - Prompt and Response testing: Separate files included ./Docs/AI-Docs/testing(Rx).md
  
 ### Running Tests
-Instructions on how to run tests
+1. Ensure test files are in the __tests__ folder, if they're not the regex in the jest.config will not pick it up
+2. run the command `npm test`
 
 ### Test Coverage
-Discuss what is being tested
+1. Ensures connection is established
+2. Ensures a queue is asserted
+3. Tests the full round-trip of sending and receiving a message via RabbitMQ.
 
 ### Writing New Tests
-Instructions on how to write tests
+Core Jest Commands
+1. `describe`: Groups together related tests. It helps organise your test cases and makes it easier to manage and understand the tests related to a specific feature or functionality.
+`beforeAll`: Runs once before all tests in the describe block. It’s ideal for setup code that you want to run once before any tests are executed. Alternative is also to use `beforeEach` if you need the setup code to execute for each test.
+`afterAll`: Runs once after all tests in the describe block. It’s used for teardown code, such as closing database connections or stopping services. Can also use `aftereach` if you need teardown code before each individual test.
+`test` (or it): Defines individual test cases. Each test block contains assertions using the `expect` function that verify the behavior of your code.
 
 ## 4. Deployment Instructions
 ### Production Deployment

@@ -1,23 +1,35 @@
-// app/api/assignments/[assignmentId]/link-rubric/route.ts
 import { NextResponse } from "next/server";
-import mockDatabase from "~/lib/mockDatabase";
+import prisma from "~/lib/prisma";
 
 export async function POST(
   request: Request,
   { params }: { params: { assignmentId: string } }
 ) {
-  const { rubricId } = await request.json();
-  const assignment = mockDatabase.assignments.find(
-    (a) => a.id === params.assignmentId
-  );
-  const rubric = mockDatabase.rubrics.find((r) => r.id === rubricId);
+  try {
+    const { rubricId } = await request.json();
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: params.assignmentId },
+    });
+    const rubric = await prisma.rubric.findUnique({
+      where: { id: rubricId },
+    });
 
-  if (assignment && rubric) {
-    rubric.assignment = params.assignmentId;
-    return NextResponse.json({ message: "Rubric linked successfully" });
+    if (assignment && rubric) {
+      await prisma.rubric.update({
+        where: { id: rubricId },
+        data: { assignmentId: params.assignmentId },
+      });
+      return NextResponse.json({ message: "Rubric linked successfully" });
+    }
+    return NextResponse.json(
+      { error: "Assignment or Rubric not found" },
+      { status: 404 }
+    );
+  } catch (error) {
+    console.error("Error linking rubric:", error);
+    return NextResponse.json(
+      { error: "An error occurred while linking the rubric" },
+      { status: 500 }
+    );
   }
-  return NextResponse.json(
-    { error: "Assignment or Rubric not found" },
-    { status: 404 }
-  );
 }

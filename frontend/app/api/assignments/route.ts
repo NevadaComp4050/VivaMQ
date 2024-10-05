@@ -1,18 +1,36 @@
-// app/api/assignments/route.ts
-import { NextResponse } from 'next/server';
-import mockDatabase from "~/lib/mockDatabase";
+import { NextResponse } from "next/server";
+import prisma from "~/lib/prisma";
 
 export async function GET() {
-  return NextResponse.json(mockDatabase.assignments);
+  try {
+    const assignments = await prisma.assignment.findMany();
+    return NextResponse.json(assignments);
+  } catch (error) {
+    console.error("Error fetching assignments:", error);
+    return NextResponse.json(
+      { error: "An error occurred while fetching assignments" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {
-  const { unitId, name } = await request.json();
-  const newAssignment = { 
-    id: String(mockDatabase.assignments.length + 1), 
-    unitId, 
-    name 
-  };
-  mockDatabase.assignments.push(newAssignment);
-  return NextResponse.json(newAssignment, { status: 201 });
+  try {
+    const { unitId, name, description, dueDate } = await request.json();
+    const newAssignment = await prisma.assignment.create({
+      data: {
+        unitId,
+        name,
+        description,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+      },
+    });
+    return NextResponse.json(newAssignment, { status: 201 });
+  } catch (error) {
+    console.error("Error creating assignment:", error);
+    return NextResponse.json(
+      { error: "An error occurred while creating the assignment" },
+      { status: 500 }
+    );
+  }
 }

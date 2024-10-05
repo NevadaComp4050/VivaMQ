@@ -17,6 +17,7 @@ import {
 } from "~/components/ui/tooltip";
 import { ModeToggle } from "../mode-toggle";
 import { GlobalSearch } from "~/components/GlobalSearch";
+import { signOut } from "next-auth/react";
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -25,6 +26,10 @@ interface MenuProps {
 export function Menu({ isOpen }: MenuProps) {
   const pathname = usePathname();
   const menuList = getMenuList(pathname);
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" }); // Redirect to home page after sign out
+  };
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">
@@ -177,7 +182,7 @@ export function Menu({ isOpen }: MenuProps) {
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => {}}
+                    onClick={handleSignOut} // Add this onClick handler
                     variant="outline"
                     className="w-full justify-center h-10 mt-5"
                   >

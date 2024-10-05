@@ -8,7 +8,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DATABASE_URL=mysql://root:example@mysql:3306/vivamq
+      - DATABASE_URL=mysql://root:databasepassword@mysql:3306/vivamq
     depends_on:
       mysql:
         condition: service_healthy
@@ -22,7 +22,7 @@ services:
     ports:
       - "3307:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: example
+      MYSQL_ROOT_PASSWORD: databasepassword
       MYSQL_DATABASE: vivamq
     volumes:
       - mysql-data:/var/lib/mysql

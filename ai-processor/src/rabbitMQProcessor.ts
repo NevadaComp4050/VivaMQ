@@ -7,7 +7,7 @@ import { generateAutomatedMarksheet } from "./handlers/automatedMarksheetGenerat
 import { optimizePromptAndConfig } from "./handlers/promptEngineeringAndAIModelConfiguration";
 import { createRubric } from "./handlers/rubricCreationAndConversion";
 import dotenv from "dotenv";
-
+import openAIClient from "./config/openAIClient";
 dotenv.config();
 
 export async function processMessage(message: Message): Promise<any> {
@@ -15,7 +15,7 @@ export async function processMessage(message: Message): Promise<any> {
     let response;
     switch (message.type) {
       case "vivaQuestions":
-        response = await promptSubUUID({
+        response = await promptSubUUID(openAIClient, {
           submission: message.data.submission,
           uuid: message.uuid,
           customPrompt: message.data.customPrompt,
@@ -23,19 +23,26 @@ export async function processMessage(message: Message): Promise<any> {
         break;
       case "writingQuality":
         response = await assessWritingQuality(
-          message.data.document,
-          message.data.criteria
+          openAIClient,
+
+          {
+            document: message.data.document,
+            criteria: message.data.criteria,
+          }
         );
         break;
       case "summaryAndReport":
-        response = await generateSummaryAndReport(message.data.document);
+        response = await generateSummaryAndReport(
+          openAIClient,
+          message.data.document
+        );
         break;
       case "automatedMarksheet":
-        response = await generateAutomatedMarksheet(
-          message.data.document,
-          message.data.rubric,
-          message.data.learningOutcomes
-        );
+        response = await generateAutomatedMarksheet(openAIClient, {
+          document: message.data.document,
+          rubric: message.data.rubric,
+          learningOutcomes: message.data.learningOutcomes,
+        });
         break;
       case "optimizePrompt":
         response = await optimizePromptAndConfig(
@@ -45,11 +52,14 @@ export async function processMessage(message: Message): Promise<any> {
         break;
       case "createRubric":
         response = await createRubric(
-          message.data.assessmentTask,
-          message.data.criteria,
-          message.data.keywords,
-          message.data.learningObjectives,
-          message.data.existingGuide
+          openAIClient,
+          {
+          assessmentTask:message.data.assessmentTask,
+          criteria:message.data.criteria,
+          keywords:message.data.keywords,
+          learningObjectives:message.data.learningObjectives,
+          existingGuide:message.data.existingGuide
+          }
         );
         break;
       default:
@@ -58,13 +68,14 @@ export async function processMessage(message: Message): Promise<any> {
     return { type: message.type, data: response, uuid: message.uuid };
   } catch (error) {
     console.error("Error processing message:", error);
-    return { type: "error", data: error.message, uuid: message.uuid };
+    return { type: "error", data: error, uuid: message.uuid };
   }
 }
 
 export async function startMessageProcessor() {
   try {
-    const rabbitMQUrl = process.env.RABBITMQ_URL || "amqp://user:password@rabbitmq:5672";
+    const rabbitMQUrl =
+      process.env.RABBITMQ_URL || "amqp://user:password@rabbitmq:5672";
     console.log("Connecting to RabbitMQ at:", rabbitMQUrl);
     const connection = await amqp.connect(rabbitMQUrl);
     console.log("Connected to RabbitMQ successfully");
@@ -97,7 +108,7 @@ export async function startMessageProcessor() {
           const errorMsg = Buffer.from(
             JSON.stringify({
               type: "error",
-              data: error.message,
+              data: error,
               uuid: message.uuid,
             })
           );

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { OpenAI } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import dotenv from "dotenv";
+import { generateDocumentSummaryPrompt } from "../utilities/promptGenerators";
 
 dotenv.config();
 
@@ -14,20 +15,16 @@ const SummaryAndReport = z.object({
   detailed_report: z.string(),
 });
 
-const generatePrompt = (document: string) => `
-Summarize the following document and generate a detailed report:
-
-Document:
-${document}
-
-Provide a concise summary followed by a detailed report on the submission.
-`;
-
 async function generateSummaryAndReport(
-  document: string
+  openAIClient: OpenAI,
+  {
+    document
+  }: {
+    document: string;
+  }
 ): Promise<typeof SummaryAndReport> {
   try {
-    const prompt = generatePrompt(document);
+    const prompt = generateDocumentSummaryPrompt(document);
     const response = await client.chat.completions.create({
       model: "gpt-4o-2024-08-06",
       messages: [{ role: "user", content: prompt }],

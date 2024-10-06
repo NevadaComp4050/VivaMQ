@@ -2,6 +2,7 @@ import { z } from "zod";
 import { OpenAI } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import dotenv from "dotenv";
+import { generateRubricPrompt } from "../utilities/promptGenerators";
 
 dotenv.config();
 
@@ -18,33 +19,24 @@ const Rubric = z.object({
   ),
 });
 
-const generatePrompt = (
-  assessmentTask: string,
-  criteria: string[],
-  keywords: string[],
-  learningObjectives: string[],
-  existingGuide: string
-) => `
-Create a rubric based on the following information:
-
-Assessment Task: ${assessmentTask}
-Criteria: ${criteria.join(", ")}
-Keywords/Competencies/Skills: ${keywords.join(", ")}
-Learning Objectives: ${learningObjectives.join(", ")}
-Existing Marking Guide: ${existingGuide}
-
-Generate a rubric with MQ's Grade Descriptors (F, P, C, D, HD) for each criterion.
-`;
-
 async function createRubric(
-  assessmentTask: string,
-  criteria: string[],
-  keywords: string[],
-  learningObjectives: string[],
-  existingGuide: string
+  openAIClient: OpenAI,
+  {
+    assessmentTask,
+    criteria,
+    keywords,
+    learningObjectives,
+    existingGuide,
+  }: {
+    assessmentTask: string;
+    criteria: string[];
+    keywords: string[];
+    learningObjectives: string[];
+    existingGuide: string;
+  }
 ): Promise<typeof Rubric> {
   try {
-    const prompt = generatePrompt(
+    const prompt = generateRubricPrompt(
       assessmentTask,
       criteria,
       keywords,

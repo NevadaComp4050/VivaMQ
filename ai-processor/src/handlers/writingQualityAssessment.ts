@@ -2,6 +2,7 @@ import { z } from "zod";
 import { OpenAI } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import dotenv from "dotenv";
+import { generateAssessmentQualityPrompt } from "../utilities/promptGenerators";
 
 dotenv.config();
 
@@ -18,21 +19,18 @@ const QualityAssessment = z.object({
   recommendations: z.array(z.string()),
 });
 
-const generatePrompt = (document: string, criteria: string) => `
-Assess the quality of the following document based on these criteria: ${criteria}
-
-Document:
-${document}
-
-Provide a detailed assessment of the document's quality, including structure, grammar, spelling, and vocabulary usage. Also, provide recommendations for improvement.
-`;
-
 async function assessWritingQuality(
-  document: string,
-  criteria: string
+  openAIClient: OpenAI,
+  {
+    document,
+    criteria
+  }: {
+    document: string;
+    criteria: string;
+  }
 ): Promise<typeof QualityAssessment> {
   try {
-    const prompt = generatePrompt(document, criteria);
+    const prompt = generateAssessmentQualityPrompt(document, criteria);
     const response = await client.chat.completions.create({
       model: "gpt-4o-2024-08-06",
       messages: [{ role: "user", content: prompt }],

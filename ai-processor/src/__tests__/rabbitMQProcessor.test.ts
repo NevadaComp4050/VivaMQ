@@ -1,12 +1,12 @@
 // __tests__/messageProcessor.test.ts
 
 import { processMessage } from "../rabbitMQProcessor";
-import { promptSubUUID } from "../openAIAPI";
-import { assessWritingQuality } from "../writingQualityAssessment";
-import { generateSummaryAndReport } from "../summarizationAndReportGeneration";
-import { generateAutomatedMarksheet } from "../automatedMarksheetGeneration";
-import { optimizePromptAndConfig } from "../promptEngineeringAndAIModelConfiguration";
-import { createRubric } from "../rubricCreationAndConversion";
+import { promptSubUUID } from "../handlers/openAIAPI";
+import { assessWritingQuality } from "../handlers/writingQualityAssessment";
+import { generateSummaryAndReport } from "../handlers/summarizationAndReportGeneration";
+import { generateAutomatedMarksheet } from "../handlers/automatedMarksheetGeneration";
+import { optimizePromptAndConfig } from "../handlers/promptEngineeringAndAIModelConfiguration";
+import { createRubric } from "../handlers/rubricCreationAndConversion";
 
 jest.mock("../openAIAPI");
 jest.mock("../writingQualityAssessment");

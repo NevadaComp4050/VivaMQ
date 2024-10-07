@@ -1,3 +1,11 @@
+Attendees
+- Deb
+- Adrian
+- Aaron
+- Ben
+- Ivan
+
+
 - Drawing a system diagram
 ```mermaid
 flowchart

@@ -6,9 +6,6 @@ import { generateDocumentSummaryPrompt } from "../utilities/promptGenerators";
 
 dotenv.config();
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "sk-1234",
-});
 
 const SummaryAndReport = z.object({
   summary: z.string(),
@@ -25,7 +22,7 @@ async function generateSummaryAndReport(
 ): Promise<typeof SummaryAndReport> {
   try {
     const prompt = generateDocumentSummaryPrompt(document);
-    const response = await client.chat.completions.create({
+    const response = await openAIClient.chat.completions.create({
       model: "gpt-4o-2024-08-06",
       messages: [{ role: "user", content: prompt }],
       response_format: zodResponseFormat(SummaryAndReport, "SummaryAndReport"),

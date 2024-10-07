@@ -6,10 +6,6 @@ import { generateAutomatedMarkingSheetPrompt } from "../utilities/promptGenerato
 
 dotenv.config();
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "sk-1234",
-});
-
 const Marksheet = z.object({
   scores: z.record(z.number()),
   feedback: z.record(z.string()),
@@ -35,7 +31,7 @@ async function generateAutomatedMarksheet(
       rubric,
       learningOutcomes
     );
-    const response = await client.chat.completions.create({
+    const response = await openAIClient.chat.completions.create({
       model: "gpt-4o-2024-08-06",
       messages: [{ role: "user", content: prompt }],
       response_format: zodResponseFormat(Marksheet, "Marksheet"),

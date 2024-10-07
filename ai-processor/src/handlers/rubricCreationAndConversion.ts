@@ -6,10 +6,6 @@ import { generateRubricPrompt } from "../utilities/promptGenerators";
 
 dotenv.config();
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "sk-1234",
-});
-
 const Rubric = z.object({
   criteria: z.array(
     z.object({
@@ -43,7 +39,7 @@ async function createRubric(
       learningObjectives,
       existingGuide
     );
-    const response = await client.chat.completions.create({
+    const response = await openAIClient.chat.completions.create({
       model: "gpt-4o-2024-08-06",
       messages: [{ role: "user", content: prompt }],
       response_format: zodResponseFormat(Rubric, "Rubric"),

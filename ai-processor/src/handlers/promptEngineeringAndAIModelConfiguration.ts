@@ -6,9 +6,6 @@ import { generateOptimizedPromptSuggestionPrompt } from "../utilities/promptGene
 
 dotenv.config();
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "sk-1234",
-});
 
 const OptimizedPrompt = z.object({
   optimized_prompt: z.string(),
@@ -30,7 +27,7 @@ async function optimizePromptAndConfig(
       originalPrompt,
       configParams
     );
-    const response = await client.chat.completions.create({
+    const response = await openAIClient.chat.completions.create({
       model: "gpt-4o-2024-08-06",
       messages: [{ role: "user", content: prompt }],
       response_format: zodResponseFormat(OptimizedPrompt, "OptimizedPrompt"),

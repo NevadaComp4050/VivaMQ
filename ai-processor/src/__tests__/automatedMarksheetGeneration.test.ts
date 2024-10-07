@@ -1,3 +1,5 @@
+// src/__tests__/automatedMarksheetGeneration.test.ts
+
 import { generateAutomatedMarksheet } from "../handlers/automatedMarksheetGeneration";
 import { OpenAI } from "openai";
 
@@ -15,19 +17,17 @@ describe("generateAutomatedMarksheet", () => {
       },
     } as unknown as jest.Mocked<OpenAI>;
   });
-  it("should return response when OpenAI returns a valid response", async () => {
+
+  it("should return automated marksheet when OpenAI returns valid response", async () => {
     const mockResponse = {
       choices: [
         {
           message: {
             content: JSON.stringify({
-              scores: { clarity: 80, content_quality: 90 },
-              feedback: {
-                clarity: "Good clarity",
-                content_quality: "High quality content",
-              },
-              total_score: 170,
-              overall_feedback: "Well done overall",
+              scores: { criterion1: 8, criterion2: 9 },
+              feedback: { criterion1: "Good work", criterion2: "Excellent" },
+              total_score: 17,
+              overall_feedback: "Very good submission",
             }),
           },
         },
@@ -38,9 +38,9 @@ describe("generateAutomatedMarksheet", () => {
       mockResponse as any
     );
 
-    const document = "Test document";
-    const rubric = "test-rubric";
-    const learningOutcomes = "Test learning outcomes";
+    const document = "Test document content.";
+    const rubric = "Test rubric.";
+    const learningOutcomes = "Test learning outcomes.";
 
     const result = await generateAutomatedMarksheet(mockOpenAIClient, {
       document,
@@ -51,17 +51,14 @@ describe("generateAutomatedMarksheet", () => {
     expect(mockOpenAIClient.chat.completions.create).toHaveBeenCalledWith({
       model: "gpt-4o-2024-08-06",
       messages: [{ role: "user", content: expect.any(String) }],
-      response_format: expect.anything(), // i forgot to check this
+      response_format: expect.anything(),
     });
 
     expect(result).toEqual({
-      scores: { clarity: 80, content_quality: 90 },
-      feedback: {
-        clarity: "Good clarity",
-        content_quality: "High quality content",
-      },
-      total_score: 170,
-      overall_feedback: "Well done overall",
+      scores: { criterion1: 8, criterion2: 9 },
+      feedback: { criterion1: "Good work", criterion2: "Excellent" },
+      total_score: 17,
+      overall_feedback: "Very good submission",
     });
   });
 
@@ -70,9 +67,9 @@ describe("generateAutomatedMarksheet", () => {
       new Error("OpenAI Error")
     );
 
-    const document = "Test document";
-    const rubric = "test-rubric";
-    const learningOutcomes = "Test learning outcome";
+    const document = "Test document content.";
+    const rubric = "Test rubric.";
+    const learningOutcomes = "Test learning outcomes.";
 
     await expect(
       generateAutomatedMarksheet(mockOpenAIClient, {
@@ -102,11 +99,6 @@ describe("generateAutomatedMarksheet", () => {
     const rubric = "test-rubric";
     const learningOutcomes = "Test learning outcomes";
 
-    const result = await generateAutomatedMarksheet(mockOpenAIClient, {
-      document,
-      rubric,
-      learningOutcomes,
-    });
     await expect(
       generateAutomatedMarksheet(mockOpenAIClient, {
         document,

@@ -5,7 +5,7 @@ Attendees
 - Ben
 - Ivan
 
-
+Meeting minutes
 - Drawing a system diagram
 ```mermaid
 flowchart

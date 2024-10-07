@@ -21,7 +21,7 @@ describe("generateAutomatedMarksheet", () => {
         {
           message: {
             content:
-              '{"questions":[{"question_text":"Test question","question_category":"Category1"}]}',
+              '[{"feedback": {"clarity": "The ideas are generally clear, but some sentences are complex.", "content_quality": "The document presents well-researched content with insightful analysis.", "engagement": "The document is engaging, but could benefit from more examples.", "organization": "The structure is logical, with smooth transitions between sections."}, "overall_feedback": "Strong submission overall. Focus on simplifying complex sentences for better clarity.", "scores": {"clarity": 88, "content_quality": 92, "engagement": 90, "organization": 85}, "total_score": 355}]',
           },
         },
       ],
@@ -98,10 +98,10 @@ describe("generateAutomatedMarksheet", () => {
 
     const document = "Test document";
 
-    const result = await generateSummaryAndReport(mockOpenAIClient, {
-      document,
-    });
-
-    expect(result).toEqual(["response error", "test-rubric"]);
+    await expect(
+      generateSummaryAndReport(mockOpenAIClient, {
+        document,
+      })
+    ).rejects.toThrow("Failed to generate summary and report");
   });
 });

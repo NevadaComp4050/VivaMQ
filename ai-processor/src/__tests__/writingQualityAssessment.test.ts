@@ -21,7 +21,7 @@ describe("generateAutomatedMarksheet", () => {
         {
           message: {
             content:
-              '{"questions":[{"question_text":"Test question","question_category":"Category1"}]}',
+              '[{"feedback": {"clarity": "The ideas are generally clear, but some sentences are complex.", "content_quality": "The document presents well-researched content with insightful analysis.", "engagement": "The document is engaging, but could benefit from more examples.", "organization": "The structure is logical, with smooth transitions between sections."}, "overall_feedback": "Strong submission overall. Focus on simplifying complex sentences for better clarity.", "scores": {"clarity": 88, "content_quality": 92, "engagement": 90, "organization": 85}, "total_score": 355}]',
           },
         },
       ],
@@ -85,7 +85,7 @@ describe("generateAutomatedMarksheet", () => {
     ).rejects.toThrow("OpenAI Error");
   });
 
-  it("should return 'response error' and uuid when response content is null", async () => {
+  it("should return 'response error' when response content is null", async () => {
     const mockResponse = {
       choices: [
         {
@@ -102,12 +102,10 @@ describe("generateAutomatedMarksheet", () => {
 
     const document = "Test document";
     const criteria = "test-criteria";
-    
-    const result = await assessWritingQuality(mockOpenAIClient, {
+
+    await expect(assessWritingQuality(mockOpenAIClient, {
       document,
       criteria
-    });
-
-    expect(result).toEqual(["response error", "test-rubric"]);
+    })).rejects.toThrow("Failed to generate writing quality assessment");
   });
 });

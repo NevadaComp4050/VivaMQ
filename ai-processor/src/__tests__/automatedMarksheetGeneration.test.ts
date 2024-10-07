@@ -1,5 +1,3 @@
-// src/__tests__/automatedMarksheetGeneration.test.ts
-
 import { generateAutomatedMarksheet } from "../handlers/automatedMarksheetGeneration";
 import { OpenAI } from "openai";
 
@@ -80,7 +78,7 @@ describe("generateAutomatedMarksheet", () => {
     ).rejects.toThrow("OpenAI Error");
   });
 
-  it("should return 'response error' and uuid when response content is null", async () => {
+  it("should return 'response error' when response content is null", async () => {
     const mockResponse = {
       choices: [
         {
@@ -107,4 +105,5 @@ describe("generateAutomatedMarksheet", () => {
       })
     ).rejects.toThrow("Failed to generate automated marksheet");
   });
+
 });

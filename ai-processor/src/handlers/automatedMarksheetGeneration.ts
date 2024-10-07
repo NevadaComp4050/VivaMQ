@@ -2,12 +2,9 @@ import { z } from "zod";
 import { OpenAI } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import dotenv from "dotenv";
+import { generateAutomatedMarkingSheetPrompt } from "../utilities/promptGenerators";
 
 dotenv.config();
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "sk-1234",
-});
 
 const Marksheet = z.object({
   scores: z.record(z.number()),
@@ -16,33 +13,25 @@ const Marksheet = z.object({
   overall_feedback: z.string(),
 });
 
-const generatePrompt = (
-  document: string,
-  rubric: string,
-  learningOutcomes: string
-) => `
-Generate an automated marksheet for the following document based on the provided rubric and learning outcomes:
-
-Document:
-${document}
-
-Rubric:
-${rubric}
-
-Learning Outcomes:
-${learningOutcomes}
-
-Provide scores and feedback for each criterion in the rubric, a total score, and overall feedback.
-`;
-
 async function generateAutomatedMarksheet(
-  document: string,
-  rubric: string,
-  learningOutcomes: string
+  openAIClient: OpenAI,
+  {
+    document,
+    rubric,
+    learningOutcomes,
+  }: {
+    document: string;
+    rubric: string;
+    learningOutcomes: string;
+  }
 ): Promise<typeof Marksheet> {
   try {
-    const prompt = generatePrompt(document, rubric, learningOutcomes);
-    const response = await client.chat.completions.create({
+    const prompt = generateAutomatedMarkingSheetPrompt(
+      document,
+      rubric,
+      learningOutcomes
+    );
+    const response = await openAIClient.chat.completions.create({
       model: "gpt-4o-2024-08-06",
       messages: [{ role: "user", content: prompt }],
       response_format: zodResponseFormat(Marksheet, "Marksheet"),

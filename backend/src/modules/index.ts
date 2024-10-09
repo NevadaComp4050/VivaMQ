@@ -8,6 +8,9 @@ import assignments from './Assignment/Assignment.route';
 import submissions from './Submission/Submission.route';
 import vivaQuestions from './VivaQuestion/VivaQuestion.route';
 
+//import AIProcs from './AIProcess/AIProcess.route';
+import misc from './misc.route';
+
 const router: Router = Router();
 
 router.use('/users', users);
@@ -17,5 +20,7 @@ router.use('/students', students);
 router.use('/assignments', assignments);
 router.use('/submissions', submissions);
 router.use('/viva-questions', vivaQuestions);
+
+router.use('/misc', misc);
 
 export default router;

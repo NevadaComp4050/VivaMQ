@@ -8,13 +8,13 @@ import Api from '@/lib/api';
 export default class UnitController extends Api {
   private readonly unitService = new UnitService();
 
-  public createUnit = async (
+  public create = async (
     req: Request,
     res: CustomResponse<Unit>,
     next: NextFunction
   ) => {
     try {
-      const newUnit = await this.unitService.createUnit(req.body);
+      const newUnit = await this.unitService.create(req.body);
       this.send(res, newUnit, HttpStatusCode.Created, 'createUnit');
     } catch (e) {
       next(e);
@@ -46,25 +46,28 @@ export default class UnitController extends Api {
     try {
       const { id } = req.params;
       const unit = await this.unitService.getUnit(id);
-      this.send(res, unit, HttpStatusCode.Ok, 'gotUnit');
-    } catch (e) {
-      next(e);
-    }
-  };
-
-  public deleteUnit = async (
-    req: Request,
-    res: CustomResponse<Unit>,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params;
-      const user = await this.unitService.deleteUnit(id);
-      this.send(res, user, HttpStatusCode.Ok, 'deletedUnit' )
+      this.send(res, unit, HttpStatusCode.Ok, 'gotUnit:'+id )
     } catch (e) {
       next(e)
     }
   }
+
+  public getAll = async (
+    req: Request,
+    res: CustomResponse<Unit[]>,
+    next: NextFunction
+  ) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = parseInt(req.query.offset as string) || 0;
+  
+      const unitList = await this.unitService.getUnits(limit, offset);
+      this.send(res, unitList, HttpStatusCode.Ok, 'gotAllUnits');
+    } catch (e) {
+      next(e);
+    }
+  };
+  
 
   public updateUnitName = async (
     req: Request,
@@ -80,6 +83,33 @@ export default class UnitController extends Api {
       } 
     } catch (e) {
       next(e);
+    }
+  }
+
+  public delete = async (
+    req: Request,
+    res: CustomResponse<Unit>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const unit = await this.unitService.delete(id);
+      this.send(res, unit, HttpStatusCode.Ok, 'deletedUnit' )
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  public deleteAll = async (
+    req: Request,
+    res: CustomResponse<Unit[]>,
+    next: NextFunction
+  ) => {
+    try {
+      const count = await this.unitService.deleteAll();
+      this.send(res, count, HttpStatusCode.Ok, 'deletedAllUnits' )
+    } catch (e) {
+      next(e)
     }
   };
 

@@ -1,0 +1,82 @@
+name: Build and Deploy vivamq to DigitalOcean
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up QEMU for multi-platform builds (if needed)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # Step 3: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Step 4: Login to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      # Step 5: Build and push Backend Image
+      - name: Build and push vivamq-backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: megapz/vivamq-backend:latest
+
+      # Step 6: Build and push AI Processor Image
+      - name: Build and push vivamq-ai-processor
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ai-processor
+          push: true
+          tags: megapz/vivamq-ai-processor:latest
+
+      # Step 7: Build and push Frontend Image
+      - name: Build and push vivamq-frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: megapz/vivamq-frontend:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository (optional, in case you need access to the latest code)
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Install SSH client
+      - name: Install SSH client
+        run: sudo apt-get update && sudo apt-get install -y ssh
+
+      # Step 3: Deploy to DigitalOcean Droplet
+      - name: Deploy to DigitalOcean Droplet
+        env:
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key
+          chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key $DROPLET_USER@$DROPLET_IP << 'EOF'
+            cd /path/to/your/vivamq/docker-compose
+            docker-compose pull
+            docker-compose up -d
+          EOF

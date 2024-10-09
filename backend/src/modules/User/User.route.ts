@@ -44,7 +44,7 @@ users.post(
   '/',
   verifyAuthToken,
   RequestValidator.validate(CreateUserDto),
-  controller.createUser
+  controller.create
 );
 
 /**
@@ -73,6 +73,19 @@ users.get(
 );
 
 /**
+ * GET /users/
+ * @summary Get all user data
+ * @tags User
+ * @param None
+ * @return {Array.<User>} 200 - user list
+ */
+users.get(
+  '/',
+  verifyAuthToken,
+  controller.getAll
+);
+
+/**
  * DELETE /users/{id}
  * @summary Delete a user by ID
  * @tags User
@@ -84,6 +97,7 @@ users.delete(
   verifyAuthToken,
   controller.delete
 );
+
 
 /**
  * POST /users/login
@@ -98,6 +112,23 @@ users.post('/login', controller.dummyLogin);
  * @summary Get the current logged-in user
  * @tags User
  * @return {User} 200 - The current user
+ */
+users.get('/me', verifyAuthToken, controller.getCurrentUser);
+
+/**
+ * POST /users/login
+ * @summary Dummy login to create or return the test user
+ * @tags User
+ * @return {User} 200 - The test user
+ */
+users.post('/login', controller.dummyLogin);
+
+/**
+ * GET /users/me
+ * @summary Get the current logged-in user
+ * @tags User
+ * @param None
+ * @return {number} 200 - user list
  */
 users.get('/me', verifyAuthToken, controller.getCurrentUser);
 

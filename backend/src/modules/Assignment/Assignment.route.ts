@@ -29,6 +29,7 @@ const upload = multer({ dest: 'uploads/' });
  * @property {string} unitId.required - ID of unit of assignment
  */
 
+
 /**
  * Assignment
  * @typedef {object} Assignment
@@ -42,20 +43,33 @@ const upload = multer({ dest: 'uploads/' });
  */
 
 /**
- * GET /assignments/getall
+ * GET /assignments/
  * @summary Get all assignment data
  * @tags Assignment
  * @param None
  * @return {Array.<Assignment>} 200 - assignment list
  */
 assignments.get(
-  '/getall',
+  '/',
   verifyAuthToken,
-  controller.getallassignments
+  controller.getAll
 );
 
 /**
- * GET /assignments/deleteall
+ * DELETE /assignments/{id}
+ * @summary Delete a single assignment
+ * @tags Assignment
+ * @param {string} id.path.required - ID of the assignment to delete
+ * @return {Assignment} 200 - assignment list
+ */
+assignments.delete(
+  '/:id',
+  verifyAuthToken,
+  controller.delete
+);
+
+/**
+ * DELETE /assignments/
  * @summary Delete all assignment data
  * @tags Assignment
  * @param None
@@ -64,7 +78,7 @@ assignments.get(
 assignments.get(
   '/deleteall',
   verifyAuthToken,
-  controller.deleteallassignments
+  controller.deleteAll
 );
 
 /**
@@ -78,7 +92,7 @@ assignments.post(
   '/',
   verifyAuthToken,
   RequestValidator.validate(CreateAssignmentDto),
-  controller.createAssignment
+  controller.create
 );
 
 /**

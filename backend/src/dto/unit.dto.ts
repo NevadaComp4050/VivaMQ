@@ -1,15 +1,15 @@
-import { IsEmail, IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { IsInt, IsString, IsNotEmpty } from 'class-validator';
 
 export class CreateUnitDto {
-  @IsString()
-  @IsNotEmpty({ message: 'the unit name should not be empty' })
+  @IsString({ message: 'the name must be a string' })
+  @IsNotEmpty({ message: 'the name must not be empty' })
   name: string;
 
   @IsInt({ message: 'the year must be an integer' })
-  @IsNotEmpty({ message: 'the year should not be empty' })
+  @IsNotEmpty({ message: 'the year must not be empty' })
   year: number;
 
-  @IsString()
-  @IsNotEmpty({ message: 'the Convenor ID should not be empty' })
+  @IsString({ message: 'the convenorId must be a string' })
+  @IsNotEmpty({ message: 'the convenorId must not be empty' })
   convenorId: string;
 }

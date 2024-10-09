@@ -3,6 +3,7 @@ import { HttpStatusCode } from 'axios';
 import SubmissionService from './Submission.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
+import { type Assignment, type Submission } from '@prisma/client';
 
 export default class SubmissionController extends Api {
   private readonly submissionService = new SubmissionService();
@@ -57,6 +58,34 @@ export default class SubmissionController extends Api {
       res.status(HttpStatusCode.NotImplemented).send({
         message: `Export Viva Questions functionality is not yet implemented.`,
       });
+    } catch (e) {
+      next(e);
+    }
+  };
+
+
+  public delete = async (
+    req: Request,
+    res: CustomResponse<Submission>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const submission = await this.submissionService.delete(id);
+      this.send(res, submission, HttpStatusCode.Ok, 'deletedSubmission' )
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  public deleteAll = async (
+    req: Request,
+    res: CustomResponse<void>,
+    next: NextFunction
+  ) => {
+    try {
+      const count = await this.submissionService.deleteAll();
+      this.send(res, count, HttpStatusCode.Ok, 'deletedAllSubmissions' )
     } catch (e) {
       next(e);
     }

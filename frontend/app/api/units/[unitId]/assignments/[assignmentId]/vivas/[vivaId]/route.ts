@@ -1,6 +1,5 @@
-// app/api/units/[unitId]/assignments/[assignmentId]/vivas/[vivaId]/route.ts
 import { NextResponse } from "next/server";
-import mockDatabase from "~/lib/mockDatabase";
+import prisma from "~/lib/prisma";
 
 export async function GET(
   request: Request,
@@ -8,11 +7,26 @@ export async function GET(
     params,
   }: { params: { unitId: string; assignmentId: string; vivaId: string } }
 ) {
-  const viva = mockDatabase.vivas.find(
-    (v) => v.id === params.vivaId && v.assignmentId === params.assignmentId
-  );
-  if (viva) {
-    return NextResponse.json(viva);
+  try {
+    const viva = await prisma.viva.findUnique({
+      where: {
+        id: params.vivaId,
+        assignmentId: params.assignmentId,
+      },
+      include: {
+        questions: true,
+      },
+    });
+
+    if (viva) {
+      return NextResponse.json(viva);
+    }
+    return NextResponse.json({ error: "Viva not found" }, { status: 404 });
+  } catch (error) {
+    console.error("Error fetching viva:", error);
+    return NextResponse.json(
+      { error: "An error occurred while fetching the viva" },
+      { status: 500 }
+    );
   }
-  return NextResponse.json({ error: "Viva not found" }, { status: 404 });
 }

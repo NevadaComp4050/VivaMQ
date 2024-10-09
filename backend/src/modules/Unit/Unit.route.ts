@@ -46,7 +46,7 @@ units.post(
   '/',
   verifyAuthToken,
   RequestValidator.validate(CreateUnitDto),
-  controller.createUnit
+  controller.create
 );
 
 /**
@@ -60,15 +60,15 @@ units.post(
 units.get(
   '/',
   verifyAuthToken,
-  controller.getallunits
+  controller.getAll
 );
 
 /**
  * GET /units/{id}
- * @summary Get single unit record
+ * @summary Get a single unit
  * @tags Unit
- * @param {string} id.path.required - ID of the unit to retrieve
- * @return {Unit} 200 - unit data
+ * @param {string} id.path.required
+ * @return {Unit} 200 - unit list
  */
 units.get(
   '/:id',
@@ -76,18 +76,6 @@ units.get(
   controller.getUnit
 );
 
-/**
- * POST /units/{id}
- * @summary Delete a single unit record
- * @tags Unit
- * @param {string} id.path.required - ID of the unit to delete
- * @return {User} 200 - user list
- */
-units.post(
-  '/:id',
-  verifyAuthToken,
-  controller.deleteUnit
-);
 
 /**
  * PUT /units/update-name/{id}

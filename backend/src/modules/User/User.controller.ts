@@ -5,22 +5,65 @@ import UserService from './User.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
 
+
+
 export default class UserController extends Api {
   private readonly userService = new UserService();
 
+  // Function that reads the final response from req.body
+  public sendFinal = async (
+    req: Request,
+    res: CustomResponse<User>,
+    next: NextFunction
+  ) => {
+    try {
+      this.send(
+        res,
+        req.body.final.data,
+        req.body.final.httpCode,
+        req.body.final.message
+      )
+    } catch (e){
+      next(e)
+    }
+  }
+
+  /**
+   * Places a {@link User | User} into req {@linkplain create}
+   * @param req 
+   * @param res 
+   * @param next 
+   */
   public create = async (
     req: Request,
     res: CustomResponse<User>,
     next: NextFunction
   ) => {
     try {
+      //req.body = { ... req.body, phile: "philly" }
+      //console.log(req.body);
+      //console.log(req);
+
       const newUser = await this.userService.create(req.body);
-      this.send(res, newUser, HttpStatusCode.Created, 'createUser');
+
+      //*
+      //req.body = {... req.body, newUser: newUser}
+      // Need to track the changes from previous req
+      req.body = {newUser, final: {data: newUser, message: 'createdUser', httpCode: 200}}
+
+      //console.log(req.body)
+      // */
+
+      next()
+      //this.send(res, newuser , HttpStatusCode.Created, 'createUser');
+      // this.nextSend()
+      //this.send(res, req.body.final.data , HttpStatusCode.Created, req.body.final.message);
     } catch (e) {
       next(e);
     }
   };
 
+  /* TODO: Delete this
   public createreq = async (
     req: Request,
     res: CustomResponse<User>,
@@ -35,7 +78,9 @@ export default class UserController extends Api {
       next(e);
     }
   };
+  */
 
+  /* TODO: Delete this
   public getreq = async (
     req: Request,
     res: CustomResponse<User>,
@@ -54,6 +99,7 @@ export default class UserController extends Api {
       next(e);
     }
   };
+  */
 
   public get = async (
     req: Request,
@@ -139,4 +185,34 @@ export default class UserController extends Api {
       next(e);
     }
   };
+
+  public getTest = async (
+    req: Request,
+    res: CustomResponse<User>,
+    next: NextFunction
+  ) => {
+    try {
+      console.log(req);
+      // req = req.
+      next();
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  public sendTest = async (
+    req: Request,
+    res: CustomResponse<User>,
+    next: NextFunction
+  ) => {
+    try {
+      console.log(req.body)
+      //next()
+      this.send(res,null, HttpStatusCode.MethodNotAllowed,
+         'failed successfully')
+    } catch (e) {
+      next(e)
+    }
+  }
+
 }

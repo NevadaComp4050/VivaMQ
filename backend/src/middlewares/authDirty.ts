@@ -26,6 +26,15 @@ const validPeriod = 36000;
 
 export default class AuthDirty extends Api {
 
+
+
+  // TODO is this needed?
+  /**
+   * 
+   * @param req req.body.user should contain a new user
+   * @param res 
+   * @param next 
+   */
   public static register = async (
     req: Request,
     res: Response,
@@ -38,6 +47,12 @@ export default class AuthDirty extends Api {
     next();
   }
 
+  /**
+   * Checks if authentication has a valid {@link DirtyJWT | DirtyJWT}.
+   * @param req req.headers checked for authentication
+   * @param res 
+   * @param next 
+   */
   public static verifyAuthToken = async (
     req: Request,
     res: Response,
@@ -77,6 +92,12 @@ export default class AuthDirty extends Api {
 
 
   // Requires the user ID to be in the req body
+  /**
+   * Generates a {@link DirtyJWT | DirtyJWT} for the user in req.
+   * @param req req.body should must contain the user
+   * @param res 
+   * @param next 
+   */
   public static generateAuthToken = async (
     req: Request,
     res: Response,
@@ -104,5 +125,13 @@ export default class AuthDirty extends Api {
     //res.json(null)
     res.status(HttpStatusCode.Ok).send();
     //next();
+  }
+
+  public static refreshAuthToken = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    
   }
 }

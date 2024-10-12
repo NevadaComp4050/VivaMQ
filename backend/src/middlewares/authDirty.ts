@@ -41,7 +41,7 @@ export default class AuthDirty extends Api {
     next: NextFunction
   ) => {
     // Take a newly created user from req
-    const { ID } = req.body;
+    const ID  = req.body.user.id;
     console.log(ID);
     res.status(HttpStatusCode.Ok);
     next();
@@ -60,10 +60,11 @@ export default class AuthDirty extends Api {
   ) => {
     const { authorization } = req.headers;
     
-    console.log(req.body);
+    //console.log(req.body);
     if(!authorization){
       console.log('Caught unauthorised access attempt');
       if(auth_en){
+        // TODO Respond access denied
         return next("Failed: No authorisation");
       }
       return next();
@@ -75,10 +76,11 @@ export default class AuthDirty extends Api {
     const dec = decrypted+decipher.final('utf8');
     //console.log(dec);
     const tokenReq: DirtyJWT = JSON.parse(dec);
-    //console.log(tokenReq);
+    console.log(tokenReq);
     if (Math.floor(Date.now() / 1000)>tokenReq.Epoch){
       console.log('Token has expired');
       if(auth_en){
+        // TODO Respond access expired
         next('Failed: Token has expired');
       }
     }
@@ -103,7 +105,8 @@ export default class AuthDirty extends Api {
     res: Response,
     next: NextFunction
   ) => {
-    let { ID } = req.body
+    console.log(req.body)
+    let ID  = req.body.user.id
     // Need the ID
     // Generate a token
     if(!ID){
@@ -132,6 +135,8 @@ export default class AuthDirty extends Api {
     res: Response,
     next: NextFunction
   ) => {
-    
+
   }
+
+  
 }

@@ -2,7 +2,7 @@ import { error } from 'console';
 import { type NextFunction, type Request, type Response } from 'express';
 import AuthDirty from './authDirty'
 
-const enabled = false;
+const auth_enabled = false;
 
 export const verifyAuthToken = async (
   // Remove underscore of params once you start using them
@@ -10,7 +10,7 @@ export const verifyAuthToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  if(enabled){
+  if(auth_enabled){
     // Code to verify authentication here
     return AuthDirty.verifyAuthToken(req,res,next);
   }
@@ -25,7 +25,7 @@ export const generateAuthToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  if(enabled){
+  if(auth_enabled){
   // Code to create a new token here
   return AuthDirty.generateAuthToken(req,res,next);
   }

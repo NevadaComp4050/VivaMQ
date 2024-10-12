@@ -37,6 +37,7 @@ const controller = new Controller();
  * POST /users
  * @summary Create a new user
  * @tags User
+ * @security Bearer
  * @param {CreateUserBody} request.body.required - The user creation payload
  * @return {User} 201 - The created user
  */

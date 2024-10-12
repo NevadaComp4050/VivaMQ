@@ -11,6 +11,14 @@ export default class UserController extends Api {
   private readonly userService = new UserService();
 
   // Function that reads the final response from req.body
+  /**
+   * Use this function to send the final response using request.
+   * It is possible to use this as an echo if there is a route
+   * with nothing but this funtion and the request contains final.
+   * @param req Contains final: {data, HttpResponse, message}
+   * @param res 
+   * @param next 
+   */
   public sendFinal = async (
     req: Request,
     res: CustomResponse<User>,
@@ -29,7 +37,8 @@ export default class UserController extends Api {
   }
 
   /**
-   * Places a {@link User | User} into req {@linkplain create}
+   * Places a newly created {@link User | User} into the database 
+   * and req.body
    * @param req 
    * @param res 
    * @param next 
@@ -44,16 +53,18 @@ export default class UserController extends Api {
       //console.log(req.body);
       //console.log(req);
 
-      const newUser = await this.userService.create(req.body);
+      const user = await this.userService.create(req.body);
 
       //*
       //req.body = {... req.body, newUser: newUser}
       // Need to track the changes from previous req
-      req.body = {newUser, final: {data: newUser, message: 'createdUser', httpCode: 200}}
+      req.body = {user, 
+        final: {data: user, 
+                httpCode: 200,
+                message: 'createdUser',}}
 
       //console.log(req.body)
       // */
-
       next()
       //this.send(res, newuser , HttpStatusCode.Created, 'createUser');
       // this.nextSend()
@@ -108,11 +119,18 @@ export default class UserController extends Api {
   ) => {
     try {
       const { id } = req.params;
+      if(!id){
+        const user = await this.userService.getEmail(req.body.email);
+        req.body = {user, final: {data: user, message: 'createdUser', httpCode: 200}}
+        return next()
+      }
       const user = await this.userService.get(id);
+      req.body = {user, final: {data: user, message: 'createdUser', httpCode: 200}}
       if (!user) {
         throw new Error('User not found');
       }
-      this.send(res, user, HttpStatusCode.Ok, 'gotUser:' + id);
+      //this.send(res, user, HttpStatusCode.Ok, 'gotUser:' + id);
+      next()
     } catch (e) {
       next(e);
     }

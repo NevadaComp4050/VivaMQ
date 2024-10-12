@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { verifyAuthToken , generateAuthToken} from '@/middlewares/auth';
 
-import unitController from './User/User.controller'; // Import controllers with a new name
+import userController from './User/User.controller'; // Import controllers with a new name
 
 
 const misc: Router = Router();
-const controller = new unitController();
+const controller = new userController();
 
 /**
  * Register user body
@@ -41,7 +41,7 @@ const controller = new unitController();
  * @return {number} 200 - user list
  */
 misc.post('/login',
-    //controller.getreq, // TODO make this post get the matching user
+    controller.get, // TODO make this post get the matching user
     generateAuthToken,
 );
 

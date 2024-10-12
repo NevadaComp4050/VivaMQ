@@ -4,10 +4,19 @@ import { HttpStatusCode } from 'axios';
 import UnitService from './Unit.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
+import { formatResponse , filterFields} from '../../utils/mutantRequestFormat'
+
+
+// Ridiculous Typescript nonsense, compile time its there, runtime it isnt
+// const allowedFields = Object.keys({} as Unit) as (keyof Unit)[];
+
+const allowedFields = ["name" , "id" , "year" , "convenorId"] as (keyof Unit)[];
+
 
 export default class UnitController extends Api {
   private readonly unitService = new UnitService();
 
+  /*
   public create = async (
     req: Request,
     res: CustomResponse<Unit>,
@@ -20,6 +29,45 @@ export default class UnitController extends Api {
       next(e);
     }
   };
+  */
+
+  // TODO clean this up
+  /**
+   * Requires a {@link User | User}
+   * @param req req.body.user must exist
+   * @param res 
+   * @param next 
+   */
+  public create = async (
+    req: Request,
+    res: CustomResponse<Unit>,
+    next: NextFunction
+  ) => {
+    try {
+      //console.log(allowedFields)
+      //console.log(req.body);
+      /** We need something called convenorId for relationship.
+       * Its either supplied in the body, or inside a user object */
+      let convenorId = req.body.convenorId;
+      //console.log('got here')
+      //console.log(convenorId)
+      if(convenorId == null){
+        convenorId = req.body.user.id
+      }
+      const arg = {...req.body,convenorId}
+      //console.log(arg);
+      const arg2 = filterFields<Unit>(arg,allowedFields)
+      //console.log('got here')
+      //console.log(arg2);
+      const unit = await this.unitService.create(arg2);
+      req.body.unit = unit;
+      req.body.final = formatResponse(unit, HttpStatusCode.Created,'Created unit');
+      console.log(req.body);
+      next()
+    } catch (e) {
+      next(e)
+    }
+  }
 
   public getUnit = async (
     req: Request,

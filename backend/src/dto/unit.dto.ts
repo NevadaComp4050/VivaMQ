@@ -9,7 +9,7 @@ export class CreateUnitDto {
   @IsNotEmpty({ message: 'the year must not be empty' })
   year: number;
 
-  // @IsString({ message: 'the convenorId must be a string' })
-  // @IsNotEmpty({ message: 'the convenorId must not be empty' })
-  // convenorId: string;
+  @IsString({ message: 'the convenorId must be a string' })
+  @IsNotEmpty({ message: 'the convenorId must not be empty' })
+  convenorId: string;
 }

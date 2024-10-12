@@ -54,9 +54,12 @@ units.post(
   '/',
   verifyAuthToken,
   RequestValidator.validate(CreateUnitDto),
-  controller.create
+  controller.create,
+  controller.sendFinal
 );
 
+
+// TODO GET requests should not have a body, rework this query
 /**
  * GET /units/getall
  * @summary Get all unit data with pagination
@@ -68,7 +71,8 @@ units.post(
 units.get(
   '/getall',
   verifyAuthToken,
-  controller.getAll
+  controller.getAll,
+  controller.sendFinal
 );
 
 /**
@@ -81,7 +85,8 @@ units.get(
 units.get(
   '/:id',
   verifyAuthToken,
-  controller.getUnit
+  controller.getUnit,
+  controller.sendFinal
 );
 
 
@@ -96,7 +101,8 @@ units.get(
 units.put(
   '/update-name/:id',
   verifyAuthToken,
-  controller.updateUnitName
+  controller.updateUnit,
+  controller.sendFinal
 );
 
 /**
@@ -109,7 +115,8 @@ units.put(
 units.delete(
   '/:id',
   verifyAuthToken,
-  controller.delete
+  controller.delete,
+  controller.sendFinal
 );
 
 /**
@@ -122,7 +129,8 @@ units.delete(
 units.delete(
   '/',
   verifyAuthToken,
-  controller.deleteAll
+  controller.deleteAll,
+  controller.sendFinal
 );
 
 /**

@@ -3,10 +3,12 @@ import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
 
 export default class UnitService {
-  @LogMessage<[Unit]>({ message: 'test-decorator' })
+  
 
   // TODO Requires a conveynor
+  @LogMessage<[Unit]>({ message: 'test-decorator' })
   public async create(data: Unit) {
+    console.log(data)
     const unit = await prisma.unit.create({ data });
     return unit;
   }
@@ -36,10 +38,21 @@ export default class UnitService {
   }
 
   // TODO UPDATE Unit info
+  // TODO DELETE this?
   public async updateUnitName(id: string, name: string) {
     const updatedUnit = await prisma.unit.update({
       where: { id },
       data: { name },
+    });
+    return updatedUnit;
+  }
+
+  // TODO Check that this works
+  public async updateUnit(arg: Unit) {
+    const {id, ...data} = arg;
+    const updatedUnit = await prisma.unit.update({
+      where: { id },
+      data: { ...data },
     });
     return updatedUnit;
   }

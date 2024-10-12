@@ -39,7 +39,9 @@ export default class UserService {
   //@LogMessage<[users]>({message: 'get all'})
   public async getAll() {
     const user = await prisma.user.findMany();
+    
     return user;
+    
   }
 
   public async delete(id: string) {

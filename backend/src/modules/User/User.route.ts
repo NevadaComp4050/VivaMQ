@@ -37,6 +37,7 @@ const controller = new Controller();
  * POST /users
  * @summary Create a new user
  * @tags User
+ * @security Bearer
  * @param {CreateUserBody} request.body.required - The user creation payload
  * @return {User} 201 - The created user
  */
@@ -44,7 +45,8 @@ users.post(
   '/',
   verifyAuthToken,
   RequestValidator.validate(CreateUserDto),
-  controller.create
+  controller.create,
+  controller.sendFinal
 );
 
 /**
@@ -61,19 +63,6 @@ users.get(
 );
 
 /**
- * GET /users/{id}
- * @summary Get a single user data
- * @tags User
- * @param {string} id.path.required - The ID of the user to retrieve
- * @return {User} 200 - The retrieved user
- */
-users.get(
-  '/:id',
-  verifyAuthToken,
-  controller.get
-);
-
-/**
  * GET /users/
  * @summary Get all user data
  * @tags User
@@ -87,18 +76,21 @@ users.get(
 );
 
 /**
- * DELETE /users/{id}
- * @summary Delete a user by ID
+ * GET /users/{id}
+ * @summary Get a single user data
  * @tags User
- * @param {string} id.path.required - The ID of the user to delete
- * @return {User} 200 - The deleted user
+ * @param {string} id.path.required - The ID of the user to retrieve
+ * @return {User} 200 - The retrieved user
  */
-users.delete(
+users.get(
   '/:id',
+  /*
   verifyAuthToken,
-  controller.delete
+  controller.get
+  */
+  controller.getTest,
+  controller.sendTest
 );
-
 
 /**
  * DELETE /users/
@@ -111,6 +103,19 @@ users.delete(
   '/',
   verifyAuthToken,
   controller.deleteAll
+);
+
+/**
+ * DELETE /users/{id}
+ * @summary Delete a user by ID
+ * @tags User
+ * @param {string} id.path.required - The ID of the user to delete
+ * @return {User} 200 - The deleted user
+ */
+users.delete(
+  '/:id',
+  verifyAuthToken,
+  controller.delete
 );
 
 /**
@@ -129,5 +134,6 @@ users.post('/login', controller.dummyLogin);
  * @return {number} 200 - user list
  */
 users.get('/me', verifyAuthToken, controller.getCurrentUser);
+
 
 export default users;

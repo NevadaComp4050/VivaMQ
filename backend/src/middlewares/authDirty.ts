@@ -26,18 +26,33 @@ const validPeriod = 36000;
 
 export default class AuthDirty extends Api {
 
+
+
+  // TODO is this needed?
+  /**
+   * 
+   * @param req req.body.user should contain a new user
+   * @param res 
+   * @param next 
+   */
   public static register = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     // Take a newly created user from req
-    const { ID } = req.body;
+    const ID  = req.body.user.id;
     console.log(ID);
     res.status(HttpStatusCode.Ok);
     next();
   }
 
+  /**
+   * Checks if authentication has a valid {@link DirtyJWT | DirtyJWT}.
+   * @param req req.headers checked for authentication
+   * @param res 
+   * @param next 
+   */
   public static verifyAuthToken = async (
     req: Request,
     res: Response,
@@ -45,10 +60,11 @@ export default class AuthDirty extends Api {
   ) => {
     const { authorization } = req.headers;
     
-    console.log(req.body);
+    //console.log(req.body);
     if(!authorization){
       console.log('Caught unauthorised access attempt');
       if(auth_en){
+        // TODO Respond access denied
         return next("Failed: No authorisation");
       }
       return next();
@@ -60,10 +76,11 @@ export default class AuthDirty extends Api {
     const dec = decrypted+decipher.final('utf8');
     //console.log(dec);
     const tokenReq: DirtyJWT = JSON.parse(dec);
-    //console.log(tokenReq);
+    console.log(tokenReq);
     if (Math.floor(Date.now() / 1000)>tokenReq.Epoch){
       console.log('Token has expired');
       if(auth_en){
+        // TODO Respond access expired
         next('Failed: Token has expired');
       }
     }
@@ -77,12 +94,19 @@ export default class AuthDirty extends Api {
 
 
   // Requires the user ID to be in the req body
+  /**
+   * Generates a {@link DirtyJWT | DirtyJWT} for the user in req.
+   * @param req req.body should must contain the user
+   * @param res 
+   * @param next 
+   */
   public static generateAuthToken = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
-    let { ID } = req.body
+    console.log(req.body)
+    let ID  = req.body.user.id
     // Need the ID
     // Generate a token
     if(!ID){
@@ -105,4 +129,14 @@ export default class AuthDirty extends Api {
     res.status(HttpStatusCode.Ok).send();
     //next();
   }
+
+  public static refreshAuthToken = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+
+  }
+
+  
 }

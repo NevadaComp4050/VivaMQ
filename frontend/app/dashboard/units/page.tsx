@@ -1,5 +1,6 @@
 "use client";
 
+import apiClient from '../../../utils/api';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -39,11 +40,9 @@ export default function UnitsPage() {
 
   const fetchUnits = async () => {
     try {
-      const response = await fetch("/api/units");
-      if (!response.ok) {
-        throw new Error("Failed to fetch units");
-      }
-      const data = await response.json();
+      console.log('fetching units')
+      const response = await apiClient.get("/units");
+      const data = response.data; 
       setUnits(data);
     } catch (error) {
       console.error("Error fetching units:", error);
@@ -53,21 +52,11 @@ export default function UnitsPage() {
   const handleCreateUnit = async () => {
     if (newUnit.name.trim() && newUnit.code.trim() && newUnit.year && newUnit.session) {
       try {
-        const response = await fetch("/api/units", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newUnit),
-        });
+        const response = await apiClient.post("/units", newUnit); // Use apiClient for POST request
 
-        if (!response.ok) {
-          throw new Error("Failed to create unit");
-        }
-
-        const createdUnit = await response.json();
-        setUnits([...units, createdUnit]);
-        setNewUnit({ name: "", code: "", year: "", session: "" });
+        const createdUnit = response.data; // Response from the API
+        setUnits([...units, createdUnit]); // Add the created unit to the list
+        setNewUnit({ name: "", code: "", year: "", session: "" }); // Reset form
       } catch (error) {
         console.error("Error creating unit:", error);
       }

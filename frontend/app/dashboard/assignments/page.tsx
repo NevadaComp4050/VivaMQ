@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import apiClient from '../../../utils/api';
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -44,12 +45,12 @@ export default function AssignmentsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const unitsResponse = await fetch("/api/units");
-        const unitsData = await unitsResponse.json();
+        const unitsResponse = await apiClient.get("/units");
+        const unitsData = unitsResponse.data;
         setUnits(unitsData);
 
         const assignmentsPromises = unitsData.map((unit: Unit) =>
-          fetch(`/api/units/${unit.id}/assignments`).then((res) => res.json())
+          fetch(`/units/${unit.id}/assignments`).then((res) => res.json())
         );
         const allAssignments = await Promise.all(assignmentsPromises);
         setAssignments(allAssignments.flat());

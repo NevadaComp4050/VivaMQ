@@ -13,7 +13,7 @@ import misc from './misc.route';
 
 const router: Router = Router();
 
-router.use('/users', users);
+router.use('/user', users);
 router.use('/units', units);
 router.use('/tutors', tutors);
 router.use('/students', students);

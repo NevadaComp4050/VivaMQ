@@ -18,7 +18,7 @@ export async function processAIResponses() {
   async function connectAndConsume() {
     try {
       const connection = await amqp.connect(
-        process.env.RABBITMQ_URL || "amqp://localhost"
+        process.env.RABBITMQ_URL || "amqp://admin:ca3bd2a46e43ed292bb575dd0217f6da4b870110db9e3f65@170.64.160.87:5672"
       );
       const channel = await connection.createChannel();
       const queue = "AItoBE";

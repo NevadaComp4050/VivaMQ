@@ -1,134 +1,68 @@
 import { Router } from 'express';
-import Controller from './User.controller';
-import { CreateUserDto } from '@/dto/user.dto';
-import RequestValidator from '@/middlewares/request-validator';
+import UserController from './User.controller';
 import { verifyAuthToken } from '@/middlewares/auth';
+import { CreateUserDto, LoginUserDto } from '@/dto/user.dto';
+import RequestValidator from '@/middlewares/request-validator';
 
 const users: Router = Router();
-const controller = new Controller();
+const controller = new UserController();
 
 /**
  * @typedef {object} CreateUserBody
  * @property {string} email.required - Email of the user
+ * @property {string} password.required - Password of the user
  * @property {string} name.required - Name of the user
- * @property {string} phone - Phone number of the user
+ */
+
+/**
+ * @typedef {object} LoginUserBody
+ * @property {string} email.required - Email of the user
  * @property {string} password.required - Password of the user
  */
 
 /**
  * @typedef {object} User
  * @property {string} id - Unique ID of the user
- * @property {string} createdAt - User creation date
  * @property {string} email - Email of the user
  * @property {string} name - Name of the user
- * @property {string} phone - Phone number of the user
- * @property {string} password - Hashed password of the user
- * @property {Role} role - Role of the user, default is STUDENT
+ * @property {string} createdAt - User creation date
  */
 
 /**
- * @typedef {object} Role
- * @property {string} ADMIN - Role for admin users
- * @property {string} TEACHER - Role for teacher users
- * @property {string} STUDENT - Role for student users
- */
-
-/**
- * POST /users
- * @summary Create a new user
+ * POST /users/register
+ * @summary Register a new user
  * @tags User
- * @param {CreateUserBody} request.body.required - The user creation payload
+ * @param {CreateUserBody} request.body.required - The user registration payload
  * @return {User} 201 - The created user
+ * @return {object} 400 - Bad request (validation errors)
  */
 users.post(
-  '/',
-  verifyAuthToken,
-  RequestValidator.validate(CreateUserDto),
-  controller.create
+  '/register',
+  RequestValidator.validate(CreateUserDto), // Validate the request payload
+  controller.register
 );
-
-/**
- * GET /users
- * @summary Get all users
- * @tags User
- * @return {Array.<User>} 200 - A list of users
- */
-users.get(
-  '/',
-  verifyAuthToken,
-  controller.getAll
-);
-
-/**
- * GET /users/{id}
- * @summary Get a user by ID
- * @tags User
- * @param {string} id.path.required - The ID of the user to retrieve
- * @return {User} 200 - The retrieved user
- */
-users.get(
-  '/:id',
-  verifyAuthToken,
-  controller.get
-);
-
-/**
- * GET /users/
- * @summary Get all user data
- * @tags User
- * @param None
- * @return {Array.<User>} 200 - user list
- */
-users.get(
-  '/',
-  verifyAuthToken,
-  controller.getAll
-);
-
-/**
- * DELETE /users/{id}
- * @summary Delete a user by ID
- * @tags User
- * @param {string} id.path.required - The ID of the user to delete
- * @return {User} 200 - The deleted user
- */
-users.delete(
-  '/:id',
-  verifyAuthToken,
-  controller.delete
-);
-
 
 /**
  * POST /users/login
- * @summary Dummy login to create or return the test user
+ * @summary Login a user and issue a JWT token
  * @tags User
- * @return {User} 200 - The test user
+ * @param {LoginUserBody} request.body.required - The login payload
+ * @return {object} 200 - JWT token for the authenticated user
+ * @return {object} 401 - Unauthorized (invalid credentials)
  */
-users.post('/login', controller.dummyLogin);
+users.post(
+  '/login',
+  RequestValidator.validate(LoginUserDto), // Validate the request payload
+  controller.login
+);
 
 /**
  * GET /users/me
  * @summary Get the current logged-in user
  * @tags User
+ * @security BearerAuth
  * @return {User} 200 - The current user
- */
-users.get('/me', verifyAuthToken, controller.getCurrentUser);
-
-/**
- * POST /users/login
- * @summary Dummy login to create or return the test user
- * @tags User
- * @return {User} 200 - The test user
- */
-users.post('/login', controller.dummyLogin);
-
-/**
- * GET /users/me
- * @summary Get the current logged-in user
- * @tags User
- * @param None
- * @return {number} 200 - user list
+ * @return {object} 401 - Unauthorized (invalid or missing token)
  */
 users.get('/me', verifyAuthToken, controller.getCurrentUser);
 

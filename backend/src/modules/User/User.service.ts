@@ -1,82 +1,51 @@
-import { type User, Role } from '@prisma/client';
+import { type User, type Role } from '@prisma/client';
 import prisma from '@/lib/prisma';
-import LogMessage from '@/decorators/log-message.decorator';
 import argon2 from 'argon2';
 
 export default class UserService {
+
+
+
+public async createUser(data: Omit<User, 'id'>) {
+  const hashedPassword = await argon2.hash(data.password);
+
   
-  @LogMessage<[User]>({ message: 'test-decorator' })
-  public async createUser(data: User) {
-    const hashedPassword = await argon2.hash(data.password);
+  console.log(data);
 
-    const user = await prisma.user.create({
-      data: {
-        ...data,
-        password: hashedPassword,
-      },
-    });
-    return user;
-  }
-
-  public async get(id: string) {
-    const ret = await prisma.user.findUnique({
-      where: { id },
-    });
-    return ret;
-  }
-
-  public async getAll() {
-    const user = await prisma.user.findMany();
-    return user;
-  }
-
-  public async delete(id: string) {
-    const ret = await prisma.user.delete({
-      where: { id },
-    });
-    return ret;
-  }
-
-  public async deleteAll() {
-    const { count } = await prisma.user.deleteMany();
-    return count;
-  }
+ 
+  const user = await prisma.user.create({
+    data: {
+      ...data,
+      password: hashedPassword,
+      role: data.role as Role,
+    },
+  });
+  return user;
+}
 
 
-  public async dummyLogin() {
-    let user = await prisma.user.findFirst({
-      where: { email: "test@example.com" },
-    });
-
-    if (!user) {
-      
-      const hashedPassword = await argon2.hash("password123");
-      user = await prisma.user.create({
-        data: {
-          email: "test@example.com",
-          name: "Test User",
-          password: hashedPassword,
-          role: Role.ADMIN,
-        },
-      });
-    }
-
-    return user;
-  }
-
-  public async getEmail(email: string) {
-
-    const user = await prisma.user.findFirst({
+  public async validateUser(email: string, password: string) {
+    const user = await prisma.user.findUnique({
       where: { email },
     });
-    return user;
+
+    if (user && await argon2.verify(user.password, password)) {
+      return user;
+    }
+
+    return null;
   }
 
-  public async getCurrentUser() {
-    const user = await prisma.user.findFirst({
-      where: { email: "test@example.com" },
+  public async getUserById(id: string) {
+    return await prisma.user.findUnique({
+      where: { id },
     });
-    
-    return user;
+  }
+
+
+  public async getUserByEmail(email: string) {
+    return await prisma.user.findUnique({
+      where: { email },
+    });
   }
 }

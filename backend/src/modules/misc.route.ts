@@ -39,10 +39,11 @@ const controller = new Controller();
  * @param {LoginBody} request.body.required
  * @return {number} 200 - user list
  */
+/*
 misc.post('/login',
     controller.getreq,
     generateAuthToken,
-);
+);*/
 
 /**
  * POST /misc/register
@@ -55,10 +56,11 @@ misc.post('/login',
 * @param {RegisterBody} request.body.required
  * @return {number} 200 - user list
  */
+/*
 misc.post('/register',
     controller.createreq,
     generateAuthToken
-);
+);*/
 
 
 

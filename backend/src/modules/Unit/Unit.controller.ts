@@ -30,6 +30,8 @@ export default class UnitController extends Api {
       const limit = parseInt(req.query.limit as string) || 10;
       const offset = parseInt(req.query.offset as string) || 0;
   
+      console.log('get all units')
+
       const unitList = await this.unitService.getUnits(limit, offset);
       this.send(res, unitList, HttpStatusCode.Ok, 'gotAllUnits');
     } catch (e) {

@@ -52,7 +52,6 @@ users.post(
  */
 users.post(
   '/login',
-  RequestValidator.validate(LoginUserDto), // Validate the request payload
   controller.login
 );
 
@@ -67,3 +66,4 @@ users.post(
 users.get('/me', verifyAuthToken, controller.getCurrentUser);
 
 export default users;
+

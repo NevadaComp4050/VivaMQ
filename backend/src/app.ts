@@ -12,6 +12,7 @@ import errorHandler from '@/middlewares/error-handler';
 import routes from '@/modules/index';
 import prismaClient from '@/lib/prisma';
 import passport from 'passport';
+import { configurePassport } from '@/middlewares/passport-config';
 
 class App {
   public express: express.Application;
@@ -33,6 +34,8 @@ class App {
     this.express.use(express.urlencoded({ extended: true }));
     this.express.use(helmet());
     this.express.use(express.static('public'));
+
+    configurePassport(); 
     this.express.use(passport.initialize());
   }
 

@@ -4,72 +4,81 @@ import { HttpStatusCode } from 'axios';
 import UnitService from './Unit.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
+import { ExtendedRequest } from '@/types/express';
 
 export default class UnitController extends Api {
   private readonly unitService = new UnitService();
 
   public create = async (
-    req: Request,
+    req: ExtendedRequest,
     res: CustomResponse<Unit>,
     next: NextFunction
   ) => {
     try {
-      const newUnit = await this.unitService.create(req.body);
+      console.log("create unit controller", req.body);
+  
+      const ownerId = req.user?.id;
+      if (!ownerId) {
+        return res.status(HttpStatusCode.Unauthorized).json({ message: 'User not authenticated', data: { id: '', name: '', year: 0, ownerId: '' } });
+      }
+  
+     
+      const newUnitData = {
+        ...req.body,
+        ownerId,
+      };
+  
+      const newUnit = await this.unitService.create(newUnitData);
       this.send(res, newUnit, HttpStatusCode.Created, 'createUnit');
     } catch (e) {
       next(e);
     }
   };
 
-  public getallunits = async (
-    req: Request,
+  public getAll = async (
+    req: ExtendedRequest,
     res: CustomResponse<Unit[]>,
     next: NextFunction
   ) => {
     try {
       const limit = parseInt(req.query.limit as string) || 10;
       const offset = parseInt(req.query.offset as string) || 0;
-  
-      console.log('get all units')
 
-      const unitList = await this.unitService.getUnits(limit, offset);
+      const ownerId = req.user?.id;
+      if (!ownerId) {
+        return res.status(HttpStatusCode.Unauthorized).json({ message: 'User not authenticated', data: [] });
+      }
+
+      const unitList = await this.unitService.getUnits(ownerId, limit, offset);
       this.send(res, unitList, HttpStatusCode.Ok, 'gotAllUnits');
     } catch (e) {
       next(e);
     }
   };
-  
 
   public getUnit = async (
-    req: Request,
+    req: ExtendedRequest,
     res: CustomResponse<Unit>,
     next: NextFunction
   ) => {
     try {
       const { id } = req.params;
-      const unit = await this.unitService.getUnit(id);
-      this.send(res, unit, HttpStatusCode.Ok, 'gotUnit:'+id )
-    } catch (e) {
-      next(e)
-    }
-  }
 
-  public getAll = async (
-    req: Request,
-    res: CustomResponse<Unit[]>,
-    next: NextFunction
-  ) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 10;
-      const offset = parseInt(req.query.offset as string) || 0;
-  
-      const unitList = await this.unitService.getUnits(limit, offset);
-      this.send(res, unitList, HttpStatusCode.Ok, 'gotAllUnits');
+      const ownerId = req.user?.id;
+      if (!ownerId) {
+        return res.status(HttpStatusCode.Unauthorized).json({ message: 'User not authenticated', data: { id: '', name: '', year: 0, ownerId: '' } });
+      }
+
+      const unit = await this.unitService.getUnit(ownerId, id);
+      if (!unit) {
+        return res.status(HttpStatusCode.NotFound).json({ message: 'Unit not found or not accessible', data: { id: '', name: '', year: 0, ownerId: '' } });
+      }
+
+      this.send(res, unit, HttpStatusCode.Ok, 'gotUnit:' + id);
     } catch (e) {
       next(e);
     }
   };
-  
 
   public updateUnitName = async (
     req: Request,
@@ -147,6 +156,5 @@ export default class UnitController extends Api {
       next(e);
     }
   };
-
 
 }

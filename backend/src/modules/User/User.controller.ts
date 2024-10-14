@@ -7,7 +7,6 @@ import { User } from '@prisma/client';
 export default class UserController {
   private readonly userService = new UserService();
 
-  // Register a new user with hashed password
   public register = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const newUser: User = await this.userService.createUser(req.body);
@@ -17,7 +16,6 @@ export default class UserController {
     }
   };
 
-  // Login a user and issue JWT token
   public login = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
 
@@ -25,7 +23,8 @@ export default class UserController {
       const user = await this.userService.validateUser(email, password);
 
       if (!user) {
-        return res.status(HttpStatusCode.Unauthorized).json({ error: 'Invalid credentials' });
+        
+        return res.status(HttpStatusCode.Unauthorized).json({ error: 'Invalid email or password. Please try again.' });
       }
 
       const token = jwt.sign(
@@ -38,10 +37,11 @@ export default class UserController {
     } catch (err) {
       next(err);
     }
-  };
+  };  
 
-  // Get current authenticated user
+
   public getCurrentUser = async (req: Request, res: Response) => {
+    console.log("get current user: ", req.user);
     return res.json(req.user);
   };
 }

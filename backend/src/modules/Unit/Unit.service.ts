@@ -5,25 +5,37 @@ import LogMessage from '@/decorators/log-message.decorator';
 export default class UnitService {
   @LogMessage<[Unit]>({ message: 'test-decorator' })
 
-  public async create(data: Unit) {
-    const unit = await prisma.unit.create({ data });
+  public async create(data: { name: string, year: number, ownerId: string }) {
+
+    console.log("create unit service", data);
+
+    const unit = await prisma.unit.create({
+      data: {
+        name: data.name,
+        year: data.year,
+        ownerId: data.ownerId,
+      },
+    });
     return unit;
   }
 
-  public async getUnits(limit: number, offset: number) {
+  public async getUnits(ownerId: string, limit: number, offset: number) {
     const units = await prisma.unit.findMany({
+      where: { ownerId },
       skip: offset,
       take: limit,
     });
     return units;
   }
-  
 
-  public async getUnit(id: string) {
-    const unit = await prisma.unit.findUnique({
-      where: { id },
+  public async getUnit(ownerId: string, unitId: string) {
+    const unit = await prisma.unit.findFirst({
+      where: {
+        id: unitId,
+        ownerId,
+      },
     });
-      return unit;
+    return unit;
   }
 
   public async getAll() {
@@ -39,18 +51,17 @@ export default class UnitService {
     return updatedUnit;
   }
 
-  public async delete(id: string){
-    const unit =  await prisma.unit.delete({
+  public async delete(id: string) {
+    const unit = await prisma.unit.delete({
       where: { id },
     });
-      return unit;
+    return unit;
   }
 
-  public async deleteAll(){
-    const { count } = await prisma.unit.deleteMany()
-    return count
+  public async deleteAll() {
+    const { count } = await prisma.unit.deleteMany();
+    return count;
   }
-
 
   public async createAssignment(unitId: string, data: Assignment) {
     const assignment = await prisma.assignment.create({
@@ -62,7 +73,6 @@ export default class UnitService {
     return assignment;
   }
 
-  
   public async getAssignments(unitId: string, limit: number, offset: number) {
     const assignments = await prisma.assignment.findMany({
       where: { unitId },
@@ -71,5 +81,4 @@ export default class UnitService {
     });
     return assignments;
   }
-
 }

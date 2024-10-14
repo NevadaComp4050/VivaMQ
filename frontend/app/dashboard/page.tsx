@@ -1,11 +1,9 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
 import {
   Table,
   TableBody,
@@ -21,17 +19,47 @@ import {
   CalendarIcon,
   AlertCircleIcon,
 } from "lucide-react";
+import { getServerApiClient } from "~/utils/serverAPI";
 
-export default function Dashboard() {
-  // In a real application, this data would be fetched from your backend
-  const stats = {
+interface Stats {
+  totalUnits: number;
+  activeAssignments: number;
+  pendingVivas: number;
+  activeUsers: number;
+}
+
+interface Activity {
+  id: number;
+  type: string;
+  action: string;
+  name: string;
+  date: string;
+}
+
+interface Viva {
+  id: number;
+  student: string;
+  assignment: string;
+  date: string;
+  time: string;
+}
+
+interface Task {
+  id: number;
+  task: string;
+  dueDate: string;
+}
+
+export default async function Dashboard() {
+  let userName = "User"; 
+  const stats: Stats = {
     totalUnits: 8,
     activeAssignments: 12,
     pendingVivas: 24,
     activeUsers: 15,
   };
 
-  const recentActivities = [
+  const recentActivities: Activity[] = [
     {
       id: 1,
       type: "unit",
@@ -62,7 +90,7 @@ export default function Dashboard() {
     },
   ];
 
-  const upcomingVivas = [
+  const upcomingVivas: Viva[] = [
     {
       id: 1,
       student: "Alice Johnson",
@@ -86,7 +114,7 @@ export default function Dashboard() {
     },
   ];
 
-  const pendingTasks = [
+  const pendingTasks: Task[] = [
     {
       id: 1,
       task: "Review generated questions for Database Systems",
@@ -104,9 +132,19 @@ export default function Dashboard() {
     },
   ];
 
+  try {
+    const apiClient = getServerApiClient();
+    const response = await apiClient.get("/user/me");
+    if (response.data && response.data.name) {
+      userName = response.data.name;
+    }
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+  }
+
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">VivaMQ Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6">Hello {userName}</h1>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
         <Card>
@@ -120,9 +158,7 @@ export default function Dashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Assignments
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Active Assignments</CardTitle>
             <FileTextIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -167,12 +203,8 @@ export default function Dashboard() {
               <TableBody>
                 {recentActivities.map((activity) => (
                   <TableRow key={activity.id}>
-                    <TableCell className="capitalize">
-                      {activity.type}
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {activity.action}
-                    </TableCell>
+                    <TableCell className="capitalize">{activity.type}</TableCell>
+                    <TableCell className="capitalize">{activity.action}</TableCell>
                     <TableCell>{activity.name}</TableCell>
                     <TableCell>{activity.date}</TableCell>
                   </TableRow>
@@ -192,9 +224,7 @@ export default function Dashboard() {
                   <AlertCircleIcon className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium">{task.task}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Due: {task.dueDate}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Due: {task.dueDate}</p>
                   </div>
                 </li>
               ))}

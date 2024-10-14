@@ -9,22 +9,22 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  createdAt    DateTime @default(now())
-  email        String   @unique
-  name         String
-  phone        String?
-  password     String
-  role         Role     @default(STUDENT)
-  units        Unit[]   @relation("UnitManager")
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  email     String   @unique
+  name      String
+  phone     String?
+  password  String
+  role      Role     @default(STUDENT)
+  units     Unit[]   @relation("UnitOwner")
 }
 
 model Unit {
   id          String       @id @default(uuid())
   name        String
   year        Int
-  convenorId  String
-  convenor    User         @relation("UnitManager", fields: [convenorId], references: [id])
+  ownerId     String
+  owner       User         @relation("UnitOwner", fields: [ownerId], references: [id])
   tutors      Tutor[]
   assignments Assignment[]
 }

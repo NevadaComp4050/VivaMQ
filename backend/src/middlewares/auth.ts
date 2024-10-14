@@ -1,69 +1,69 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import passport from 'passport';
+import passportJwt from 'passport-jwt';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
-import passport from 'passport';
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import dotenv from 'dotenv';
-
-
-
-const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'your_secret';
 
 dotenv.config();
 
-const opts = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.JWT_SECRET || 'your_secret',
-};
+const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || 'your_secret';
+const JwtStrategy = passportJwt.Strategy;
+const ExtractJwt = passportJwt.ExtractJwt;
 
 passport.use(
-  new JwtStrategy(opts, async (jwt_payload, done) => {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: jwt_payload.sub },
-      });
-      if (user) {
+  new JwtStrategy(
+    {
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      secretOrKey: JWT_SECRET,
+    },
+    async (jwtPayload, done) => {
+      try {
+        const user = await prisma.user.findUnique({ where: { id: jwtPayload.sub } });
+        
+        if (!user) {
+          return done(null, false, { message: 'User not found' });
+        }
+
         return done(null, user);
-      } else {
-        return done(null, false);
+      } catch (err) {
+        return done(err, false, { message: 'Error during authentication' });
       }
-    } catch (err) {
-      return done(err, false);
     }
-  })
+  )
 );
 
+export const verifyAuthToken = (req: Request, res: Response, next: NextFunction) => {
+  console.log("Running verifyAuthToken");
+  passport.authenticate('jwt', { session: false }, (err, user, info) => {
+    if (err) {
+      console.error("Error in authentication: ", err);
+      return next(err);
+    }
+    if (!user) {
+      console.log("Authentication failed:", info?.message || 'Unauthorized');
+      return res.status(401).json({ error: info?.message || 'Unauthorized' });
+    }
 
-export const verifyAuthToken = passport.authenticate('jwt', { session: false });
+    req.user = user;
+    next();
+  })(req, res, next);
+};
 
-/**
- * Middleware to generate a JWT token for an authenticated user.
- * This should be called during user login or registration to issue a new token.
- * 
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @param {NextFunction} next - Express next middleware function
- */
-
-export const generateAuthToken = async (req: Request, res: Response, next: NextFunction) => {
+export const generateAuthToken = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
-
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign(
-      { sub: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: '1h' } 
-    );
-
+    const token = jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
     return res.json({ token });
   } catch (err) {
+    console.error("Error generating token: ", err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

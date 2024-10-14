@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Ellipsis, LogOut, Search } from "lucide-react";
+import { Ellipsis, Search } from "lucide-react";
+import Cookies from "js-cookie";
 import { usePathname } from "next/navigation";
 
 import { cn } from "~/lib/utils";
@@ -17,7 +18,7 @@ import {
 } from "~/components/ui/tooltip";
 import { ModeToggle } from "../mode-toggle";
 import { GlobalSearch } from "~/components/GlobalSearch";
-import { signOut } from "next-auth/react";
+
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -27,8 +28,12 @@ export function Menu({ isOpen }: MenuProps) {
   const pathname = usePathname();
   const menuList = getMenuList(pathname);
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/" }); // Redirect to home page after sign out
+  const handleSignOut = () => {
+    console.log('Sign out clicked');
+    
+    Cookies.remove("jwt");
+
+    window.location.href = '/signin';
   };
 
   return (
@@ -182,12 +187,12 @@ export function Menu({ isOpen }: MenuProps) {
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={handleSignOut} // Add this onClick handler
+                    onClick={handleSignOut}
                     variant="outline"
                     className="w-full justify-center h-10 mt-5"
                   >
                     <span className={cn(isOpen === false ? "" : "mr-4")}>
-                      <LogOut size={18} />
+                     
                     </span>
                     <p
                       className={cn(

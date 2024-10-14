@@ -48,19 +48,20 @@ const seedUnits = async (): Promise<void> => {
 
   if (!teacher) throw new Error('Teacher not found');
 
-  const unit = await prisma.unit.create({
-    data: {
+  // Create multiple units for the teacher (owner)
+  const units = await prisma.unit.createMany({
+    data: Array.from({ length: 5 }).map(() => ({
       id: faker.datatype.uuid(),
       name: faker.commerce.department(),
       year: new Date().getFullYear(),
-      convenorId: teacher.id,
-    },
+      ownerId: teacher.id, // Use ownerId instead of convenorId
+    })),
   });
 
   logger.info(`
     \r${HR('white', '-', 30)}
     \rSeed completed for model: Unit
-    \rUnit Name: ${unit.name}
+    \rCreated ${units.count} units
     \r${HR('white', '-', 30)}
   `);
 };
@@ -161,7 +162,7 @@ const seedVivaQuestions = async (): Promise<void> => {
     data: {
       id: faker.datatype.uuid(),
       submissionId: submission.id,
-      question: faker.lorem.sentence(),
+      questions: faker.lorem.sentences(3),
       status: 'PENDING',
     },
   });
@@ -169,7 +170,7 @@ const seedVivaQuestions = async (): Promise<void> => {
   logger.info(`
     \r${HR('white', '-', 30)}
     \rSeed completed for model: VivaQuestion
-    \rQuestion: ${vivaQuestion.question}
+    \rVivaQuestion ID: ${vivaQuestion.id}
     \r${HR('white', '-', 30)}
   `);
 };
@@ -181,7 +182,7 @@ async function seed(): Promise<void> {
   await seedStudents();
   await seedAssignments();
   await seedSubmissions();
-  //await seedVivaQuestions();
+  await seedVivaQuestions();
 }
 
 async function main(): Promise<void> {

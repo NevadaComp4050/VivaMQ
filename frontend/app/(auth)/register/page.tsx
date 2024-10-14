@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import {
   Card,
   CardContent,
@@ -37,7 +38,6 @@ export default function Register() {
     setError("");
 
     try {
-     
       console.log("Registering user...");
       const res = await apiClient.post("/user/register", {
         name,
@@ -48,16 +48,32 @@ export default function Register() {
 
       if (res.status === 201) {
         
-        router.push("/signin");
+        const loginResponse = await apiClient.post("/user/login", {
+          email,
+          password,
+        });
+
+        if (loginResponse.status === 200) {
+          const { token } = loginResponse.data;
+
+         
+          Cookies.set("jwt", token, {
+            expires: 7, 
+            secure: process.env.NODE_ENV === "production", 
+            sameSite: "strict", 
+          });
+
+         
+          router.push("/dashboard");
+        } else {
+          setError("Registration succeeded, but login failed.");
+        }
       } else {
-        setError(res.data.message || "An error occurred");
+        setError(res.data.message || "An error occurred during registration.");
       }
     } catch (error: any) {
-     
       console.error("An unexpected error happened:", error);
-      setError(
-        error.response?.data?.message || "An unexpected error occurred"
-      );
+      setError(error.response?.data?.message || "An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +83,7 @@ export default function Register() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-950">
       <Card className="w-[350px]">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">jdjdjdjfd Create an account</CardTitle>
+          <CardTitle className="text-2xl">Create an account</CardTitle>
           <CardDescription>Enter your details to sign up</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -86,7 +102,7 @@ export default function Register() {
             <Input
               id="email"
               type="email"
-              placeholder="m~example.com"
+              placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -115,17 +131,22 @@ export default function Register() {
         </CardContent>
         <CardFooter>
           <Button className="w-full" onClick={handleSubmit} disabled={isLoading}>
-            {isLoading && (
-              <text className="mr-2">
-                Loading...
-              </text>
-            )}
+            {isLoading && <text className="mr-2">Loading...</text>}
             Sign up
           </Button>
         </CardFooter>
         {error && (
           <p className="text-sm text-red-500 text-center mt-2">{error}</p>
         )}
+        <div className="text-center mt-4 mb-4">
+          <button
+            type="button"
+            className="text-sm text-blue-600 hover:underline"
+            onClick={() => router.push("/signin")}
+          >
+            Already registered? Sign In...
+          </button>
+        </div>
       </Card>
     </div>
   );

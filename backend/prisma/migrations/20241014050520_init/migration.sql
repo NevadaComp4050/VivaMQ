@@ -19,7 +19,7 @@ CREATE TABLE "Unit" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "year" INTEGER NOT NULL,
-    "convenorId" TEXT NOT NULL,
+    "ownerId" TEXT NOT NULL,
 
     CONSTRAINT "Unit_pkey" PRIMARY KEY ("id")
 );
@@ -86,7 +86,7 @@ CREATE UNIQUE INDEX "Tutor_email_key" ON "Tutor"("email");
 CREATE UNIQUE INDEX "Student_email_key" ON "Student"("email");
 
 -- AddForeignKey
-ALTER TABLE "Unit" ADD CONSTRAINT "Unit_convenorId_fkey" FOREIGN KEY ("convenorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Unit" ADD CONSTRAINT "Unit_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Tutor" ADD CONSTRAINT "Tutor_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "Unit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

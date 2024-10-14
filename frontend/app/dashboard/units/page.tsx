@@ -1,11 +1,4 @@
-"use client";
-
-import apiClient from '../../../utils/api';
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import {
   Table,
   TableBody,
@@ -14,119 +7,27 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { PlusIcon } from "lucide-react";
 import Link from "next/link";
+import { getServerApiClient } from '~/utils/serverAPI'; 
+import UnitForm from './UnitForm';
 
-interface Unit {
-  id: string;
-  name: string;
-  code: string;
-  year: string;
-  session: string;
-}
 
-export default function UnitsPage() {
-  const [units, setUnits] = useState<Unit[]>([]);
-  const [newUnit, setNewUnit] = useState({
-    name: "",
-    code: "",
-    year: "",
-    session: "",
-  });
+export default async function UnitsPage() {
+  let units = [];
 
-  useEffect(() => {
-    fetchUnits();
-  }, []);
-
-  const fetchUnits = async () => {
-    try {
-      console.log('fetching units')
-      const response = await apiClient.get("/units");
-      const data = response.data; 
-      setUnits(data);
-    } catch (error) {
-      console.error("Error fetching units:", error);
-    }
-  };
-
-  const handleCreateUnit = async () => {
-    if (newUnit.name.trim() && newUnit.code.trim() && newUnit.year && newUnit.session) {
-      try {
-        const response = await apiClient.post("/units", newUnit); // Use apiClient for POST request
-
-        const createdUnit = response.data; // Response from the API
-        setUnits([...units, createdUnit]); // Add the created unit to the list
-        setNewUnit({ name: "", code: "", year: "", session: "" }); // Reset form
-      } catch (error) {
-        console.error("Error creating unit:", error);
-      }
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewUnit((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setNewUnit((prev) => ({ ...prev, [name]: value }));
-  };
+  try {
+    const apiClient = getServerApiClient();
+    const response = await apiClient.get("/units");
+    units = response.data.data;
+  } catch (error) {
+    console.error("Error fetching units:", error);
+  }
 
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-6">Unit Management</h1>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Create New Unit</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <Input
-              placeholder="Unit Name"
-              name="name"
-              value={newUnit.name}
-              onChange={handleInputChange}
-            />
-            <Input
-              placeholder="Unit Code"
-              name="code"
-              value={newUnit.code}
-              onChange={handleInputChange}
-            />
-            <Select
-              value={newUnit.year}
-              onValueChange={(value) => handleSelectChange("year", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Year" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="2023">2023</SelectItem>
-                <SelectItem value="2024">2024</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={newUnit.session}
-              onValueChange={(value) => handleSelectChange("session", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Session" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Session 1">Session 1</SelectItem>
-                <SelectItem value="Session 2">Session 2</SelectItem>
-                <SelectItem value="Session 3">Session 3</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button onClick={handleCreateUnit}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Create Unit
-          </Button>
-        </CardContent>
-      </Card>
-
+      <UnitForm />
       <Card>
         <CardHeader>
           <CardTitle>Existing Units</CardTitle>
@@ -136,30 +37,34 @@ export default function UnitsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Unit Name</TableHead>
-                <TableHead>Unit Code</TableHead>
                 <TableHead>Year</TableHead>
-                <TableHead>Session</TableHead>
+                <TableHead>Convenor</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {units.map((unit) => (
-                <TableRow key={unit.id}>
-                  <TableCell>{unit.name}</TableCell>
-                  <TableCell>{unit.code}</TableCell>
-                  <TableCell>{unit.year}</TableCell>
-                  <TableCell>{unit.session}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" asChild>
+              {units.length > 0 ? (
+                units.map((unit: any) => (
+                  <TableRow key={unit.id}>
+                    <TableCell>{unit.name}</TableCell>
+                    <TableCell>{unit.year}</TableCell>
+                    <TableCell>{unit.convenor}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
                         <Link href={`/dashboard/units/${unit.id}/assignments`}>
-                          Assignments
+                          <button className="btn">Assignments</button>
                         </Link>
-                      </Button>
-                    </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">
+                    No units available.
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>

@@ -13,8 +13,8 @@ const controller = new Controller();
  * @property {string} id - unique ID
  * @property {string} name - name of unit
  * @property {number} year - year of unit
- * @property {string} convenorId - ID of convenor of unit
- * @property {user} convenor - convenor of unit
+ * @property {string} ownerId - ID of owner of unit
+ * @property {user} owner - owner of unit
  */
 
 /**

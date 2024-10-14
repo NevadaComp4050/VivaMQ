@@ -1,6 +1,5 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -14,43 +13,41 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useToast } from "~/components/ui/use-toast";
+import Cookies from "js-cookie";
+import apiClient from "../../../utils/api";
 
 export default function SignIn() {
   const router = useRouter();
-  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
+    setError("");
 
-      if (result?.error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.error,
+    try {
+      Cookies.remove("jwt");
+      const response = await apiClient.post("/user/login", { email, password });
+
+      if (response.status === 200) {
+        const { token } = response.data;
+
+        Cookies.set("jwt", token, {
+          expires: 7,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
         });
-      } else if (result?.ok) {
+
         router.push("/dashboard");
       } else {
-        throw new Error("Sign in failed");
+        setError("Invalid email or password.");
       }
-    } catch (error) {
-      console.error("An unexpected error happened:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-      });
+    } catch (error: any) {
+      console.error("An error occurred:", error);
+      setError(error.response?.data?.error || "An error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -60,9 +57,7 @@ export default function SignIn() {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-[350px]">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Sign in
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Sign in</CardTitle>
           <CardDescription className="text-center">
             Enter your email and password to sign in to your account
           </CardDescription>
@@ -93,12 +88,26 @@ export default function SignIn() {
               </div>
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col space-y-2">
             <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </CardFooter>
         </form>
+        {error && (
+          <p className="text-sm text-red-500 text-center mt-2 mb-4 px-4">
+            {error}
+          </p>
+        )}
+        <div className="text-center mt-2 mb-4">
+          <button
+            type="button"
+            className="text-sm text-blue-600 hover:underline"
+            onClick={() => router.push("/register")}
+          >
+            Create an account...
+          </button>
+        </div>
       </Card>
     </div>
   );

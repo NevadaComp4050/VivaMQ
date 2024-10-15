@@ -60,6 +60,13 @@ export function getMenuList(pathname: string): Group[] {
           icon: Bookmark,
           submenus: [],
         },
+        {
+          href: " /dashboard/quality-assurance",
+          label: "Quality Assurance",
+          active: pathname.startsWith("/dashboard/quality-assurance"),
+          icon: BookLock,
+          submenus: [],
+        }
         /* {
           href: "/dashboard/rubrics",
           label: "Rubrics",

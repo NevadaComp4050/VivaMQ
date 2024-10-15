@@ -81,7 +81,7 @@ export function getMenuList(pathname: string): Group[] {
         },
       ],
     }, */
-    /* {
+    {
       groupLabel: "System",
       menus: [
         {
@@ -92,6 +92,6 @@ export function getMenuList(pathname: string): Group[] {
           submenus: [],
         },
       ],
-    }, */
+    }
   ];
 }

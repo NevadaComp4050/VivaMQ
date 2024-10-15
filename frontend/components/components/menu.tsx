@@ -134,7 +134,7 @@ export function Menu({ isOpen }: MenuProps) {
               )}
             </li>
           ))}
-          <li className={cn("w-full pt-5")}>
+          {/* <li className={cn("w-full pt-5")}>
             {(isOpen && "Preferences") || isOpen === undefined ? (
               <p className="text-sm font-medium text-muted-foreground px-4 pb-2 max-w-[248px] truncate">
                 Preferences
@@ -176,7 +176,7 @@ export function Menu({ isOpen }: MenuProps) {
                 )}
               </Tooltip>
             </TooltipProvider>
-          </li>
+          </li> */}
           <li className="w-full grow flex items-end">
             <TooltipProvider disableHoverableContent>
               <Tooltip delayDuration={100}>

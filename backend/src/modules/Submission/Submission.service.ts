@@ -1,10 +1,7 @@
 import prisma from '@/lib/prisma';
-import { type VivaQuestion } from '@prisma/client';
-import LogMessage from '@/decorators/log-message.decorator';
 import { queueVivaGeneration } from '@/services/viva-service';
 
 export default class SubmissionService {
-  
   public async getVivaQuestions(submissionId: string) {
     const vivaQuestions = await prisma.vivaQuestion.findMany({
       where: { submissionId },
@@ -16,15 +13,15 @@ export default class SubmissionService {
     await queueVivaGeneration(submissionId);
   }
 
-  public async delete(id: string){
-    const submission =  await prisma.submission.delete({
+  public async delete(id: string) {
+    const submission = await prisma.submission.delete({
       where: { id },
     });
-      return submission;
+    return submission;
   }
 
-  public async deleteAll(){
-    const { count } = await prisma.submission.deleteMany()
-    return count
+  public async deleteAll() {
+    const { count } = await prisma.submission.deleteMany();
+    return count;
   }
 }

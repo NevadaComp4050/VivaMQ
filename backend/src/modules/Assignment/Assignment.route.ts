@@ -1,23 +1,17 @@
 import { Router } from 'express';
-import Controller from './Assignment.controller';
-import { CreateAssignmentDto } from '@/dto/assignment.dto';
-import { CreateSubmissionDto } from '@/dto/submission.dto';
-import RequestValidator from '@/middlewares/request-validator';
-import { verifyAuthToken } from '@/middlewares/auth';
 import multer from 'multer';
-import fs from 'fs';
-import path from 'path';
+import Controller from './assignment.controller';
+import { verifyAuthToken } from '@/middlewares/auth';
+import {
+  VerifyAssignmentReadWriteAccess,
+  VerifyAssignmentReadAccess,
+} from '@/middlewares/access-control/assignment-access';
 
 const assignments: Router = Router();
 const controller = new Controller();
 
-const coconutPath = path.join(__dirname, '..', 'uploads', 'load-bearing-coconut.jpg');
-
-if (!fs.existsSync(coconutPath)) {
-  throw new Error('Critical Error: The backend cannot run without the load bearing coconut.');
-}
-
-const upload = multer({ dest: 'uploads/' });
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 /**
  * Create assignment body
@@ -28,7 +22,6 @@ const upload = multer({ dest: 'uploads/' });
  * @property {string} settings.required - settings
  * @property {string} unitId.required - ID of unit of assignment
  */
-
 
 /**
  * Assignment
@@ -43,19 +36,6 @@ const upload = multer({ dest: 'uploads/' });
  */
 
 /**
- * GET /assignments/
- * @summary Get all assignment data
- * @tags Assignment
- * @param None
- * @return {Array.<Assignment>} 200 - assignment list
- */
-assignments.get(
-  '/',
-  verifyAuthToken,
-  controller.getAll
-);
-
-/**
  * DELETE /assignments/{id}
  * @summary Delete a single assignment
  * @tags Assignment
@@ -65,48 +45,22 @@ assignments.get(
 assignments.delete(
   '/:id',
   verifyAuthToken,
+  VerifyAssignmentReadWriteAccess,
   controller.delete
 );
 
 /**
- * DELETE /assignments/
- * @summary Delete all assignment data
- * @tags Assignment
- * @param None
- * @return {number} 200 - assignment clear
- */
-assignments.get(
-  '/deleteall',
-  verifyAuthToken,
-  controller.deleteAll
-);
-
-/**
- * POST /assignments
- * @summary Create a new assignment
- * @tags Assignment
- * @param {CreateAssignmentBody} request.body.required - CreateAssignmentDto
- * @return {Assignment} 201 - Assignment created
- */
-assignments.post(
-  '/',
-  verifyAuthToken,
-  RequestValidator.validate(CreateAssignmentDto),
-  controller.create
-);
-
-/**
- * POST /assignments/:assignmentId/submissions
+ * POST /assignments/:assignmentId/submissionUpload
  * @summary Create a submission
  * @tags Submissions
  * @param {file} file.required - The submission file
  * @return {Submission} 201 - Submission created
  */
 assignments.post(
-  '/:assignmentId/submissions',
+  '/:assignmentId/submissionUpload',
   verifyAuthToken,
-  RequestValidator.validate(CreateSubmissionDto),
-  upload.single('submissionFile'),
+  VerifyAssignmentReadWriteAccess,
+  upload.single('file'),
   controller.createSubmission
 );
 
@@ -121,6 +75,7 @@ assignments.post(
 assignments.get(
   '/:assignmentId/submissions',
   verifyAuthToken,
+  VerifyAssignmentReadAccess,
   controller.getSubmissions
 );
 
@@ -136,6 +91,7 @@ assignments.get(
 assignments.post(
   '/:assignmentId/submissionMapping/:submissionId',
   verifyAuthToken,
+  VerifyAssignmentReadWriteAccess,
   controller.mapStudentToSubmission
 );
 
@@ -148,7 +104,20 @@ assignments.post(
 assignments.get(
   '/:assignmentId/submissionMapping',
   verifyAuthToken,
+  VerifyAssignmentReadAccess,
   controller.getStudentSubmissionMapping
+);
+
+/**
+ * POST /assignments/{assignmentId}/generateViva
+ * @summary Trigger viva generation for a particular assignment
+ * @tags Viva
+ * @param {string} assignmentId.path.required - ID of the assignment
+ * @return {object} 200 - JSON object indicating success or failure
+ */
+assignments.post(
+  '/:assignmentId/generateVivaQuestions',
+  controller.generateVivaQuestions
 );
 
 export default assignments;

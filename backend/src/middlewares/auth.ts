@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { type Request, type Response, type NextFunction } from 'express';
 import passport from 'passport';
 import passportJwt from 'passport-jwt';
 import jwt from 'jsonwebtoken';
@@ -8,7 +8,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'your_secret';
+const JWT_SECRET = process.env.JWT_SECRET ?? 'your_secret';
 const JwtStrategy = passportJwt.Strategy;
 const ExtractJwt = passportJwt.ExtractJwt;
 
@@ -20,8 +20,10 @@ passport.use(
     },
     async (jwtPayload, done) => {
       try {
-        const user = await prisma.user.findUnique({ where: { id: jwtPayload.sub } });
-        
+        const user = await prisma.user.findUnique({
+          where: { id: jwtPayload.sub },
+        });
+
         if (!user) {
           return done(null, false, { message: 'User not found' });
         }
@@ -34,15 +36,20 @@ passport.use(
   )
 );
 
-export const verifyAuthToken = (req: Request, res: Response, next: NextFunction) => {
-  console.log("Running verifyAuthToken");
+export const verifyAuthToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  console.log('Running verifyAuthToken');
   passport.authenticate('jwt', { session: false }, (err, user, info) => {
     if (err) {
-      console.error("Error in authentication: ", err);
-      return next(err);
+      console.error('Error in authentication: ', err);
+      next(err);
+      return;
     }
     if (!user) {
-      console.log("Authentication failed:", info?.message || 'Unauthorized');
+      console.log('Authentication failed:', info?.message || 'Unauthorized');
       return res.status(401).json({ error: info?.message || 'Unauthorized' });
     }
 
@@ -60,10 +67,12 @@ export const generateAuthToken = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: '7d',
+    });
     return res.json({ token });
   } catch (err) {
-    console.error("Error generating token: ", err);
+    console.error('Error generating token: ', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

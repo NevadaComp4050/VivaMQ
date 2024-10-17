@@ -1,5 +1,5 @@
-import { User } from '@prisma/client';
-import { Request } from 'express';
+import { type User } from '@prisma/client';
+import { type Request } from 'express';
 
 declare global {
   namespace Express {
@@ -9,18 +9,15 @@ declare global {
   }
 }
 
-
 declare namespace Express {
   export interface Request {
-    user?: { 
+    user?: {
       id: string;
       email: string;
       role: string;
     };
   }
 }
-
-
 
 interface LocalUser {
   id: string;

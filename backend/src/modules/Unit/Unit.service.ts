@@ -4,10 +4,8 @@ import LogMessage from '@/decorators/log-message.decorator';
 
 export default class UnitService {
   @LogMessage<[Unit]>({ message: 'test-decorator' })
-
-  public async create(data: { name: string, year: number, ownerId: string }) {
-
-    console.log("create unit service", data);
+  public async create(data: { name: string; year: number; ownerId: string }) {
+    console.log('create unit service', data);
 
     const unit = await prisma.unit.create({
       data: {

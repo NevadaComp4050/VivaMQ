@@ -4,6 +4,10 @@ import { CreateUnitDto } from '@/dto/unit.dto';
 import { CreateAssignmentDto } from '@/dto/assignment.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
+import {
+  VerifyUnitReadAccess,
+  VerifyUnitReadWriteAccess,
+} from '@/middlewares/access-control/unit-access';
 
 const units: Router = Router();
 const controller = new Controller();
@@ -57,11 +61,7 @@ units.post(
  * @param {number} offset.query - The number of units to skip (pagination)
  * @return {Array.<Unit>} 200 - unit list
  */
-units.get(
-  '/',
-  verifyAuthToken,
-  controller.getAll
-);
+units.get('/', verifyAuthToken, controller.getAll);
 
 /**
  * GET /units/{id}
@@ -70,12 +70,7 @@ units.get(
  * @param {string} id.path.required
  * @return {Unit} 200 - unit list
  */
-units.get(
-  '/:id',
-  verifyAuthToken,
-  controller.getUnit
-);
-
+units.get('/:id', verifyAuthToken, VerifyUnitReadAccess, controller.getUnit);
 
 /**
  * PUT /units/update-name/{id}
@@ -88,6 +83,7 @@ units.get(
 units.put(
   '/update-name/:id',
   verifyAuthToken,
+  VerifyUnitReadWriteAccess,
   controller.updateUnitName
 );
 
@@ -102,7 +98,8 @@ units.put(
 units.post(
   '/:unitId/assignments',
   verifyAuthToken,
-  RequestValidator.validate(CreateAssignmentDto),  // Validate the CreateAssignmentBody
+  VerifyUnitReadWriteAccess,
+  RequestValidator.validate(CreateAssignmentDto), // Validate the CreateAssignmentBody
   controller.createAssignment
 );
 
@@ -118,6 +115,7 @@ units.post(
 units.get(
   '/:unitId/assignments',
   verifyAuthToken,
+  VerifyUnitReadWriteAccess,
   controller.getAssignments
 );
 

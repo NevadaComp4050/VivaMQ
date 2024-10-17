@@ -1,10 +1,6 @@
 import { Router } from 'express';
-import { verifyAuthToken , generateAuthToken} from '@/middlewares/auth';
-import Controller from './User/User.controller';
-
 
 const misc: Router = Router();
-const controller = new Controller();
 
 /**
  * Register user body

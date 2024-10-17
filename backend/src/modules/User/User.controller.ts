@@ -1,8 +1,8 @@
-import { type NextFunction, type Request, Response } from 'express';
-import UserService from './User.service';
+import { type NextFunction, type Request, type Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { HttpStatusCode } from 'axios';
-import { User } from '@prisma/client';
+import { type User } from '@prisma/client';
+import UserService from './User.service';
 
 export default class UserController {
   private readonly userService = new UserService();
@@ -23,13 +23,14 @@ export default class UserController {
       const user = await this.userService.validateUser(email, password);
 
       if (!user) {
-        
-        return res.status(HttpStatusCode.Unauthorized).json({ error: 'Invalid email or password. Please try again.' });
+        return res
+          .status(HttpStatusCode.Unauthorized)
+          .json({ error: 'Invalid email or password. Please try again.' });
       }
 
       const token = jwt.sign(
         { sub: user.id, email: user.email },
-        process.env.JWT_SECRET || 'your_secret',
+        process.env.JWT_SECRET ?? 'your_secret',
         { expiresIn: '1h' }
       );
 
@@ -37,11 +38,10 @@ export default class UserController {
     } catch (err) {
       next(err);
     }
-  };  
-
+  };
 
   public getCurrentUser = async (req: Request, res: Response) => {
-    console.log("get current user: ", req.user);
+    console.log('get current user: ', req.user);
     return res.json(req.user);
   };
 }

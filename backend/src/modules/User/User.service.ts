@@ -1,30 +1,28 @@
-import { type User, type Role } from '@prisma/client';
-import prisma from '@/lib/prisma';
+import { type User } from '@prisma/client';
 import argon2 from 'argon2';
-
+import prisma from '@/lib/prisma';
 export default class UserService {
+  public async createUser(data: Omit<User, 'id'>) {
+    const hashedPassword = await argon2.hash(data.password);
 
-public async createUser(data: Omit<User, 'id'>) {
-  const hashedPassword = await argon2.hash(data.password);
+    console.log(data);
 
-  console.log(data);
-
-  const user = await prisma.user.create({
-    data: {
-      ...data,
-      password: hashedPassword,
-      role: data.role as Role,
-    },
-  });
-  return user;
-}
+    const user = await prisma.user.create({
+      data: {
+        ...data,
+        password: hashedPassword,
+        role: data.role,
+      },
+    });
+    return user;
+  }
 
   public async validateUser(email: string, password: string) {
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (user && await argon2.verify(user.password, password)) {
+    if (user && (await argon2.verify(user.password, password))) {
       return user;
     }
 
@@ -36,7 +34,6 @@ public async createUser(data: Omit<User, 'id'>) {
       where: { id },
     });
   }
-
 
   public async getUserByEmail(email: string) {
     return await prisma.user.findUnique({

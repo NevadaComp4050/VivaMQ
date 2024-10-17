@@ -1,10 +1,10 @@
+import fs from 'fs';
 import Bull from 'bull';
 import amqp from 'amqplib';
-import prisma from '@/lib/prisma';
 import { type Submission, type VivaQuestion } from '@prisma/client';
-import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
 import extractTextFromPdf from '../utils/extractPdfText';
-import {v4 as uuidv4} from 'uuid';
+import prisma from '@/lib/prisma';
 
 const RABBITMQ_URL = 'amqp://localhost';
 const BE_TO_AI_QUEUE = 'BEtoAI';
@@ -28,11 +28,7 @@ async function setupQueue() {
 
     taskQueue.process(processSubmission);
 
-    channel.consume(
-      AI_TO_BE_QUEUE,
-      handleAIResponse,
-      { noAck: false }
-    );
+    channel.consume(AI_TO_BE_QUEUE, handleAIResponse, { noAck: false });
   } catch (error) {
     console.error('Failed to connect to RabbitMQ:', error);
     process.exit(1);
@@ -40,23 +36,27 @@ async function setupQueue() {
 }
 
 async function processSubmission(job: Bull.Job) {
-  
   const submissionID = job.data.submissionID;
 
   console.log('Processing submission:', submissionID);
 
-  const submission = await prisma.submission.findUnique({ where: { id: submissionID } });
-  if (!submission) throw new Error(`Submission with ID ${submissionID} not found`);
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionID },
+  });
+  if (!submission)
+    throw new Error(`Submission with ID ${submissionID} not found`);
 
   console.log('Submission found:', submission);
 
   const { submissionFile } = submission;
-  if (!submissionFile) throw new Error(`Submission with ID ${submissionID} has no file`);
+  if (!submissionFile)
+    throw new Error(`Submission with ID ${submissionID} has no file`);
 
   console.log('Reading submission file:', submissionFile);
 
   const submissionFileContent = fs.readFileSync(submissionFile);
-  if (!submissionFileContent) throw new Error(`Error reading file for submission ID ${submissionID}`);
+  if (!submissionFileContent)
+    throw new Error(`Error reading file for submission ID ${submissionID}`);
 
   try {
     const submissionText = await extractTextFromPdf(submissionFileContent);
@@ -72,12 +72,12 @@ async function handleAIResponse(msg: amqp.Message | null) {
 
   const response = JSON.parse(msg.content.toString());
   const [message, uuid] = response;
-  
+
   console.log('Received AI response:', uuid);
 
   channel.ack(msg);
 
-  let vivaId = uuidv4();
+  const vivaId = uuidv4();
 
   const vivaQuestion: VivaQuestion = {
     id: vivaId,
@@ -89,7 +89,6 @@ async function handleAIResponse(msg: amqp.Message | null) {
   await prisma.vivaQuestion.create({ data: vivaQuestion });
 
   console.log('Viva question saved. ID:', vivaId);
-  
 }
 
 export async function queueVivaGeneration(submissionID: string) {
@@ -99,9 +98,7 @@ export async function queueVivaGeneration(submissionID: string) {
 }
 
 export async function sendToAIService(submission: string, uuid: string) {
-
   const sendMsg = Buffer.from(JSON.stringify([submission, uuid]));
   console.log('Sending submission to AI service:', uuid);
   channel.sendToQueue(BE_TO_AI_QUEUE, sendMsg);
-
 }

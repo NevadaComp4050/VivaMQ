@@ -1,9 +1,9 @@
 import { type NextFunction, type Request } from 'express';
 import { HttpStatusCode } from 'axios';
+import { type Submission } from '@prisma/client';
 import SubmissionService from './Submission.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
-import { type Assignment, type Submission } from '@prisma/client';
 
 export default class SubmissionController extends Api {
   private readonly submissionService = new SubmissionService();
@@ -15,7 +15,8 @@ export default class SubmissionController extends Api {
   ) => {
     try {
       const { submissionId } = req.params;
-      const vivaQuestions = await this.submissionService.getVivaQuestions(submissionId);
+      const vivaQuestions =
+        await this.submissionService.getVivaQuestions(submissionId);
       this.send(res, vivaQuestions, HttpStatusCode.Ok, 'getVivaQuestions');
     } catch (e) {
       next(e);
@@ -30,8 +31,7 @@ export default class SubmissionController extends Api {
     try {
       const { submissionId } = req.params;
 
-   
-      this.submissionService.generateVivaQuestions(submissionId);
+      void this.submissionService.generateVivaQuestions(submissionId);
 
       res.status(HttpStatusCode.Accepted).send({
         message: 'Viva questions are being generated. Please check back later.',
@@ -63,7 +63,6 @@ export default class SubmissionController extends Api {
     }
   };
 
-
   public delete = async (
     req: Request,
     res: CustomResponse<Submission>,
@@ -72,11 +71,11 @@ export default class SubmissionController extends Api {
     try {
       const { id } = req.params;
       const submission = await this.submissionService.delete(id);
-      this.send(res, submission, HttpStatusCode.Ok, 'deletedSubmission' )
+      this.send(res, submission, HttpStatusCode.Ok, 'deletedSubmission');
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 
   public deleteAll = async (
     req: Request,
@@ -85,10 +84,9 @@ export default class SubmissionController extends Api {
   ) => {
     try {
       const count = await this.submissionService.deleteAll();
-      this.send(res, count, HttpStatusCode.Ok, 'deletedAllSubmissions' )
+      this.send(res, count, HttpStatusCode.Ok, 'deletedAllSubmissions');
     } catch (e) {
       next(e);
     }
   };
-
 }

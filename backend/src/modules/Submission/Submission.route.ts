@@ -44,7 +44,6 @@ submissions.get(
   controller.exportVivaQuestions
 );
 
-
 /**
  * DELETE /submissions/{id}
  * @summary Delete a single submission
@@ -52,11 +51,7 @@ submissions.get(
  * @param {string} id.path.required - ID of the submission to delete
  * @return {Submission} 200 - submission list
  */
-submissions.delete(
-  '/:id',
-  verifyAuthToken,
-  controller.delete
-);
+submissions.delete('/:id', verifyAuthToken, controller.delete);
 
 /**
  * DELETE /submissions/
@@ -65,11 +60,6 @@ submissions.delete(
  * @param None
  * @return {number} 200 - submission clear
  */
-submissions.delete(
-  '/',
-  verifyAuthToken,
-  controller.deleteAll
-);
-
+submissions.delete('/', verifyAuthToken, controller.deleteAll);
 
 export default submissions;

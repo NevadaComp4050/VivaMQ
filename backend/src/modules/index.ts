@@ -4,11 +4,10 @@ import users from './User/User.route';
 import units from './Unit/Unit.route';
 import tutors from './Tutor/Tutor.route';
 import students from './Student/Student.route';
-import assignments from './Assignment/Assignment.route';
+import assignments from './Assignment/assignment.route';
 import submissions from './Submission/Submission.route';
 import vivaQuestions from './VivaQuestion/VivaQuestion.route';
 
-//import AIProcs from './AIProcess/AIProcess.route';
 import misc from './misc.route';
 
 const router: Router = Router();

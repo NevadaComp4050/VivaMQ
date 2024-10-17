@@ -17,6 +17,7 @@ model User {
   password  String
   role      Role     @default(STUDENT)
   units     Unit[]   @relation("UnitOwner")
+  accesses  UnitAccess[]
 }
 
 model Unit {
@@ -27,6 +28,7 @@ model Unit {
   owner       User         @relation("UnitOwner", fields: [ownerId], references: [id])
   tutors      Tutor[]
   assignments Assignment[]
+  accesses    UnitAccess[]
 }
 
 model Tutor {
@@ -47,7 +49,6 @@ model Student {
 model Assignment {
   id          String        @id @default(uuid())
   name        String
-  aiModel     String
   specs       String
   settings    String
   unitId      String
@@ -58,11 +59,11 @@ model Assignment {
 model Submission {
   id             String         @id @default(uuid())
   assignmentId   String
-  studentId      String
+  studentId      String?
   submissionFile String
   status         String
   assignment     Assignment     @relation(fields: [assignmentId], references: [id])
-  student        Student        @relation(fields: [studentId], references: [id])
+  student        Student?       @relation(fields: [studentId], references: [id])
   vivaQuestions  VivaQuestion[]
 }
 
@@ -74,8 +75,32 @@ model VivaQuestion {
   submission   Submission @relation(fields: [submissionId], references: [id])
 }
 
+model UnitAccess {
+  id        String   @id @default(uuid())
+  userId    String
+  unitId    String
+  role      AccessRole
+  status    AccessStatus @default(PENDING)
+  user      User     @relation(fields: [userId], references: [id])
+  unit      Unit     @relation(fields: [unitId], references: [id])
+
+  @@unique([userId, unitId])
+}
+
 enum Role {
   ADMIN
   TEACHER
   STUDENT
+}
+
+enum AccessRole {
+  OWNER 
+  READ_ONLY
+  READ_WRITE
+}
+
+enum AccessStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }

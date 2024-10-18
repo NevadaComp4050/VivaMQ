@@ -15,7 +15,7 @@ describe("generateAutomatedMarksheet", () => {
       },
     } as unknown as jest.Mocked<OpenAI>;
   });
-  it("should return response and uuid when OpenAI returns a valid response", async () => {
+  it("should return response and generateSummaryAndReport when OpenAI returns a valid response", async () => {
     const mockResponse = {
       choices: [
         {
@@ -81,7 +81,7 @@ describe("generateAutomatedMarksheet", () => {
     ).rejects.toThrow("OpenAI Error");
   });
 
-  it("should return 'response error' and uuid when response content is null", async () => {
+  it("should return 'response error' and generateSummaryAndReport when response content is null", async () => {
     const mockResponse = {
       choices: [
         {

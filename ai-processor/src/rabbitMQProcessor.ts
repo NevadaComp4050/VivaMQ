@@ -10,12 +10,6 @@ import dotenv from "dotenv";
 import openAIClient from "./config/openAIClient";
 dotenv.config();
 
-interface Message {
-  type: string;
-  data: any;
-  uuid: string;
-} 
-
 export async function processMessage(message: Message): Promise<any> {
   try {
     let response;
@@ -80,25 +74,10 @@ export async function processMessage(message: Message): Promise<any> {
 
 export async function startMessageProcessor() {
   try {
-<<<<<<< HEAD
-    const connection = await amqp.connect(
-      "amqp://localhost"
-=======
-<<<<<<< HEAD
-    console.log(
-      "Connecting to RabbitMQ at: ",
-      process.env.RABBITMQ_URL ?? "amqp://user:password@rabbitmq:5672"
->>>>>>> upstream/main
-    );
-    const connection = await amqp.connect(
-      process.env.RABBITMQ_URL ?? "amqp://user:password@rabbitmq:5672"
-    );
-=======
     const rabbitMQUrl =
       process.env.RABBITMQ_URL || "amqp://user:password@rabbitmq:5672";
     console.log("Connecting to RabbitMQ at:", rabbitMQUrl);
     const connection = await amqp.connect(rabbitMQUrl);
->>>>>>> origin/ai-testing
     console.log("Connected to RabbitMQ successfully");
 
     const channel = await connection.createChannel();

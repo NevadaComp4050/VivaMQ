@@ -1,16 +1,14 @@
-import fs from 'fs';
 import Bull from 'bull';
 import amqp from 'amqplib';
-import { type Submission, type VivaQuestion } from '@prisma/client';
+import { type VivaQuestion } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import extractTextFromPdf from '../utils/extract-pdf-text';
 import prisma from '@/lib/prisma';
+import { fetchSubmissionText } from '@/utils/fetch-submission-text';
 
 const RABBITMQ_URL = 'amqp://localhost';
 const BE_TO_AI_QUEUE = 'BEtoAI';
 const AI_TO_BE_QUEUE = 'AItoBE';
 const REDIS_CONFIG = { host: '127.0.0.1', port: 6379 };
-const AI_RESPONSE_TIMEOUT = 5000;
 
 let connection: amqp.Connection;
 let channel: amqp.Channel;
@@ -26,9 +24,9 @@ async function setupQueue() {
 
     taskQueue = new Bull('taskQueue', { redis: REDIS_CONFIG });
 
-    taskQueue.process(processSubmission);
+    void taskQueue.process(processSubmission);
 
-    channel.consume(AI_TO_BE_QUEUE, handleAIResponse, { noAck: false });
+    void channel.consume(AI_TO_BE_QUEUE, handleAIResponse, { noAck: false });
   } catch (error) {
     console.error('Failed to connect to RabbitMQ:', error);
     process.exit(1);
@@ -36,7 +34,7 @@ async function setupQueue() {
 }
 
 async function processSubmission(job: Bull.Job) {
-  const submissionID = job.data.submissionID;
+  const submissionID: string = job.data.submissionID;
 
   console.log('Processing submission:', submissionID);
 
@@ -48,21 +46,25 @@ async function processSubmission(job: Bull.Job) {
 
   console.log('Submission found:', submission);
 
-  const { submissionFile } = submission;
-  if (!submissionFile)
-    throw new Error(`Submission with ID ${submissionID} has no file`);
+  const submissionFileLookupResult = await fetchSubmissionText(submissionID);
+  if (!submissionFileLookupResult)
+    throw new Error(`File result for submission ${submissionID} not found`);
 
-  console.log('Reading submission file:', submissionFile);
+  const submissionText = submissionFileLookupResult.text;
 
-  const submissionFileContent = fs.readFileSync(submissionFile);
-  if (!submissionFileContent)
-    throw new Error(`Error reading file for submission ID ${submissionID}`);
+  if (!submissionText) {
+    console.error(`No text found for submission ${submissionID}`);
+    return;
+  }
 
   try {
-    const submissionText = await extractTextFromPdf(submissionFileContent);
     await sendToAIService(submissionText, submissionID);
-  } catch (error) {
-    console.error(`Error during PDF extraction or AI communication: ${error}`);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error(`Error during AI communication: ${error.message}`);
+    } else {
+      console.error('Error during PDF extraction or AI communication:', error);
+    }
     throw error;
   }
 }

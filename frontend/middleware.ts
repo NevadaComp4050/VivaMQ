@@ -1,39 +1,37 @@
-import { NextResponse, type NextRequest } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { NextResponse } from 'next/server'
+import { auth } from './auth'
 
-export default function middleware(req: NextRequest) {
+export default auth((req) => {
+  const { nextUrl } = req
+  const isLoggedIn = !!req.auth
 
-  const token = req.cookies.get("jwt")?.value;
-  const isOnRegister = req.nextUrl.pathname.startsWith("/register");
-  const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard");
-  const isOnLoginPage = req.nextUrl.pathname.startsWith("/login");
+  // List of public routes that don't require authentication
+  const publicRoutes = ['/signin', '/register']
 
-  let isTokenExpired = false;
-  
-  if (token) {
-    try {
+  // Check if the current route is in the public routes list
+  const isPublicRoute = publicRoutes.some(route => nextUrl.pathname.startsWith(route))
 
-      const decodedToken = jwt.decode(token) as jwt.JwtPayload;
-
-      if (decodedToken?.exp && Date.now() >= decodedToken.exp * 1000) {
-        isTokenExpired = true;
-      } 
-    } catch (error) {
-      isTokenExpired = true;
-    }
+  // If it's a public route, allow access
+  if (isPublicRoute) {
+    return NextResponse.next()
   }
 
-  if (isOnDashboard && (!token || isTokenExpired)) {
-    return NextResponse.redirect(new URL("/signin", req.url));
+  // If the user is not logged in and trying to access a protected route, redirect to signin
+  if (!isLoggedIn) {
+    const signInUrl = new URL('/signin', nextUrl.origin)
+    signInUrl.searchParams.set('callbackUrl', nextUrl.href)
+    return NextResponse.redirect(signInUrl)
   }
 
-  if (isOnLoginPage && token && !isTokenExpired) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+  // If the user is logged in and trying to access signin or register, redirect to home
+  if (isLoggedIn && isPublicRoute) {
+    return NextResponse.redirect(new URL('/', nextUrl.origin))
   }
 
-  if (isOnRegister && token && !isTokenExpired) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
-  }
+  // For all other cases, allow the request to proceed
+  return NextResponse.next()
+})
 
-  return NextResponse.next();
+export const config = {
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }

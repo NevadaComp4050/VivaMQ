@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+import { signIn } from "next-auth/react";
+
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -13,43 +16,32 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import Cookies from "js-cookie";
-import apiClient from "../../../utils/api";
 
 export default function SignIn() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
 
-    try {
-      Cookies.remove("jwt");
-      const response = await apiClient.post("/user/login", { email, password });
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
 
-      if (response.status === 200) {
-        const { token } = response.data;
-
-        Cookies.set("jwt", token, {
-          expires: 7,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-        });
-
-        router.push("/dashboard");
-      } else {
-        setError("Invalid email or password.");
-      }
-    } catch (error: any) {
-      console.error("An error occurred:", error);
-      setError(error.response?.data?.error || "An error occurred.");
-    } finally {
+    if (result?.error) {
+      // Handle error
+      console.error(result.error);
+      setError(result.error);
       setIsLoading(false);
+    } else {
+      // Redirect to dashboard on success
+      router.push("/dashboard");
     }
   };
 
@@ -57,7 +49,9 @@ export default function SignIn() {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-[350px]">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Sign in</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            Sign in
+          </CardTitle>
           <CardDescription className="text-center">
             Enter your email and password to sign in to your account
           </CardDescription>

@@ -90,7 +90,7 @@ model UnitAccess {
   userId String
   unitId String
   role   AccessRole
-  status AccessStatus @default(PENDING)
+  status AccessStatus @default(ACCEPTED)
   user   User         @relation(fields: [userId], references: [id])
   unit   Unit         @relation(fields: [unitId], references: [id])
 
@@ -104,7 +104,6 @@ enum Role {
 }
 
 enum AccessRole {
-  OWNER
   READ_ONLY
   READ_WRITE
 }

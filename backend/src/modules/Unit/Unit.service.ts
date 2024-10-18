@@ -11,7 +11,6 @@ export default class UnitService {
   }) {
     console.log('create unit service', data);
 
-    // Find an existing session based on term and year
     let session = await prisma.session.findFirst({
       where: {
         term: data.term,
@@ -19,7 +18,6 @@ export default class UnitService {
       },
     });
 
-    // If no session is found, create a new one
     if (!session) {
       const termString = getTermDisplayString(data.term);
       session = await prisma.session.create({
@@ -31,7 +29,6 @@ export default class UnitService {
       });
     }
 
-    // Create the unit associated with the session found or created
     const unit = await prisma.unit.create({
       data: {
         name: data.name,
@@ -43,27 +40,63 @@ export default class UnitService {
     return unit;
   }
 
-  public async getUnitsGroupedBySession() {
+  public async getUnitsGroupedBySession(userId: string) {
     return await prisma.session.findMany({
       include: {
-        units: true,
+        units: {
+          where: {
+            OR: [
+              { ownerId: userId },
+              {
+                accesses: {
+                  some: {
+                    userId,
+                    status: 'ACCEPTED',
+                  },
+                },
+              },
+            ],
+          },
+        },
       },
     });
   }
 
-  public async getUnits(ownerId: string, limit: number, offset: number) {
+  public async getUnits(userId: string, limit: number, offset: number) {
     return await prisma.unit.findMany({
-      where: { ownerId },
+      where: {
+        OR: [
+          { ownerId: userId },
+          {
+            accesses: {
+              some: {
+                userId,
+                status: 'ACCEPTED',
+              },
+            },
+          },
+        ],
+      },
       skip: offset,
       take: limit,
     });
   }
 
-  public async getUnit(ownerId: string, unitId: string) {
+  public async getUnit(userId: string, unitId: string) {
     return await prisma.unit.findFirst({
       where: {
         id: unitId,
-        ownerId,
+        OR: [
+          { ownerId: userId },
+          {
+            accesses: {
+              some: {
+                userId,
+                status: 'ACCEPTED',
+              },
+            },
+          },
+        ],
       },
     });
   }

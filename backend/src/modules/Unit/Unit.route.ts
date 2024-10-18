@@ -32,7 +32,7 @@ units.post(
 units.get('/', verifyAuthToken, controller.getAll);
 
 /**
- * GET /units/grouped-by-session
+ * GET /units/by-session
  * @summary Get all units grouped by session
  * @tags Unit
  */
@@ -100,5 +100,7 @@ units.get(
   VerifyUnitReadWriteAccess,
   controller.getAssignments
 );
+
+// TODO: Share units woth other users
 
 export default units;

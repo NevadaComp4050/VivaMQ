@@ -115,8 +115,15 @@ export default class UnitController extends Api {
     next: NextFunction
   ) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(HttpStatusCode.Unauthorized).json({
+          message: 'User not authenticated',
+          data: null,
+        });
+      }
       const unitsGroupedBySession =
-        await this.unitService.getUnitsGroupedBySession();
+        await this.unitService.getUnitsGroupedBySession(userId);
       if (!unitsGroupedBySession || unitsGroupedBySession.length === 0) {
         return res.status(HttpStatusCode.NotFound).json({
           message: 'No units found',

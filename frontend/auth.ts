@@ -1,45 +1,37 @@
-import NextAuth from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { authConfig } from './auth.config';
-import api from '~/utils/api';
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
+import CredentialsProvider from "next-auth/providers/credentials";
+import axios from "axios";
 
-export const { auth, signIn, signOut } = NextAuth({
+export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
-        name: { label: "Name", type: "text" },
-        role: { label: "Role", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials) {
-          return null;
-        }
-
-        const { email, password, name, role } = credentials;
+        if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          // Check if it's a registration attempt
-          if (name && role) {
-            await api.post('/user/register', { name, email, password, role });
+          const response = await axios.post(
+            `${process.env.NEXT_PUBLIC_API_URL}/user/login`,
+            {
+              email: credentials.email,
+              password: credentials.password,
+            }
+          );
+
+          if (response.data) {
+            return {
+              ...response.data.user,
+              accessToken: response.data.accessToken,
+            };
           }
-
-          // Perform login
-          const response = await api.post('/user/login', { email, password });
-          const user = response.data;
-
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            accessToken: user.token,
-          };
         } catch (error) {
-          console.error('Authentication error:', error);
+          console.error("Authentication error:", error);
           return null;
         }
       },
@@ -48,22 +40,13 @@ export const { auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
         token.accessToken = user.accessToken;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token && typeof session.user === 'object') {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.accessToken = token.accessToken as string;
-      }
+      session.user = token as any;
       return session;
     },
-  },
-  pages: {
-    signIn: '/signin',
   },
 });

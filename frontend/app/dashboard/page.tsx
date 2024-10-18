@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "~/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Table,
@@ -183,7 +182,6 @@ function UpcomingVivas({ vivas }: { vivas: Viva[] }) {
 }
 
 export default function Dashboard() {
-  const { user, loading } = useAuth();
 
   const stats: Stats = {
     totalUnits: 8,
@@ -265,17 +263,10 @@ export default function Dashboard() {
     },
   ];
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!user) {
-    return <div>Please log in to view the dashboard.</div>;
-  }
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Hello {user.name}</h1>
+      <h1 className="text-3xl font-bold mb-6">Hello {"user.name"}</h1>
 
       <StatCards stats={stats} />
 

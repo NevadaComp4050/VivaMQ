@@ -1,10 +1,7 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
-import { useAuth } from "~/contexts/AuthContext";
-import api from "~/utils/api";
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Card,
   CardContent,
@@ -12,61 +9,46 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+} from "~/components/ui/card"
+import { Input } from "~/components/ui/input"
+import { Label } from "~/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select";
-import { Button } from "~/components/ui/button";
+} from "~/components/ui/select"
+import { Button } from "~/components/ui/button"
+import api from "~/lib/api"
 
 export default function Register() {
-  const router = useRouter();
-  const { user } = useAuth();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("TEACHER");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter()
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [role, setRole] = useState("TEACHER")
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
 
     try {
-      // First, attempt to register the user
-      await api.post('/user/register', { name, email, password, role });
-
-      // If registration is successful, attempt to sign in
-      const result = await signIn("credentials", {
+      await api.post("/user/register", {
+        name,
         email,
         password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError(result.error);
-      } else {
-        router.push("/dashboard");
-      }
-    } catch (error: any) {
-      console.error("An unexpected error happened:", error);
-      setError(error.response?.data?.message || "An unexpected error occurred");
+        role,
+      })
+      router.push("/signin")
+    } catch (error) {
+      setError("Registration failed. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
-
-  // If user is already logged in, redirect to dashboard
-  if (user) {
-    router.push("/dashboard");
-    return null;
   }
 
   return (
@@ -118,18 +100,14 @@ export default function Register() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="TEACHER">Teacher</SelectItem>
-                  <SelectItem value="CONVENOR">Convenor</SelectItem>
+                  <SelectItem value="ADMIN">Convenor</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </CardContent>
           <CardFooter>
-            <Button
-              className="w-full"
-              type="submit"
-              disabled={isLoading}
-            >
-              {isLoading ? "Loading..." : "Sign up"}
+            <Button className="w-full" type="submit" disabled={isLoading}>
+              {isLoading ? "Signing up..." : "Sign up"}
             </Button>
           </CardFooter>
         </form>
@@ -147,5 +125,5 @@ export default function Register() {
         </div>
       </Card>
     </div>
-  );
+  )
 }

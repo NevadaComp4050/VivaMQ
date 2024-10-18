@@ -4,8 +4,6 @@ import "./globals.css";
 
 import { cn } from "~/lib/utils";
 import { ThemeProvider } from "~/providers/theme-provider";
-import { SessionProvider } from "next-auth/react";
-import { AuthProvider } from "~/contexts/AuthContext";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -25,13 +23,9 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <SessionProvider>
-          <AuthProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              {children}
-            </ThemeProvider>
-          </AuthProvider>
-        </SessionProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

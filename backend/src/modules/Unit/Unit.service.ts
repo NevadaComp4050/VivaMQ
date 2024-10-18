@@ -41,12 +41,12 @@ export default class UnitService {
   }
 
   public async getUnitsGroupedBySession(userId: string) {
-    return await prisma.session.findMany({
+    const sessions = await prisma.session.findMany({
       include: {
         units: {
           where: {
             OR: [
-              { ownerId: userId },
+              { ownerId: userId }, // User is the owner
               {
                 accesses: {
                   some: {
@@ -57,9 +57,47 @@ export default class UnitService {
               },
             ],
           },
+          include: {
+            accesses: true, // Include access information
+          },
         },
       },
     });
+
+    // Process units to determine access type
+    const result = sessions.map((session) => ({
+      ...session,
+      units: session.units.map((unit) => {
+        let accessType = 'Owner'; // Default to Owner if the user is the owner
+
+        // If the user is not the owner, check the accesses relation
+        if (unit.ownerId !== userId) {
+          const userAccess = unit.accesses.find(
+            (access) => access.userId === userId
+          );
+
+          // If the user has access through UnitAccess, determine the access role
+          if (userAccess) {
+            if (userAccess.role === 'READ_ONLY') {
+              accessType = 'Read-Only';
+            } else if (userAccess.role === 'READ_WRITE') {
+              accessType = 'Read-Write';
+            }
+          } else {
+            accessType = 'None';
+          }
+        }
+
+        // Return the unit with the additional accessType field, excluding accesses
+        const { accesses, ...unitWithoutAccesses } = unit;
+        return {
+          ...unitWithoutAccesses,
+          accessType,
+        };
+      }),
+    }));
+
+    return result;
   }
 
   public async getUnits(userId: string, limit: number, offset: number) {

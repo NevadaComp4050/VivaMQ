@@ -24,10 +24,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
           )
 
-          if (response.data) {
+          if (response.data && response.data.token) {
             return {
-              ...response.data.user,
-              accessToken: response.data.accessToken,
+              id: credentials.email, // Using email as id since we don't have a separate id
+              email: credentials.email,
+              token: response.data.token,
             }
           }
         } catch (error) {
@@ -44,12 +45,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.accessToken = user.accessToken
+        token.accessToken = user.token
+        token.email = user.email as string
       }
       return token
     },
     async session({ session, token }) {
-      session.user = token as any
+      session.user = {
+        ...session.user,
+        accessToken: token.accessToken as string,
+        email: token.email as string,
+      }
       return session
     },
   },

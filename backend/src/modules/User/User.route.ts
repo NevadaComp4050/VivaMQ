@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import UserController from './User.controller';
+import UserController from './user.controller';
 import { verifyAuthToken } from '@/middlewares/auth';
-import { CreateUserDto, LoginUserDto } from '@/dto/user.dto';
+import { CreateUserDto } from '@/dto/user.dto';
 import RequestValidator from '@/middlewares/request-validator';
 
 const users: Router = Router();
@@ -50,10 +50,7 @@ users.post(
  * @return {object} 200 - JWT token for the authenticated user
  * @return {object} 401 - Unauthorized (invalid credentials)
  */
-users.post(
-  '/login',
-  controller.login
-);
+users.post('/login', controller.login);
 
 /**
  * GET /users/me
@@ -66,4 +63,3 @@ users.post(
 users.get('/me', verifyAuthToken, controller.getCurrentUser);
 
 export default users;
-

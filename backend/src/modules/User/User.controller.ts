@@ -2,7 +2,7 @@ import { type NextFunction, type Request, type Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { HttpStatusCode } from 'axios';
 import { type User } from '@prisma/client';
-import UserService from './User.service';
+import UserService from './user.service';
 
 export default class UserController {
   private readonly userService = new UserService();

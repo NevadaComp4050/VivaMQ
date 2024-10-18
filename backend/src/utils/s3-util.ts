@@ -6,7 +6,7 @@ import {
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import extractTextFromPdf from '../utils/extractPdfText';
+import extractTextFromPdf from './extract-pdf-text';
 import 'dotenv/config';
 
 class S3PDFHandler {

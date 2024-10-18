@@ -3,7 +3,7 @@ import Bull from 'bull';
 import amqp from 'amqplib';
 import { type Submission, type VivaQuestion } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import extractTextFromPdf from '../utils/extractPdfText';
+import extractTextFromPdf from '../utils/extract-pdf-text';
 import prisma from '@/lib/prisma';
 
 const RABBITMQ_URL = 'amqp://localhost';

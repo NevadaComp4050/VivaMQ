@@ -1,8 +1,8 @@
 import { type Assignment } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
-import S3PDFHandler from '@/utils/S3PDFHandler';
-import { fetchSubmissionsWithText } from '@/services/fetch-assignment-submissions';
+import S3PDFHandler from '@/utils/s3-util';
+import { fetchAssignmentSubmissionsText } from '@/utils/fetch-submission-text';
 
 export default class AssignmentService {
   private readonly s3Handler = new S3PDFHandler();
@@ -114,7 +114,7 @@ export default class AssignmentService {
 
   public async generateVivaQuestions(assignmentId: string) {
     // Trigger the viva generation process here and return saying that the process has been started
-    await fetchSubmissionsWithText(assignmentId);
+    await fetchAssignmentSubmissionsText(assignmentId);
     return { message: 'Viva generation process started' };
   }
 }

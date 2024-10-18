@@ -1,11 +1,12 @@
-"use client";
+'use client'
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useFormState } from 'react-dom'
 
-import { signIn } from "next-auth/react";
+import { authenticate } from "~/app/actions"
 
-import { Button } from "~/components/ui/button";
+import { Button } from "~/components/ui/button"
 import {
   Card,
   CardContent,
@@ -13,37 +14,25 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+} from "~/components/ui/card"
+import { Input } from "~/components/ui/input"
+import { Label } from "~/components/ui/label"
 
 export default function SignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [state, formAction] = useFormState(authenticate, undefined)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      // Handle error
-      console.error(result.error);
-      setError(result.error);
-      setIsLoading(false);
+  const handleSubmit = async (formData: FormData) => {
+    setIsLoading(true)
+    const result = await authenticate(undefined, formData)
+    if (!result) {
+      // If no error, assume success and redirect
+      router.push("/dashboard")
     } else {
-      // Redirect to dashboard on success
-      router.push("/dashboard");
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -56,17 +45,16 @@ export default function SignIn() {
             Enter your email and password to sign in to your account
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form action={handleSubmit}>
           <CardContent>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="m@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -74,9 +62,8 @@ export default function SignIn() {
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
               </div>
@@ -88,9 +75,9 @@ export default function SignIn() {
             </Button>
           </CardFooter>
         </form>
-        {error && (
+        {state && (
           <p className="text-sm text-red-500 text-center mt-2 mb-4 px-4">
-            {error}
+            {state}
           </p>
         )}
         <div className="text-center mt-2 mb-4">
@@ -104,5 +91,5 @@ export default function SignIn() {
         </div>
       </Card>
     </div>
-  );
+  )
 }

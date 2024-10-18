@@ -1,9 +1,8 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useAuth } from "~/contexts/AuthContext";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,7 +18,6 @@ import {
   CalendarIcon,
   AlertCircleIcon,
 } from "lucide-react";
-import { getServerApiClient } from "~/utils/serverAPI";
 
 interface Stats {
   totalUnits: number;
@@ -50,8 +48,143 @@ interface Task {
   dueDate: string;
 }
 
-export default async function Dashboard() {
-  let userName = "User"; 
+function StatCards({ stats }: { stats: Stats }) {
+  return (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Units</CardTitle>
+          <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.totalUnits}</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Active Assignments
+          </CardTitle>
+          <FileTextIcon className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.activeAssignments}</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Pending Vivas</CardTitle>
+          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.pendingVivas}</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+          <UsersIcon className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.activeUsers}</div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function RecentActivities({ activities }: { activities: Activity[] }) {
+  return (
+    <Card className="col-span-2">
+      <CardHeader>
+        <CardTitle>Recent Activities</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Type</TableHead>
+              <TableHead>Action</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {activities.map((activity) => (
+              <TableRow key={activity.id}>
+                <TableCell className="capitalize">{activity.type}</TableCell>
+                <TableCell className="capitalize">{activity.action}</TableCell>
+                <TableCell>{activity.name}</TableCell>
+                <TableCell>{activity.date}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PendingTasks({ tasks }: { tasks: Task[] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Pending Tasks</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-4">
+          {tasks.map((task) => (
+            <li key={task.id} className="flex items-start space-x-2">
+              <AlertCircleIcon className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium">{task.task}</p>
+                <p className="text-xs text-muted-foreground">
+                  Due: {task.dueDate}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
+function UpcomingVivas({ vivas }: { vivas: Viva[] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Upcoming Vivas</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Student</TableHead>
+              <TableHead>Assignment</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Time</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {vivas.map((viva) => (
+              <TableRow key={viva.id}>
+                <TableCell>{viva.student}</TableCell>
+                <TableCell>{viva.assignment}</TableCell>
+                <TableCell>{viva.date}</TableCell>
+                <TableCell>{viva.time}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function Dashboard() {
+  const { user, loading } = useAuth();
+
   const stats: Stats = {
     totalUnits: 8,
     activeAssignments: 12,
@@ -85,7 +218,7 @@ export default async function Dashboard() {
       id: 4,
       type: "user",
       action: "added",
-      name: "new_tutor~example.com",
+      name: "new_tutor@example.com",
       date: "2023-05-12",
     },
   ];
@@ -132,134 +265,26 @@ export default async function Dashboard() {
     },
   ];
 
-  try {
-    const apiClient = getServerApiClient();
-    const response = await apiClient.get("/user/me");
-    if (response.data && response.data.name) {
-      userName = response.data.name;
-    }
-  } catch (error) {
-    console.error("Error fetching user data:", error);
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <div>Please log in to view the dashboard.</div>;
   }
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Hello {userName}</h1>
+      <h1 className="text-3xl font-bold mb-6">Hello {user.name}</h1>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Units</CardTitle>
-            <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUnits}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Assignments</CardTitle>
-            <FileTextIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activeAssignments}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Vivas</CardTitle>
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingVivas}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <UsersIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activeUsers}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatCards stats={stats} />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle>Recent Activities</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentActivities.map((activity) => (
-                  <TableRow key={activity.id}>
-                    <TableCell className="capitalize">{activity.type}</TableCell>
-                    <TableCell className="capitalize">{activity.action}</TableCell>
-                    <TableCell>{activity.name}</TableCell>
-                    <TableCell>{activity.date}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Tasks</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-4">
-              {pendingTasks.map((task) => (
-                <li key={task.id} className="flex items-start space-x-2">
-                  <AlertCircleIcon className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">{task.task}</p>
-                    <p className="text-xs text-muted-foreground">Due: {task.dueDate}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+        <RecentActivities activities={recentActivities} />
+        <PendingTasks tasks={pendingTasks} />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Vivas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student</TableHead>
-                <TableHead>Assignment</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Time</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {upcomingVivas.map((viva) => (
-                <TableRow key={viva.id}>
-                  <TableCell>{viva.student}</TableCell>
-                  <TableCell>{viva.assignment}</TableCell>
-                  <TableCell>{viva.date}</TableCell>
-                  <TableCell>{viva.time}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <UpcomingVivas vivas={upcomingVivas} />
     </div>
   );
 }

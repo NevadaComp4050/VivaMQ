@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
+import { signIn } from "next-auth/react";
+import { useAuth } from "~/contexts/AuthContext";
+import api from "~/utils/api";
 import {
   Card,
   CardContent,
@@ -21,10 +23,10 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Button } from "~/components/ui/button";
-import apiClient from "../../../utils/api";
 
 export default function Register() {
   const router = useRouter();
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,38 +40,20 @@ export default function Register() {
     setError("");
 
     try {
-      console.log("Registering user...");
-      const res = await apiClient.post("/user/register", {
-        name,
+      // First, attempt to register the user
+      await api.post('/user/register', { name, email, password, role });
+
+      // If registration is successful, attempt to sign in
+      const result = await signIn("credentials", {
         email,
         password,
-        role,
+        redirect: false,
       });
 
-      if (res.status === 201) {
-        
-        const loginResponse = await apiClient.post("/user/login", {
-          email,
-          password,
-        });
-
-        if (loginResponse.status === 200) {
-          const { token } = loginResponse.data;
-
-         
-          Cookies.set("jwt", token, {
-            expires: 7, 
-            secure: process.env.NODE_ENV === "production", 
-            sameSite: "strict", 
-          });
-
-         
-          router.push("/dashboard");
-        } else {
-          setError("Registration succeeded, but login failed.");
-        }
+      if (result?.error) {
+        setError(result.error);
       } else {
-        setError(res.data.message || "An error occurred during registration.");
+        router.push("/dashboard");
       }
     } catch (error: any) {
       console.error("An unexpected error happened:", error);
@@ -79,6 +63,12 @@ export default function Register() {
     }
   };
 
+  // If user is already logged in, redirect to dashboard
+  if (user) {
+    router.push("/dashboard");
+    return null;
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-950">
       <Card className="w-[350px]">
@@ -86,55 +76,63 @@ export default function Register() {
           <CardTitle className="text-2xl">Create an account</CardTitle>
           <CardDescription>Enter your details to sign up</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="role">Role</Label>
-            <Select value={role} onValueChange={setRole}>
-              <SelectTrigger id="role">
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="TEACHER">Teacher</SelectItem>
-                <SelectItem value="CONVENOR">Convenor</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button className="w-full" onClick={handleSubmit} disabled={isLoading}>
-            {isLoading && <text className="mr-2">Loading...</text>}
-            Sign up
-          </Button>
-        </CardFooter>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="role">Role</Label>
+              <Select value={role} onValueChange={setRole}>
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="TEACHER">Teacher</SelectItem>
+                  <SelectItem value="CONVENOR">Convenor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? "Loading..." : "Sign up"}
+            </Button>
+          </CardFooter>
+        </form>
         {error && (
           <p className="text-sm text-red-500 text-center mt-2">{error}</p>
         )}

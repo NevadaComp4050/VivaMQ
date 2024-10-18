@@ -1,46 +1,69 @@
 import NextAuth from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import { authConfig } from './auth.config';
-import type { User } from 'next-auth';
-
-// Extend the User type to include accessToken
-interface ExtendedUser extends User {
-  accessToken?: string;
-}
+import api from '~/utils/api';
 
 export const { auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
-    Credentials({
-      async authorize(credentials): Promise<ExtendedUser | null> {
-        // Here you would typically make a request to your backend
-        const response = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(credentials),
-        });
-
-        if (!response.ok) {
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+        name: { label: "Name", type: "text" },
+        role: { label: "Role", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials) {
           return null;
         }
 
-        const user: ExtendedUser = await response.json();
-        return user;
+        const { email, password, name, role } = credentials;
+
+        try {
+          // Check if it's a registration attempt
+          if (name && role) {
+            await api.post('/user/register', { name, email, password, role });
+          }
+
+          // Perform login
+          const response = await api.post('/user/login', { email, password });
+          const user = response.data;
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            accessToken: user.token,
+          };
+        } catch (error) {
+          console.error('Authentication error:', error);
+          return null;
+        }
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.accessToken = (user as ExtendedUser).accessToken;
+        token.id = user.id;
+        token.role = user.role;
+        token.accessToken = user.accessToken;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token && typeof token.accessToken === 'string') {
-        session.accessToken = token.accessToken;
+      if (token && typeof session.user === 'object') {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.accessToken = token.accessToken as string;
       }
       return session;
     },
+  },
+  pages: {
+    signIn: '/signin',
   },
 });

@@ -1,21 +1,11 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
 
-const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || `${process.env.BACKEND_URL}/api/v1/development`,
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = Cookies.get('jwt'); 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`; 
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+export const setAuthToken = (token: string) => {
+  api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+};
 
-export default apiClient;
+export default api;

@@ -2,7 +2,6 @@ import util from 'util';
 import { type NextFunction, type Request, type Response } from 'express';
 import { HttpStatusCode } from 'axios';
 import { type ApiError } from '@/lib/errors';
-import logger from '@/lib/logger';
 import environment from '@/lib/environment';
 
 interface ErrorBody {
@@ -18,7 +17,7 @@ const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  logger.error(`Request Error:
+  console.error(`Request Error:
         \nError:\n${JSON.stringify(err)}
         \nHeaders:\n${util.inspect(req.headers)}
         \nParams:\n${util.inspect(req.params)}

@@ -1,20 +1,39 @@
-import { type User } from '@prisma/client';
+import { type User, Role } from '@prisma/client';
 import argon2 from 'argon2';
 import prisma from '@/lib/prisma';
+
 export default class UserService {
   public async createUser(data: Omit<User, 'id'>) {
-    const hashedPassword = await argon2.hash(data.password);
+    try {
+      if (!Object.values(Role).includes(data.role)) {
+        throw new Error(
+          `Invalid role: ${data.role}. Expected one of: ${Object.values(Role).join(', ')}`
+        );
+      }
 
-    console.log(data);
+      const existingUser = await prisma.user.findUnique({
+        where: { email: data.email },
+      });
 
-    const user = await prisma.user.create({
-      data: {
-        ...data,
-        password: hashedPassword,
-        role: data.role,
-      },
-    });
-    return user;
+      if (existingUser) {
+        throw new Error(`Email ${data.email} is already in use.`);
+      }
+
+      const hashedPassword = await argon2.hash(data.password);
+
+      const user = await prisma.user.create({
+        data: {
+          ...data,
+          password: hashedPassword,
+          role: data.role,
+        },
+      });
+
+      return user;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
   }
 
   public async validateUser(email: string, password: string) {

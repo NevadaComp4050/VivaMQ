@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import Link from "next/link";
-import { getServerApiClient } from '~/utils/serverAPI'; 
+import api from '~/lib/api';
 import UnitForm from './UnitForm';
 
 
@@ -16,8 +16,7 @@ export default async function UnitsPage() {
   let units = [];
 
   try {
-    const apiClient = getServerApiClient();
-    const response = await apiClient.get("/units");
+    const response = await api.get("/units");
     units = response.data.data;
   } catch (error) {
     console.error("Error fetching units:", error);

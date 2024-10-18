@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import apiClient from '../../../utils/api';
+import api from '~/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -45,7 +45,7 @@ export default function AssignmentsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const unitsResponse = await apiClient.get("/units");
+        const unitsResponse = await api.get("/units");
         const unitsData = unitsResponse.data;
         setUnits(unitsData);
 

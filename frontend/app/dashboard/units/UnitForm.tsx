@@ -7,7 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { PlusIcon } from "lucide-react";
-import apiClient from '~/utils/api';
+import api from '~/lib/api';
 
 export default function UnitForm() {
   const [newUnit, setNewUnit] = useState({
@@ -21,7 +21,7 @@ export default function UnitForm() {
   const handleCreateUnit = async () => {
     if (newUnit.name && newUnit.year) {
       try {
-        await apiClient.post("/units", newUnit); 
+        await api.post("/units", newUnit); 
         setNewUnit({ name: "", year: new Date().getFullYear() });
 
         setSuccessMessage("Unit created successfully.");

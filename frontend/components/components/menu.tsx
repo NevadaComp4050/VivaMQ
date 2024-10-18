@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Ellipsis, Search } from "lucide-react";
-import Cookies from "js-cookie";
-import { usePathname } from "next/navigation";
+import { Ellipsis, Search, LogOut } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 import { cn } from "~/lib/utils";
 import { getMenuList } from "~/lib/menu-list";
@@ -19,21 +19,18 @@ import {
 import { ModeToggle } from "../mode-toggle";
 import { GlobalSearch } from "~/components/GlobalSearch";
 
-
 interface MenuProps {
   isOpen: boolean | undefined;
 }
 
 export function Menu({ isOpen }: MenuProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const menuList = getMenuList(pathname);
 
-  const handleSignOut = () => {
-    console.log('Sign out clicked');
-    
-    Cookies.remove("jwt");
-
-    window.location.href = '/signin';
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    router.push('/signin');
   };
 
   return (
@@ -192,7 +189,7 @@ export function Menu({ isOpen }: MenuProps) {
                     className="w-full justify-center h-10 mt-5"
                   >
                     <span className={cn(isOpen === false ? "" : "mr-4")}>
-                     
+                      <LogOut size={18} />
                     </span>
                     <p
                       className={cn(

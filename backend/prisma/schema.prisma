@@ -9,50 +9,59 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  email     String   @unique
+  id        String       @id @default(uuid())
+  createdAt DateTime     @default(now())
+  email     String       @unique
   name      String
   phone     String?
   password  String
-  role      Role     @default(STUDENT)
-  units     Unit[]   @relation("UnitOwner")
+  role      Role         @default(STUDENT)
+  units     Unit[]       @relation("UnitOwner")
   accesses  UnitAccess[]
 }
 
 model Unit {
   id          String       @id @default(uuid())
   name        String
-  year        Int
+  sessionId   String
   ownerId     String
   owner       User         @relation("UnitOwner", fields: [ownerId], references: [id])
+  session     Session      @relation(fields: [sessionId], references: [id])
   tutors      Tutor[]
   assignments Assignment[]
   accesses    UnitAccess[]
 }
 
+model Session {
+  id          String @id @default(uuid())
+  displayName String
+  year        Int
+  term        Term
+  units       Unit[]
+}
+
 model Tutor {
-  id       String  @id @default(uuid())
-  name     String
-  email    String   @unique
-  unitId   String
-  unit     Unit     @relation(fields: [unitId], references: [id])
+  id     String @id @default(uuid())
+  name   String
+  email  String @unique
+  unitId String
+  unit   Unit   @relation(fields: [unitId], references: [id])
 }
 
 model Student {
-  id           String        @id @default(uuid())
-  name         String
-  email        String        @unique
-  submissions  Submission[]
+  id          String       @id @default(uuid())
+  name        String
+  email       String       @unique
+  submissions Submission[]
 }
 
 model Assignment {
-  id          String        @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
   specs       String
   settings    String
   unitId      String
-  unit        Unit          @relation(fields: [unitId], references: [id])
+  unit        Unit         @relation(fields: [unitId], references: [id])
   submissions Submission[]
 }
 
@@ -76,13 +85,13 @@ model VivaQuestion {
 }
 
 model UnitAccess {
-  id        String   @id @default(uuid())
-  userId    String
-  unitId    String
-  role      AccessRole
-  status    AccessStatus @default(PENDING)
-  user      User     @relation(fields: [userId], references: [id])
-  unit      Unit     @relation(fields: [unitId], references: [id])
+  id     String       @id @default(uuid())
+  userId String
+  unitId String
+  role   AccessRole
+  status AccessStatus @default(PENDING)
+  user   User         @relation(fields: [userId], references: [id])
+  unit   Unit         @relation(fields: [unitId], references: [id])
 
   @@unique([userId, unitId])
 }
@@ -94,7 +103,7 @@ enum Role {
 }
 
 enum AccessRole {
-  OWNER 
+  OWNER
   READ_ONLY
   READ_WRITE
 }
@@ -103,4 +112,11 @@ enum AccessStatus {
   PENDING
   ACCEPTED
   REJECTED
+}
+
+enum Term {
+  SESSION_1
+  SESSION_2
+  SESSION_3
+  ALL_YEAR
 }

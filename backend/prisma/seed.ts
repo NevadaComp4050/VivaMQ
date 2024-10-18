@@ -1,4 +1,4 @@
-import { PrismaClient, Role, type Term } from '@prisma/client';
+import { type AccessRole, PrismaClient, Role, type Term } from '@prisma/client';
 import argon2 from 'argon2';
 import logger from '../src/lib/logger'; // Assumes you have logger
 import { HR } from '../src/utils/helper'; // Assumes you have HR helper
@@ -123,15 +123,32 @@ const createUnitsAndAssignments = async (
   }
 };
 
+const shareUnitsWithUsers = async (
+  ownerId: string,
+  unitIds: string[],
+  userIds: string[],
+  accessRole: AccessRole = 'READ_ONLY' // Use AccessRole enum, default to 'READ_ONLY'
+): Promise<void> => {
+  for (const unitId of unitIds) {
+    for (const userId of userIds) {
+      // Skip if trying to give access to the owner
+      if (userId === ownerId) continue;
+
+      await prisma.unitAccess.create({
+        data: {
+          unitId,
+          userId,
+          role: accessRole, // Use a valid AccessRole enum value
+        },
+      });
+    }
+  }
+};
+
 // Function to seed data into the database
 const seed = async (): Promise<void> => {
-  await Promise.all([
-    seedUsers(),
-    seedSessions(),
-    // Add any additional seed functions here as needed
-  ]);
+  await Promise.all([seedUsers(), seedSessions()]);
 
-  // Create units and assignments for user1, user2, and user3
   const user1 = await prisma.user.findFirst({
     where: { email: 'user1@sample.com' },
   });
@@ -155,6 +172,7 @@ const seed = async (): Promise<void> => {
   });
 
   if (user1 && user2 && user3 && session1 && session2 && session3 && session4) {
+    // Create units for user1
     await createUnitsAndAssignments(user1.id, session1.id, [
       'Software Architecture',
       'Distributed Systems',
@@ -166,6 +184,7 @@ const seed = async (): Promise<void> => {
       'DevOps Practices',
     ]);
 
+    // Create units for user2
     await createUnitsAndAssignments(user2.id, session2.id, [
       'Data Structures & Algorithms',
       'Operating Systems',
@@ -177,6 +196,7 @@ const seed = async (): Promise<void> => {
       'Systems Programming',
     ]);
 
+    // Create units for user3
     await createUnitsAndAssignments(user3.id, session1.id, [
       'Frontend Engineering',
       'Backend Engineering',
@@ -186,6 +206,38 @@ const seed = async (): Promise<void> => {
       'Agile Software Development',
       'Software Testing and QA',
     ]);
+
+    // Share units across users
+    const user1Units = await prisma.unit.findMany({
+      where: { ownerId: user1.id },
+    });
+    const user2Units = await prisma.unit.findMany({
+      where: { ownerId: user2.id },
+    });
+    const user3Units = await prisma.unit.findMany({
+      where: { ownerId: user3.id },
+    });
+
+    // User1 shares units with User2 and User3
+    await shareUnitsWithUsers(
+      user1.id,
+      user1Units.map((unit) => unit.id),
+      [user2.id, user3.id]
+    );
+
+    // User2 shares units with User1 and User3
+    await shareUnitsWithUsers(
+      user2.id,
+      user2Units.map((unit) => unit.id),
+      [user1.id, user3.id]
+    );
+
+    // User3 shares units with User1 and User2
+    await shareUnitsWithUsers(
+      user3.id,
+      user3Units.map((unit) => unit.id),
+      [user1.id, user2.id]
+    );
   }
 };
 

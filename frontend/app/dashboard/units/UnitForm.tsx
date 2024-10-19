@@ -11,13 +11,21 @@ import { PlusIcon } from "lucide-react";
 import { useToast } from "~/components/ui/use-toast";
 import createApiClient from '~/lib/api-client';
 
+enum Term {
+  SESSION_1 = "SESSION_1",
+  SESSION_2 = "SESSION_2",
+  SESSION_3 = "SESSION_3",
+  ALL_YEAR = "ALL_YEAR"
+}
+
 export default function UnitForm() {
   const [newUnit, setNewUnit] = useState({
     name: "",
     year: new Date().getFullYear(),
+    term: "" as Term | "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({ name: "", year: "" });
+  const [errors, setErrors] = useState({ name: "", year: "", term: "" });
   
   const router = useRouter();
   const { toast } = useToast();
@@ -25,7 +33,7 @@ export default function UnitForm() {
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { name: "", year: "" };
+    const newErrors = { name: "", year: "", term: "" };
 
     if (!newUnit.name.trim()) {
       newErrors.name = "Unit name is required";
@@ -34,6 +42,11 @@ export default function UnitForm() {
 
     if (!newUnit.year) {
       newErrors.year = "Year is required";
+      isValid = false;
+    }
+
+    if (!newUnit.term) {
+      newErrors.term = "Term is required";
       isValid = false;
     }
 
@@ -47,8 +60,8 @@ export default function UnitForm() {
       try {
         const apiClient = createApiClient(session?.user?.accessToken);
         await apiClient.post("/units", newUnit);
-        setNewUnit({ name: "", year: new Date().getFullYear() });
-        setErrors({ name: "", year: "" });
+        setNewUnit({ name: "", year: new Date().getFullYear(), term: "" });
+        setErrors({ name: "", year: "", term: "" });
 
         toast({
           title: "Success",
@@ -77,10 +90,14 @@ export default function UnitForm() {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleSelectChange = (value: string) => {
-    const parsedValue = parseInt(value, 10);
-    setNewUnit((prev) => ({ ...prev, year: parsedValue }));
-    setErrors((prev) => ({ ...prev, year: "" }));
+  const handleSelectChange = (name: "year" | "term", value: string) => {
+    if (name === "year") {
+      const parsedValue = parseInt(value, 10);
+      setNewUnit((prev) => ({ ...prev, [name]: parsedValue }));
+    } else {
+      setNewUnit((prev) => ({ ...prev, [name]: value as Term }));
+    }
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   return (
@@ -103,7 +120,7 @@ export default function UnitForm() {
           <div>
             <Select
               value={newUnit.year.toString()}
-              onValueChange={handleSelectChange}
+              onValueChange={(value) => handleSelectChange("year", value)}
             >
               <SelectTrigger className={errors.year ? "border-red-500" : ""}>
                 <SelectValue placeholder="Select Year" />
@@ -115,6 +132,23 @@ export default function UnitForm() {
               </SelectContent>
             </Select>
             {errors.year && <p className="text-red-500 text-sm mt-1">{errors.year}</p>}
+          </div>
+          <div className="col-span-2">
+            <Select
+              value={newUnit.term}
+              onValueChange={(value) => handleSelectChange("term", value)}
+            >
+              <SelectTrigger className={errors.term ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select Term" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={Term.SESSION_1}>Session 1</SelectItem>
+                <SelectItem value={Term.SESSION_2}>Session 2</SelectItem>
+                <SelectItem value={Term.SESSION_3}>Session 3</SelectItem>
+                <SelectItem value={Term.ALL_YEAR}>All Year</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.term && <p className="text-red-500 text-sm mt-1">{errors.term}</p>}
           </div>
         </div>
         <Button 

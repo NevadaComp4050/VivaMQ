@@ -5,14 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/lib/prisma';
 import { fetchSubmissionText } from '@/utils/fetch-submission-text';
 
-/**
- * TODO for this file
- * - Make it work wioth new AI
- * - Add regeneration of questions
- * - Investiaget removal of Bul as depen
- */
-
-
 const RABBITMQ_URL = 'amqp://localhost';
 const BE_TO_AI_QUEUE = 'BEtoAI';
 const AI_TO_BE_QUEUE = 'AItoBE';
@@ -77,7 +69,6 @@ async function processSubmission(job: Bull.Job) {
   }
 }
 
-// TODO modify this to match new AI code
 async function handleAIResponse(msg: amqp.Message | null) {
   if (!msg) return;
 

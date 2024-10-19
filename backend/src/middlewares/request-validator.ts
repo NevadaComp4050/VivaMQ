@@ -14,7 +14,8 @@ export default class RequestValidator {
           convertedObject as Record<string, unknown>
         );
         if (!errors.length) {
-          return next();
+          next();
+          return;
         }
         const rawErrors: string[] = [
           ...new Set([

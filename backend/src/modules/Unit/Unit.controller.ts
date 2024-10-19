@@ -6,6 +6,7 @@ import UnitService from './Unit.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
 import { type ExtendedRequest } from '@/types/express';
+
 export default class UnitController extends Api {
   private readonly unitService = new UnitService();
 
@@ -25,6 +26,8 @@ export default class UnitController extends Api {
 
       const { name, year, term } = req.body;
 
+      console.log('Creating unit:', name, year, term);
+
       // Ensure term matches the Term enum type
       if (!name || !year || !Object.values(Term).includes(term)) {
         return res.status(HttpStatusCode.BadRequest).json({
@@ -33,9 +36,18 @@ export default class UnitController extends Api {
         });
       }
 
+      // Cast year to an integer
+      const yearInt = parseInt(year, 10);
+      if (isNaN(yearInt)) {
+        return res.status(HttpStatusCode.BadRequest).json({
+          message: 'Year must be a valid number.',
+          data: null,
+        });
+      }
+
       const newUnitData = {
         name,
-        year,
+        year: yearInt,
         term,
         ownerId,
       };

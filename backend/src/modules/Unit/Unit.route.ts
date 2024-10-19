@@ -5,8 +5,8 @@ import { CreateAssignmentDto } from '@/dto/assignment.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
 import {
-  VerifyUnitReadAccess,
-  VerifyUnitReadWriteAccess,
+  verifyUnitReadAccess,
+  verifyUnitReadWriteAccess,
 } from '@/middlewares/access-control/unit-access';
 
 const units: Router = Router();
@@ -43,7 +43,7 @@ units.get('/by-session', verifyAuthToken, controller.getUnitsGroupedBySession);
  * @summary Get a single unit
  * @tags Unit
  */
-units.get('/:id', verifyAuthToken, VerifyUnitReadAccess, controller.getUnit);
+units.get('/:id', verifyAuthToken, verifyUnitReadAccess, controller.getUnit);
 
 /**
  * PUT /units/update-name/{id}
@@ -53,7 +53,7 @@ units.get('/:id', verifyAuthToken, VerifyUnitReadAccess, controller.getUnit);
 units.put(
   '/update-name/:id',
   verifyAuthToken,
-  VerifyUnitReadWriteAccess,
+  verifyUnitReadWriteAccess,
   controller.updateUnitName
 );
 
@@ -65,7 +65,7 @@ units.put(
 units.delete(
   '/:id',
   verifyAuthToken,
-  VerifyUnitReadWriteAccess,
+  verifyUnitReadWriteAccess,
   controller.delete
 );
 
@@ -84,7 +84,7 @@ units.delete('/', verifyAuthToken, controller.deleteAll);
 units.post(
   '/:unitId/assignments',
   verifyAuthToken,
-  VerifyUnitReadWriteAccess,
+  verifyUnitReadWriteAccess,
   RequestValidator.validate(CreateAssignmentDto),
   controller.createAssignment
 );
@@ -97,7 +97,7 @@ units.post(
 units.get(
   '/:unitId/assignments',
   verifyAuthToken,
-  VerifyUnitReadWriteAccess,
+  verifyUnitReadWriteAccess,
   controller.getAssignments
 );
 

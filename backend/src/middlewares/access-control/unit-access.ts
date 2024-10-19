@@ -6,7 +6,7 @@ import { type ExtendedRequest } from '@/types/express';
 /**
  * Middleware to verify if the user has read access to a unit.
  */
-export const VerifyUnitReadAccess = async (
+export const verifyUnitReadAccess = async (
   req: ExtendedRequest,
   res: Response,
   next: NextFunction
@@ -59,7 +59,7 @@ export const VerifyUnitReadAccess = async (
     // If no access was found or the access is insufficient
     return res
       .status(HttpStatusCode.Forbidden)
-      .json({ error: 'Access denied to this unit' });
+      .json({ error: 'Access to this unit is forbidden' });
   } catch (err) {
     next(err);
   }
@@ -68,7 +68,7 @@ export const VerifyUnitReadAccess = async (
 /**
  * Middleware to verify if the user has read/write access to a unit.
  */
-export const VerifyUnitReadWriteAccess = async (
+export const verifyUnitReadWriteAccess = async (
   req: ExtendedRequest,
   res: Response,
   next: NextFunction
@@ -120,7 +120,7 @@ export const VerifyUnitReadWriteAccess = async (
 
     return res
       .status(HttpStatusCode.Forbidden)
-      .json({ error: 'Write access denied to this unit' });
+      .json({ error: 'Write access forbidden for this Unit' });
   } catch (err) {
     next(err);
   }

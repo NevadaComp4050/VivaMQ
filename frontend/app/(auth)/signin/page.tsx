@@ -1,8 +1,9 @@
-"use client";
+"use client"
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Button } from "~/components/ui/button";
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { signIn } from "next-auth/react"
+import { Button } from "~/components/ui/button"
 import {
   Card,
   CardContent,
@@ -10,48 +11,40 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import Cookies from "js-cookie";
-import apiClient from "../../../utils/api";
+} from "~/components/ui/card"
+import { Input } from "~/components/ui/input"
+import { Label } from "~/components/ui/label"
 
 export default function SignIn() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
 
     try {
-      Cookies.remove("jwt");
-      const response = await apiClient.post("/user/login", { email, password });
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      })
 
-      if (response.status === 200) {
-        const { token } = response.data;
-
-        Cookies.set("jwt", token, {
-          expires: 7,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-        });
-
-        router.push("/dashboard");
+      if (result?.error) {
+        setError("Invalid email or password")
       } else {
-        setError("Invalid email or password.");
+        router.push("/dashboard")
       }
-    } catch (error: any) {
-      console.error("An error occurred:", error);
-      setError(error.response?.data?.error || "An error occurred.");
+    } catch (error) {
+      setError("An error occurred. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -110,5 +103,5 @@ export default function SignIn() {
         </div>
       </Card>
     </div>
-  );
+  )
 }

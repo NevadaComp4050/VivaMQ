@@ -12,7 +12,7 @@ export const VerifyAssignmentReadAccess = async (
   next: NextFunction
 ) => {
   try {
-    const { assignmentId } = req.params;
+    const { id: assignmentId } = req.params;
     if (!req.user) {
       return res
         .status(HttpStatusCode.Unauthorized)
@@ -75,7 +75,7 @@ export const VerifyAssignmentReadWriteAccess = async (
   next: NextFunction
 ) => {
   try {
-    const { assignmentId } = req.params;
+    const { id: assignmentId } = req.params;
     if (!req.user) {
       return res
         .status(HttpStatusCode.Unauthorized)

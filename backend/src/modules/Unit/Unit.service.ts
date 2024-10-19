@@ -101,7 +101,7 @@ export default class UnitService {
   }
 
   public async getUnits(userId: string, limit: number, offset: number) {
-    return await prisma.unit.findMany({
+    const units = await prisma.unit.findMany({
       where: {
         OR: [
           { ownerId: userId },
@@ -115,13 +115,48 @@ export default class UnitService {
           },
         ],
       },
+      include: {
+        accesses: true, // Include access information
+      },
       skip: offset,
       take: limit,
     });
+
+    // Process units to determine access type
+    const result = units.map((unit) => {
+      let accessType = 'Owner'; // Default to Owner if the user is the owner
+
+      // If the user is not the owner, check the accesses relation
+      if (unit.ownerId !== userId) {
+        const userAccess = unit.accesses.find(
+          (access) => access.userId === userId
+        );
+
+        // Determine access role
+        if (userAccess) {
+          if (userAccess.role === 'READ_ONLY') {
+            accessType = 'Read-Only';
+          } else if (userAccess.role === 'READ_WRITE') {
+            accessType = 'Read-Write';
+          }
+        } else {
+          accessType = 'None';
+        }
+      }
+
+      // Return the unit with additional accessType field
+      const { accesses, ...unitWithoutAccesses } = unit;
+      return {
+        ...unitWithoutAccesses,
+        accessType,
+      };
+    });
+
+    return result;
   }
 
   public async getUnit(userId: string, unitId: string) {
-    return await prisma.unit.findFirst({
+    const unit = await prisma.unit.findFirst({
       where: {
         id: unitId,
         OR: [
@@ -136,7 +171,39 @@ export default class UnitService {
           },
         ],
       },
+      include: {
+        accesses: true, // Include access information
+      },
     });
+
+    if (!unit) {
+      throw new Error(`Unit with ID ${unitId} not found or access denied.`);
+    }
+
+    // Determine access type
+    let accessType = 'Owner'; // Default to Owner if the user is the owner
+    if (unit.ownerId !== userId) {
+      const userAccess = unit.accesses.find(
+        (access) => access.userId === userId
+      );
+
+      if (userAccess) {
+        if (userAccess.role === 'READ_ONLY') {
+          accessType = 'Read-Only';
+        } else if (userAccess.role === 'READ_WRITE') {
+          accessType = 'Read-Write';
+        }
+      } else {
+        accessType = 'None';
+      }
+    }
+
+    // Return the unit with additional accessType field
+    const { accesses, ...unitWithoutAccesses } = unit;
+    return {
+      ...unitWithoutAccesses,
+      accessType,
+    };
   }
 
   public async updateUnitName(id: string, name: string) {

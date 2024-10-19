@@ -12,7 +12,7 @@ export const verifyUnitReadAccess = async (
   next: NextFunction
 ) => {
   try {
-    const { unitId } = req.params;
+    const { id: unitId } = req.params;
     if (!req.user) {
       return res
         .status(HttpStatusCode.Unauthorized)
@@ -74,7 +74,7 @@ export const verifyUnitReadWriteAccess = async (
   next: NextFunction
 ) => {
   try {
-    const { unitId } = req.params;
+    const { id: unitId } = req.params;
     if (!req.user) {
       return res
         .status(HttpStatusCode.Unauthorized)

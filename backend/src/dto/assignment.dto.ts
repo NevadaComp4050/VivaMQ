@@ -1,7 +1,6 @@
 import { IsString, IsNotEmpty } from 'class-validator';
 
 export class CreateAssignmentDto {
-
   @IsString({ message: 'the name must be a string' })
   @IsNotEmpty({ message: 'the name must not be empty' })
   name: string;
@@ -17,8 +16,4 @@ export class CreateAssignmentDto {
   @IsString({ message: 'the settings must be a string' })
   @IsNotEmpty({ message: 'the settings must not be empty' })
   settings: string;
-
-  @IsString({ message: 'the unitId must be a string' })
-  @IsNotEmpty({ message: 'the unitId must not be empty' })
-  unitId: string;
 }

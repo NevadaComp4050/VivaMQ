@@ -263,8 +263,14 @@ export default class UnitService {
   public async createAssignment(unitId: string, data: Assignment) {
     return await prisma.assignment.create({
       data: {
-        ...data,
-        unitId,
+        name: data.name,
+        specs: data.specs,
+        settings: data.settings,
+        unit: {
+          connect: {
+            id: unitId, // Using unitId from controller
+          },
+        },
       },
     });
   }

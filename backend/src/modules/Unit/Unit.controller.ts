@@ -282,12 +282,22 @@ export default class UnitController extends Api {
     next: NextFunction
   ) => {
     try {
-      const { unitId } = req.params;
+      const { id } = req.params;
       const assignmentData = req.body;
+
+      // Validate that 'id' is provided
+      if (!id) {
+        return res.status(HttpStatusCode.BadRequest).json({
+          message: 'Unit ID is required',
+          data: null,
+        });
+      }
+
       const newAssignment = await this.unitService.createAssignment(
-        unitId,
+        id,
         assignmentData
       );
+
       this.send(res, newAssignment, HttpStatusCode.Created, 'createAssignment');
     } catch (e) {
       console.error(e);

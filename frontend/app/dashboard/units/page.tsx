@@ -12,6 +12,7 @@ import UnitForm from './UnitForm';
 import api from '~/lib/api';
 import { auth } from "~/auth";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
+import { Button } from "~/components/ui/button";
 
 // Define the Unit type
 type Unit = {
@@ -94,7 +95,7 @@ export default async function UnitsPage() {
                               <TableCell>
                                 <div className="flex space-x-2">
                                   <Link href={`/dashboard/units/${unit.id}/assignments`}>
-                                    <button className="btn btn-primary">Assignments</button>
+                                    <Button variant="default">View Assignments</Button>
                                   </Link>
                                 </div>
                               </TableCell>

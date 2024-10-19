@@ -62,6 +62,34 @@ export default class AssignmentController extends Api {
     }
   };
 
+  public getAssignmentWithSubmissions = async (
+    req: Request,
+    res: CustomResponse<Assignment>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const assignment =
+        await this.assignmentService.getAssignmentWithSubmissions(id);
+      if (!assignment) {
+        return this.send(
+          res,
+          null,
+          HttpStatusCode.NotFound,
+          'assignmentNotFound'
+        );
+      }
+      this.send(
+        res,
+        assignment,
+        HttpStatusCode.Ok,
+        'gotAssignmentWithSubmissions'
+      );
+    } catch (e) {
+      next(e);
+    }
+  };
+
   public deleteAll = async (
     req: Request,
     res: CustomResponse<Assignment[]>,

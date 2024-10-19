@@ -36,6 +36,20 @@ const upload = multer({ storage });
  */
 
 /**
+ * GET /assignments/{id}/details
+ * @summary Get assignment details along with submissions
+ * @tags Assignment
+ * @param {string} id.path.required - ID of the assignment
+ * @return {Assignment} 200 - Assignment details with submissions
+ */
+assignments.get(
+  '/:id',
+  verifyAuthToken,
+  VerifyAssignmentReadAccess,
+  controller.getAssignmentWithSubmissions
+);
+
+/**
  * DELETE /assignments/{id}
  * @summary Delete a single assignment
  * @tags Assignment

@@ -37,6 +37,16 @@ export default class AssignmentService {
     return count;
   }
 
+  public async getAssignmentWithSubmissions(id: string) {
+    const assignment = await prisma.assignment.findUnique({
+      where: { id },
+      include: {
+        submissions: true,
+      },
+    });
+    return assignment;
+  }
+
   public async createSubmission(data: {
     assignmentId: string;
     fileBuffer: Buffer;

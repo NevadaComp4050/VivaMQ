@@ -40,13 +40,14 @@ export default class UnitService {
     return unit;
   }
 
+  // Updated method to get units grouped by session, sorted by year and term
   public async getUnitsGroupedBySession(userId: string) {
     const sessions = await prisma.session.findMany({
       include: {
         units: {
           where: {
             OR: [
-              { ownerId: userId }, // User is the owner
+              { ownerId: userId },
               {
                 accesses: {
                   some: {
@@ -58,14 +59,32 @@ export default class UnitService {
             ],
           },
           include: {
-            accesses: true, // Include access information
+            accesses: true,
           },
         },
       },
     });
 
+    // Custom sorting function for sessions by year and term
+    const sortedSessions = sessions.sort((a, b) => {
+      // Sort by year in descending order
+      if (a.year !== b.year) {
+        return b.year - a.year;
+      }
+
+      // Sort by term in custom order: SESSION_3 > SESSION_2 > SESSION_1 > ALL_YEAR
+      const termOrder = {
+        SESSION_3: 0,
+        SESSION_2: 1,
+        SESSION_1: 2,
+        ALL_YEAR: 3,
+      };
+
+      return termOrder[a.term] - termOrder[b.term];
+    });
+
     // Process units to determine access type
-    const result = sessions.map((session) => ({
+    const result = sortedSessions.map((session) => ({
       ...session,
       units: session.units.map((unit) => {
         let accessType = 'Owner'; // Default to Owner if the user is the owner
@@ -98,6 +117,23 @@ export default class UnitService {
     }));
 
     return result;
+  }
+
+  public async updateUnitDetails(
+    unitId: string,
+    data: { name?: string; term?: Term; year?: number }
+  ) {
+    // Remove undefined properties from the update object
+    const updateData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined)
+    );
+
+    const updatedUnit = await prisma.unit.update({
+      where: { id: unitId },
+      data: updateData,
+    });
+
+    return updatedUnit;
   }
 
   public async getUnits(userId: string, limit: number, offset: number) {

@@ -183,6 +183,66 @@ export default class UnitController extends Api {
     }
   };
 
+  public updateUnitDetails = async (
+    req: Request,
+    res: CustomResponse<Unit | null>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const { name, term, year } = req.body;
+
+      // Ensure at least one field is provided for update
+      if (!name && !term && !year) {
+        return res.status(HttpStatusCode.BadRequest).json({
+          message:
+            'At least one field (name, term, or year) is required to update.',
+          data: null,
+        });
+      }
+
+      // Validate the 'year' field if it's provided
+      let yearInt;
+      if (year) {
+        yearInt = parseInt(year, 10);
+        if (isNaN(yearInt)) {
+          return res.status(HttpStatusCode.BadRequest).json({
+            message: 'Year must be a valid number.',
+            data: null,
+          });
+        }
+      }
+
+      // Validate 'term' if provided
+      if (term && !Object.values(Term).includes(term)) {
+        return res.status(HttpStatusCode.BadRequest).json({
+          message: 'Invalid term value.',
+          data: null,
+        });
+      }
+
+      // Call the service to update the unit
+      const updatedUnit = await this.unitService.updateUnitDetails(id, {
+        name,
+        term,
+        year: yearInt,
+      });
+      if (!updatedUnit) {
+        return res.status(HttpStatusCode.NotFound).json({
+          message: 'Unit not found or update failed.',
+          data: null,
+        });
+      }
+
+      this.send(res, updatedUnit, HttpStatusCode.Ok, 'updatedUnitDetails');
+    } catch (e) {
+      console.error(e);
+      res
+        .status(HttpStatusCode.InternalServerError)
+        .json({ message: 'An error occurred', data: null });
+    }
+  };
+
   public delete = async (
     req: Request,
     res: CustomResponse<Unit | null>,

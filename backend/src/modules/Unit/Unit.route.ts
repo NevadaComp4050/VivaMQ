@@ -58,6 +58,18 @@ units.put(
 );
 
 /**
+ * PATCH /units/{id}
+ * @summary Update unit details
+ * @tags Unit
+ */
+units.patch(
+  '/:id',
+  verifyAuthToken,
+  verifyUnitReadWriteAccess,
+  controller.updateUnitDetails
+);
+
+/**
  * DELETE /units/{id}
  * @summary Delete a single unit
  * @tags Unit
@@ -82,7 +94,7 @@ units.delete('/', verifyAuthToken, controller.deleteAll);
  * @tags Assignment
  */
 units.post(
-  '/:unitId/assignments',
+  '/:id/assignments',
   verifyAuthToken,
   verifyUnitReadWriteAccess,
   RequestValidator.validate(CreateAssignmentDto),
@@ -95,9 +107,9 @@ units.post(
  * @tags Assignment
  */
 units.get(
-  '/:unitId/assignments',
+  '/:id/assignments',
   verifyAuthToken,
-  verifyUnitReadWriteAccess,
+  verifyUnitReadAccess,
   controller.getAssignments
 );
 

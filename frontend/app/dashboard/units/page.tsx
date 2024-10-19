@@ -97,6 +97,9 @@ export default async function UnitsPage() {
                                   <Link href={`/dashboard/units/${unit.id}/assignments`}>
                                     <Button variant="default">View Assignments</Button>
                                   </Link>
+                                  <Link href={`/dashboard/units/${unit.id}`}>
+                                    <Button variant="default">View Unit</Button>
+                                  </Link>
                                 </div>
                               </TableCell>
                             </TableRow>

@@ -1,5 +1,3 @@
-"use client";
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -14,35 +12,53 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Link from "next/link";
+import { auth } from "~/auth";
+import api from "~/lib/api";
+import { notFound } from "next/navigation";
 
-export default function UnitPage({ params }: { params: { unitId: string } }) {
-  const [unit, setUnit] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface Unit {
+  id: string;
+  name: string;
+  description: string;
+  assignments: number;
+  tutors: number;
+  assignmentStats: Array<{
+    name: string;
+    submissions: number;
+    completed: number;
+    average: number;
+  }>;
+  vivaStats: Array<{
+    name: string;
+    scheduled: number;
+    completed: number;
+    averageScore: number;
+  }>;
+}
 
-  useEffect(() => {
-    const fetchUnit = async () => {
-      try {
-        const response = await fetch(`/api/units/${params.unitId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch unit');
-        }
-        const data = await response.json();
-        setUnit(data);
-      } catch (err) {
-        setError('Error fetching unit data');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+async function getUnit(unitId: string): Promise<Unit> {
+  const session = await auth();
+  if (!session?.user?.accessToken) {
+    throw new Error('Not authenticated');
+  }
 
-    fetchUnit();
-  }, [params.unitId]);
+  try {
+    const { data } = await api.get(`/units/${unitId}`);
+    return data;
+  } catch (error) {
+    console.error("Error fetching unit:", error);
+    throw new Error('Failed to fetch unit');
+  }
+}
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!unit) return <div>No unit found</div>;
+export default async function UnitPage({ params }: { params: { unitId: string } }) {
+  let unit: Unit;
+
+  try {
+    unit = await getUnit(params.unitId);
+  } catch (error) {
+    notFound();
+  }
 
   return (
     <div className="p-8">

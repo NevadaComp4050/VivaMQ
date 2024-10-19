@@ -8,18 +8,41 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import Link from "next/link";
-import api from '~/lib/api';
 import UnitForm from './UnitForm';
+import api from '~/lib/api';
+import { auth } from "~/auth";
 
+// Define the Unit type
+type Unit = {
+  id: string;
+  name: string;
+  year: number;
+  convenor: string;
+};
 
-export default async function UnitsPage() {
-  let units = [];
+async function getUnits(): Promise<Unit[]> {
+  const session = await auth();
+  if (!session?.user?.accessToken) {
+    throw new Error('Not authenticated');
+  }
 
   try {
-    const response = await api.get("/units");
-    units = response.data.data;
+    const { data } = await api.get("/units");
+    return data;
   } catch (error) {
     console.error("Error fetching units:", error);
+    throw new Error('Failed to fetch units');
+  }
+}
+
+export default async function UnitsPage() {
+  let units: Unit[] = [];
+  let error: string | null = null;
+
+  try {
+    units = await getUnits();
+  } catch (e) {
+    error = e instanceof Error ? e.message : 'An unknown error occurred';
   }
 
   return (
@@ -32,40 +55,44 @@ export default async function UnitsPage() {
           <CardTitle>Existing Units</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Unit Name</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Convenor</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {units.length > 0 ? (
-                units.map((unit: any) => (
-                  <TableRow key={unit.id}>
-                    <TableCell>{unit.name}</TableCell>
-                    <TableCell>{unit.year}</TableCell>
-                    <TableCell>{unit.convenor}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Link href={`/dashboard/units/${unit.id}/assignments`}>
-                          <button className="btn">Assignments</button>
-                        </Link>
-                      </div>
+          {error ? (
+            <p className="text-red-500">{error}</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Unit Name</TableHead>
+                  <TableHead>Year</TableHead>
+                  <TableHead>Convenor</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {units.length > 0 ? (
+                  units.map((unit: Unit) => (
+                    <TableRow key={unit.id}>
+                      <TableCell>{unit.name}</TableCell>
+                      <TableCell>{unit.year}</TableCell>
+                      <TableCell>{unit.convenor}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Link href={`/dashboard/units/${unit.id}/assignments`}>
+                            <button className="btn">Assignments</button>
+                          </Link>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center">
+                      No units available.
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    No units available.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

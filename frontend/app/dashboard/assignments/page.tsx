@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import api from '~/lib/api';
+import { useSession } from "next-auth/react";
+import createApiClient from '~/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -41,16 +42,21 @@ export default function AssignmentsPage() {
   const [units, setUnits] = useState<Unit[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("");
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!session?.user?.accessToken) return;
+
+      const apiClient = createApiClient(session.user.accessToken);
+
       try {
-        const unitsResponse = await api.get("/units");
+        const unitsResponse = await apiClient.get("/units");
         const unitsData = unitsResponse.data;
         setUnits(unitsData);
 
         const assignmentsPromises = unitsData.map((unit: Unit) =>
-          fetch(`/units/${unit.id}/assignments`).then((res) => res.json())
+          apiClient.get(`/units/${unit.id}/assignments`).then((res) => res.data)
         );
         const allAssignments = await Promise.all(assignmentsPromises);
         setAssignments(allAssignments.flat());
@@ -60,7 +66,7 @@ export default function AssignmentsPage() {
     };
 
     fetchData();
-  }, []);
+  }, [session]);
 
   const filteredAssignments = assignments.filter(
     (assignment) =>

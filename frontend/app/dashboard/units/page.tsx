@@ -11,24 +11,38 @@ import Link from "next/link";
 import UnitForm from './UnitForm';
 import api from '~/lib/api';
 import { auth } from "~/auth";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 
 // Define the Unit type
 type Unit = {
   id: string;
   name: string;
-  year: number;
-  convenor: string;
+  sessionId: string;
+  ownerId: string;
+  accessType: string;
 };
 
-async function getUnits(): Promise<Unit[]> {
+// Define the Session type
+type Session = {
+  id: string;
+  displayName: string;
+  year: number;
+  term: string;
+  units: Unit[];
+};
+
+async function getUnits(): Promise<Session[]> {
   const session = await auth();
   if (!session?.user?.accessToken) {
     throw new Error('Not authenticated');
   }
 
   try {
-    const { data } = await api.get("/units");
-    return data;
+    const { data } = await api.get("/units/by-session");
+
+    console.log(data.data);
+
+    return data.data;
   } catch (error) {
     console.error("Error fetching units:", error);
     throw new Error('Failed to fetch units');
@@ -36,11 +50,11 @@ async function getUnits(): Promise<Unit[]> {
 }
 
 export default async function UnitsPage() {
-  let units: Unit[] = [];
+  let sessions: Session[] = [];
   let error: string | null = null;
 
   try {
-    units = await getUnits();
+    sessions = await getUnits();
   } catch (e) {
     error = e instanceof Error ? e.message : 'An unknown error occurred';
   }
@@ -58,40 +72,47 @@ export default async function UnitsPage() {
           {error ? (
             <p className="text-red-500">{error}</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Unit Name</TableHead>
-                  <TableHead>Year</TableHead>
-                  <TableHead>Convenor</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {units.length > 0 ? (
-                  units.map((unit: Unit) => (
-                    <TableRow key={unit.id}>
-                      <TableCell>{unit.name}</TableCell>
-                      <TableCell>{unit.year}</TableCell>
-                      <TableCell>{unit.convenor}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Link href={`/dashboard/units/${unit.id}/assignments`}>
-                            <button className="btn">Assignments</button>
-                          </Link>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center">
-                      No units available.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <Accordion type="single" collapsible className="w-full">
+              {sessions.length && sessions.map((session) => (
+                <AccordionItem key={session.id} value={session.id}>
+                  <AccordionTrigger>{session.displayName}</AccordionTrigger>
+                  <AccordionContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Unit Name</TableHead>
+                          <TableHead>Access Type</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {session.units && session.units.length > 0 ? (
+                          session.units.map((unit: Unit) => (
+                            <TableRow key={unit.id}>
+                              <TableCell>{unit.name}</TableCell>
+                              <TableCell>{unit.accessType}</TableCell>
+                              <TableCell>
+                                <div className="flex space-x-2">
+                                  <Link href={`/dashboard/units/${unit.id}/assignments`}>
+                                    <button className="btn btn-primary">Assignments</button>
+                                  </Link>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-center">
+                              No units available for this session.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           )}
         </CardContent>
       </Card>

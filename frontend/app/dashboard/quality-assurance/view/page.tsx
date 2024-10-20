@@ -62,7 +62,7 @@ interface Submission {
   content: string;
 }
 
-export default function QualityAssurance() {
+export default function QualityAssuranceView() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const mockSubmissions: Submission[] = [

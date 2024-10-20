@@ -41,7 +41,7 @@ import { Label } from "~/components/ui/label";
 
 import { ScrollArea } from "~/components/ui/scroll-area";
 
-export default function detailsPage() {
+export default function QualityAssuranceViewDetails() {
   interface Unit {
     id: string;
     name: string;

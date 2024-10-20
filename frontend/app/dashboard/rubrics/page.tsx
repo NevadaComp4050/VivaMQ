@@ -89,7 +89,7 @@ export default function RubricsPage() {
               </SelectContent>
             </Select>
             <Button asChild>
-              <Link href="/rubrics/create">
+              <Link href="rubrics/create">
                 <PlusIcon className="mr-2 h-4 w-4" />
                 Create Rubric
               </Link>

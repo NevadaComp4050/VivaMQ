@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -19,33 +19,15 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import Link from "next/link";
-import { PlusIcon, SearchIcon } from "lucide-react";
-
-import { TrendingUp } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "~/components/ui/chart";
-
-interface Unit {
-  id: string;
-  name: string;
-  code: string;
-  year: string;
-  session: string;
-}
 
 interface Assignment {
   id: string;
@@ -57,10 +39,9 @@ interface Assignment {
 }
 
 export default function QualityAssurance() {
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("all");
-  const [selectedAssignment, setSelectedAssignmnet] = useState("all");
+  const [selectedAssignment, setSelectedAssignment] = useState("all");
 
   const mockAssignments: Assignment[] = [
     {
@@ -133,10 +114,10 @@ export default function QualityAssurance() {
               </Select>
               <Select
                 value={selectedAssignment}
-                onValueChange={setSelectedAssignmnet}
+                onValueChange={setSelectedAssignment}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by Assignmnet" />
+                  <SelectValue placeholder="Filter by Assignment" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Assignment</SelectItem>
@@ -152,7 +133,6 @@ export default function QualityAssurance() {
                   <TableHead>Year</TableHead>
                   <TableHead>Submission count</TableHead>
                   <TableHead>Actions</TableHead>
-                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

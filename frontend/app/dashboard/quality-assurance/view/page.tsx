@@ -1,9 +1,7 @@
 "use client";
 
 import { Button } from "~/components/ui/button";
-
 import { Input } from "~/components/ui/input";
-
 import {
   Table,
   TableBody,
@@ -12,29 +10,16 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-
 import Link from "next/link";
-
 import { Pie, PieChart } from "recharts";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "~/components/ui/chart";
-
 import { useState } from "react";
-
 import { SearchIcon } from "lucide-react";
 
 interface Unit {
@@ -100,7 +85,6 @@ export default function QualityAssuranceView() {
     },
   ];
 
-  const totalSubmissions = mockSubmissions.length;
   const totalSubmissionsReviewed = mockSubmissions.filter(
     (submission) => submission.status === "Reviewed"
   ).length;
@@ -185,7 +169,9 @@ export default function QualityAssuranceView() {
                     <TableCell>{submission.status}</TableCell>
                     <TableCell>
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={"/dashboard/quality-assurance/view/details"}>
+                        <Link
+                          href={"/dashboard/quality-assurance/view/details"}
+                        >
                           Details
                         </Link>
                       </Button>

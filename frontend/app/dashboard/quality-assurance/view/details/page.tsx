@@ -13,29 +13,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 
-import Link from "next/link";
-
-import { Pie, PieChart } from "recharts";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "~/components/ui/chart";
-
-import { useState } from "react";
-
-import { SearchIcon } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 import { Label } from "~/components/ui/label";
 
@@ -154,26 +132,28 @@ export default function QualityAssuranceViewDetails() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Object.entries(mockWritingQuality).map(([criterion, feedback]) => {
-                    // lazily format the criterion
-                    const formattedCriterion = criterion
-                      .replace(/_/g, ' ')
-                      .replace(/\b\w/g, char => char.toUpperCase());
-                    return (
-                      <TableRow key={criterion}>
-                        <TableCell>{formattedCriterion}</TableCell>
-                        <TableCell>
-                          {Array.isArray(feedback) ? (
-                            feedback.map((recommendation, index) => (
-                              <div key={index}>{recommendation}</div>
-                            ))
-                          ) : (
-                            <Input defaultValue={feedback} />
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {Object.entries(mockWritingQuality).map(
+                    ([criterion, feedback]) => {
+                      // lazily format the criterion
+                      const formattedCriterion = criterion
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (char) => char.toUpperCase());
+                      return (
+                        <TableRow key={criterion}>
+                          <TableCell>{formattedCriterion}</TableCell>
+                          <TableCell>
+                            {Array.isArray(feedback) ? (
+                              feedback.map((recommendation) => (
+                                <div key={recommendation}>{recommendation}</div>
+                              ))
+                            ) : (
+                              <Input defaultValue={feedback} />
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
+                  )}
                 </TableBody>
               </Table>
             </div>

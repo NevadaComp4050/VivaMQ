@@ -2,8 +2,7 @@ import { type Assignment } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
 import S3PDFHandler from '@/utils/s3-util';
-import { fetchAssignmentSubmissionsText } from '@/utils/fetch-submission-text';
-
+import { submitSubmission } from '@/services/viva-service';
 export default class AssignmentService {
   private readonly s3Handler = new S3PDFHandler();
 
@@ -123,8 +122,20 @@ export default class AssignmentService {
   }
 
   public async generateVivaQuestions(assignmentId: string) {
-    // Trigger the viva generation process here and return saying that the process has been started
-    await fetchAssignmentSubmissionsText(assignmentId);
-    return { message: 'Viva generation process started' };
+    // Fetch all submissions for the assignment
+    const submissions = await prisma.submission.findMany({
+      where: { assignmentId },
+    });
+
+    // For each, trigger the viva question generation process
+    for (const submission of submissions) {
+      await submitSubmission(submission.id);
+    }
+
+    return {
+      message:
+        'Viva generation process started for submisisons of count: ' +
+        String(submissions.length),
+    };
   }
 }

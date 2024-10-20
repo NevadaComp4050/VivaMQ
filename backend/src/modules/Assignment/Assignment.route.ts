@@ -71,7 +71,7 @@ assignments.delete(
  * @return {Submission} 201 - Submission created
  */
 assignments.post(
-  '/:assignmentId/submissionUpload',
+  '/:id/submissionUpload',
   verifyAuthToken,
   VerifyAssignmentReadWriteAccess,
   upload.single('file'),
@@ -87,7 +87,7 @@ assignments.post(
  * @return {Array.<Submission>} 200 - submission list
  */
 assignments.get(
-  '/:assignmentId/submissions',
+  '/:id/submissions',
   verifyAuthToken,
   VerifyAssignmentReadAccess,
   controller.getSubmissions
@@ -103,7 +103,7 @@ assignments.get(
  * @return {Submission} 200 - Submission updated with student mapping
  */
 assignments.post(
-  '/:assignmentId/submissionMapping/:submissionId',
+  '/:id/submissionMapping/:submissionId',
   verifyAuthToken,
   VerifyAssignmentReadWriteAccess,
   controller.mapStudentToSubmission
@@ -116,7 +116,7 @@ assignments.post(
  * @return {object} 200 - JSON object with mappings
  */
 assignments.get(
-  '/:assignmentId/submissionMapping',
+  '/:id/submissionMapping',
   verifyAuthToken,
   VerifyAssignmentReadAccess,
   controller.getStudentSubmissionMapping
@@ -130,7 +130,7 @@ assignments.get(
  * @return {object} 200 - JSON object indicating success or failure
  */
 assignments.post(
-  '/:assignmentId/generateVivaQuestions',
+  '/:id/generateVivaQuestions',
   controller.generateVivaQuestions
 );
 

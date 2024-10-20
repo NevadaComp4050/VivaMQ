@@ -114,12 +114,12 @@ export default class AssignmentController extends Api {
         throw new Error('No file uploaded');
       }
 
-      const { assignmentId } = req.params;
+      const { id: assignmentId } = req.params;
       if (!assignmentId) {
         throw new Error('Assignment ID is required');
       }
 
-      const fileBuffer = req.file.buffer; // Retrieve the buffer from multer's file upload
+      const fileBuffer = req.file.buffer;
 
       const newSubmission = await this.assignmentService.createSubmission({
         assignmentId,

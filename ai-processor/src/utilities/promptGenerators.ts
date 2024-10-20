@@ -21,32 +21,55 @@ export const generateSingleQuestionVivaPrompt = (
   document: string,
   customPrompt: string | null
 ) => `
-You are an experienced professor tasked with generating viva questions based on a student's document. Your goal is to assess the student's understanding of the material, their ability to discuss the concepts, and their capacity to expand on the ideas presented. Your task is to generate five viva questions that will effectively evaluate the student's knowledge and critical thinking skills. These questions should:
+### Objective
 
-1. Test the student's familiarity with the written text
-2. Assess their ability to discuss the concepts in depth
-3. Challenge them to expand on the ideas presented 
+Generate five viva questions to evaluate a student's understanding, discussion abilities, and capacity to expand on ideas from their document.
+The questions should be phrased in a way that addresses a student. The submission may be their work or the work of another student so question phrasing should be appropriate for both scenarios.
+Use Australian English ("summarise" instead of "summarize", "favour" instead of "favor", etc.). 
 
-When formulating your questions, consider the following criteria:
-- Relevance: Ensure questions directly relate to key concepts in the document
-- Coverage: Address all significant topics discussed
-- Depth: Require thorough understanding rather than surface-level knowledge
-- Clarity: Prompt clear and concise articulation of ideas
-- Open-ended nature: Encourage detailed explanations
-- Analytical thinking: Require analysis, comparison, or critique of concepts
-- Creativity: Push students to apply concepts to new scenarios or generate new ideas
+### Task Instructions
 
-Examples of good questions:
-1. "How does [concept from the document] relate to [another concept]? Can you provide an example of their interaction in a real-world scenario?"
-2. "What are the potential limitations or criticisms of [theory/method discussed in the document]? How would you address these concerns?"
-3. "If you were to extend the research presented in this document, what additional areas or aspects would you explore, and why?" 
+1. **Assess Familiarity with Content**: Create questions that test the student's understanding of key concepts from the document.
+2. **Encourage In-depth Discussion**: Formulate questions that urge the student to explore concepts thoroughly, beyond surface-level knowledge.
+3. **Promote Idea Expansion**: Develop questions that challenge the student to expand on, critique, or apply the ideas presented.
 
-${customPrompt ? `Additional instructions: ${customPrompt}\n\n` : ""}
+### Criteria for Questions
 
-As you generate the questions, increase their technicality and complexity. The first question should be relatively straightforward, while the final question should challenge the student to think critically and creatively about the material. Generate exactly five questions based on the document provided, adhering to the criteria and format specified above.
+- **Relevance**: Ensure each question directly relates to important concepts within the document. 
+- **Coverage**: Address all major topics discussed in the document.
+- **Depth**: Require understanding beyond surface knowledge.
+- **Clarity**: Foster clear and succinct articulation of responses.
+- **Open-ended**: Encourage detailed explanations and discussions.
+- **Analytical Thinking**: Involve the analysis, comparison, or critique of key concepts.
+- **Creativity**: Challenge students to apply concepts to new situations or generate new ideas.
 
-Document:
-${document}
+### Question Structure
+
+- **Question 1**: Begin with a relatively straightforward question.
+- **Question 2-4**: Gradually increase complexity and technicality.
+- **Question 5**: Pose a highly challenging question that encourages critical and creative thinking.
+
+### Examples
+
+1. "How does Concept A relate to Concept B within the document? Can you illustrate this relationship with a real-world example?"
+2. "Discuss the potential limitations or criticisms of Theory/Method. How could these be addressed?"
+3. "If you were to extend the research presented, what additional areas would you explore and why?"
+
+Never include placeholders, such as ones in square brackets, in the questions.
+
+### Additional Instructions
+
+- ${customPrompt}
+  
+### Submission Reference
+
+- Use the student's submiission content to generate questions: ${document}
+
+### Output Structure
+
+Ensure questions are generated in order of increasing complexity and adhere to the outlined criteria. Do not number the questions.
+Question text must be complete AS IS and ready for use in a viva interview verbatim;
+no additional editing should be required.
 `;
 
 export const generateRubricPrompt = (

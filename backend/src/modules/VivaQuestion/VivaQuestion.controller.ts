@@ -1,5 +1,5 @@
 import { type NextFunction, type Request } from 'express';
-import { type VivaQuestion, Submission, Role } from '@prisma/client';
+import { type VivaQuestion } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import VivaQuestionService from './VivaQuestion.service';
 import { type CustomResponse } from '@/types/common.type';
@@ -15,7 +15,12 @@ export default class VivaQuestionController extends Api {
   ) => {
     try {
       const newVivaQuestion = await this.vivaQuestionService.create(req.body);
-      this.send(res, newVivaQuestion, HttpStatusCode.Created, 'createVivaQuestion');
+      this.send(
+        res,
+        newVivaQuestion,
+        HttpStatusCode.Created,
+        'createVivaQuestion'
+      );
     } catch (e) {
       next(e);
     }
@@ -29,11 +34,11 @@ export default class VivaQuestionController extends Api {
     try {
       const { id } = req.params;
       const vivaQuestion = await this.vivaQuestionService.get(id);
-      this.send(res, vivaQuestion, HttpStatusCode.Ok, 'gotVivaQuestion:'+id )
+      this.send(res, vivaQuestion, HttpStatusCode.Ok, 'gotVivaQuestion:' + id);
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 
   public getAll = async (
     req: Request,
@@ -42,11 +47,16 @@ export default class VivaQuestionController extends Api {
   ) => {
     try {
       const vivaQuestionList = await this.vivaQuestionService.getAll();
-      this.send(res, vivaQuestionList, HttpStatusCode.Ok, 'gotAllVivaQuestions' )
+      this.send(
+        res,
+        vivaQuestionList,
+        HttpStatusCode.Ok,
+        'gotAllVivaQuestions'
+      );
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 
   public delete = async (
     req: Request,
@@ -56,11 +66,11 @@ export default class VivaQuestionController extends Api {
     try {
       const { id } = req.params;
       const vivaQuestion = await this.vivaQuestionService.delete(id);
-      this.send(res, vivaQuestion, HttpStatusCode.Ok, 'deletedVivaQuestion' )
+      this.send(res, vivaQuestion, HttpStatusCode.Ok, 'deletedVivaQuestion');
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 
   public deleteAll = async (
     req: Request,
@@ -69,9 +79,9 @@ export default class VivaQuestionController extends Api {
   ) => {
     try {
       const count = await this.vivaQuestionService.deleteAll();
-      this.send(res, count, HttpStatusCode.Ok, 'deletedAllVivaQuestions' )
+      this.send(res, count, HttpStatusCode.Ok, 'deletedAllVivaQuestions');
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 }

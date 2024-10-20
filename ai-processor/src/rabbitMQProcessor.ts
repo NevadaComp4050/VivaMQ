@@ -74,8 +74,11 @@ export async function processMessage(message: Message): Promise<any> {
 
 export async function startMessageProcessor() {
   try {
-    const rabbitMQUrl =
-      process.env.RABBITMQ_URL || "amqp://user:password@rabbitmq:5672";
+    const rabbitMQUrl = process.env.RABBITMQ_URL;
+
+if (!rabbitMQUrl) {
+  throw new Error("RABBITMQ_URL environment variable is not set");
+}
     console.log("Connecting to RabbitMQ at:", rabbitMQUrl);
     const connection = await amqp.connect(rabbitMQUrl);
     console.log("Connected to RabbitMQ successfully");
@@ -85,8 +88,8 @@ export async function startMessageProcessor() {
     const receiveQueue = "BEtoAI";
     const sendQueue = "AItoBE";
 
-    await channel.assertQueue(receiveQueue, { durable: false });
-    await channel.assertQueue(sendQueue, { durable: false });
+    await channel.assertQueue(receiveQueue, { durable: true });
+    await channel.assertQueue(sendQueue, { durable: true });
 
     console.log(
       ` [*] Waiting for messages in '${receiveQueue}'. To exit press CTRL+C`

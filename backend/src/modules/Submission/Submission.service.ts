@@ -68,8 +68,9 @@ export default class SubmissionService {
           // Attempt to update the submission
           const updatedSubmission = await prisma.submission.update({
             where: { id: submissionId },
-            data: { studentId },
+            data: { studentCode: studentId },
           });
+
           return { success: true, submissionId, updatedSubmission };
         } catch (error) {
           // Handle Prisma-specific errors
@@ -83,6 +84,7 @@ export default class SubmissionService {
               };
             }
           }
+
           // General error handling
           return { success: false, submissionId, error: error.message };
         }

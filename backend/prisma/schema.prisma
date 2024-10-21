@@ -74,6 +74,7 @@ model Submission {
   status         String
   assignment     Assignment     @relation(fields: [assignmentId], references: [id])
   student        Student?       @relation(fields: [studentId], references: [id])
+  studentCode    String?        @unique
   vivaQuestions  VivaQuestion[]
   vivaStatus     VIVASTATUS     @default(NOTSTARTED)
 }

@@ -94,9 +94,6 @@ export default async function UnitsPage() {
                               <TableCell>{unit.accessType}</TableCell>
                               <TableCell>
                                 <div className="flex space-x-2">
-                                  <Link href={`/dashboard/units/${unit.id}/assignments`}>
-                                    <Button variant="default">View Assignments</Button>
-                                  </Link>
                                   <Link href={`/dashboard/units/${unit.id}`}>
                                     <Button variant="default">View Unit</Button>
                                   </Link>

@@ -6,7 +6,6 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Progress } from "~/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +15,7 @@ import {
 } from "~/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { toast } from "~/components/ui/use-toast";
+import { UploadedFileItem } from "~/components/components/uploaded-file-item";
 
 interface UploadedFile {
   id: string;
@@ -206,17 +206,15 @@ export default function FileUploadPage() {
             <CardTitle>Uploaded Files</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2">
+            <ul className="space-y-2 max-h-60 overflow-y-auto">
               {uploadedFiles.map((file, index) => (
-                <li key={index} className="flex items-center space-x-2">
-                  <span className={`flex-grow ${file.status === 'success' ? 'text-green-600' : file.status === 'error' ? 'text-red-600' : 'text-gray-600'}`}>
-                    {file.name} {file.studentId && `- Student ID: ${file.studentId}`}
-                  </span>
-                  <Progress value={file.progress} className="w-24" />
-                  <span className="w-16 text-right">
-                    {file.status === 'uploading' ? 'Uploading...' : file.status === 'success' ? 'Uploaded' : 'Failed'}
-                  </span>
-                </li>
+                <UploadedFileItem
+                  key={index}
+                  name={file.name}
+                  studentId={file.studentId}
+                  progress={file.progress}
+                  status={file.status}
+                />
               ))}
             </ul>
           </CardContent>

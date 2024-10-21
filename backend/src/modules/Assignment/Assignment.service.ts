@@ -1,4 +1,4 @@
-import { type Assignment } from '@prisma/client';
+import { Prisma, type Assignment } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
 import S3PDFHandler from '@/utils/s3-util';
@@ -104,6 +104,57 @@ export default class AssignmentService {
       data: { studentId },
     });
     return submission;
+  }
+
+  public async mapMultipleSubmissions(
+    mappings: Array<{ studentId: string; submissionId: string }>
+  ) {
+    const results = await Promise.all(
+      mappings.map(async ({ submissionId, studentId }) => {
+        try {
+          // Validate input data
+          if (!studentId || !submissionId) {
+            throw new Error('Both studentId and submissionId must be provided');
+          }
+
+          // Attempt to update the submission
+          const updatedSubmission = await prisma.submission.update({
+            where: { id: submissionId },
+            data: { studentId },
+          });
+          return { success: true, submissionId, updatedSubmission };
+        } catch (error) {
+          // Handle Prisma-specific errors
+          if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            // Handle "Record not found" error
+            if (error.code === 'P2025') {
+              return {
+                success: false,
+                submissionId,
+                error: `Submission with ID ${submissionId} not found`,
+              };
+            }
+          }
+          // General error handling
+          return { success: false, submissionId, error: error.message };
+        }
+      })
+    );
+
+    // Separate successful and failed updates for better reporting
+    const successfulUpdates = results.filter((result) => result.success);
+    const failedUpdates = results.filter((result) => !result.success);
+
+    if (failedUpdates.length > 0) {
+      console.warn(`Some mappings failed: ${JSON.stringify(failedUpdates)}`);
+    }
+
+    return {
+      successfulUpdates: successfulUpdates.map(
+        (result) => result.updatedSubmission
+      ),
+      failedUpdates,
+    };
   }
 
   public async getStudentSubmissionMapping(assignmentId: string) {

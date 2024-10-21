@@ -188,6 +188,32 @@ export default class AssignmentController extends Api {
     }
   };
 
+  public mapMultipleSubmissions = async (
+    req: Request,
+    res: CustomResponse<Submission[]>,
+    next: NextFunction
+  ) => {
+    try {
+      const { mappings } = req.body;
+
+      if (!Array.isArray(mappings) || mappings.length === 0) {
+        throw new Error('Mappings must be a non-empty array');
+      }
+
+      const updatedSubmissions =
+        await this.assignmentService.mapMultipleSubmissions(mappings);
+
+      this.send(
+        res,
+        updatedSubmissions,
+        HttpStatusCode.Ok,
+        'multipleStudentMappings'
+      );
+    } catch (e) {
+      next(e);
+    }
+  };
+
   public getStudentSubmissionMapping = async (
     req: Request,
     res: CustomResponse<any>,

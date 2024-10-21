@@ -89,4 +89,28 @@ export default class SubmissionController extends Api {
       next(e);
     }
   };
+
+  public getSubmissionPDF = async (
+    req: Request,
+    res: CustomResponse<void>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const pdfData = await this.submissionService.getPDFById(id);
+
+      if (!pdfData) {
+        return res.status(HttpStatusCode.NotFound).send('PDF not found');
+      }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=submission_${id}.pdf`
+      );
+      res.send(pdfData);
+    } catch (e) {
+      next(e);
+    }
+  };
 }

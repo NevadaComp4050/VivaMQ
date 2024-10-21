@@ -62,4 +62,13 @@ submissions.delete('/:id', verifyAuthToken, controller.delete);
  */
 submissions.delete('/', verifyAuthToken, controller.deleteAll);
 
+/**
+ * GET /submissions/{id}/pdf
+ * @summary Fetch a submission PDF
+ * @tags Submission
+ * @param {string} id.path.required - ID of the submission to fetch PDF for
+ * @return {file} 200 - submission PDF
+ */
+submissions.get('/:id/file', verifyAuthToken, controller.getSubmissionPDF);
+
 export default submissions;

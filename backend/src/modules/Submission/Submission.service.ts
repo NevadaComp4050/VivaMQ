@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, type Submission } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import S3PDFHandler from '@/utils/s3-util';
 
@@ -7,6 +7,22 @@ export default class SubmissionService {
 
   constructor() {
     this.s3Handler = new S3PDFHandler();
+  }
+
+  public async getSubmissionById(id: string): Promise<Submission | null> {
+    try {
+      const submission = await prisma.submission.findFirst({
+        where: {
+          id,
+          deletedAt: null, // Ensure the submission is not soft-deleted
+        },
+      });
+
+      return submission;
+    } catch (error) {
+      console.error('Error in getSubmissionById:', error);
+      return null;
+    }
   }
 
   public async getVivaQuestions(submissionId: string) {

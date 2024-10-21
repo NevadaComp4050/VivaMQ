@@ -139,4 +139,25 @@ export default class SubmissionController extends Api {
       next(e);
     }
   };
+
+  public getSubmissionById = async (
+    req: Request,
+    res: CustomResponse<Submission | null>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const submission = await this.submissionService.getSubmissionById(id);
+
+      if (!submission) {
+        return res.status(HttpStatusCode.NotFound).send({
+          message: 'Submission not found',
+        });
+      }
+
+      this.send(res, submission, HttpStatusCode.Ok, 'getSubmissionById');
+    } catch (e) {
+      next(e);
+    }
+  };
 }

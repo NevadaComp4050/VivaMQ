@@ -6,6 +6,15 @@ const submissions: Router = Router();
 const controller = new SubmissionController();
 
 /**
+ * GET /api/submissions/{id}
+ * @summary Retrieve details of a specific submission
+ * @tags Submission
+ * @param {string} id.path.required - Submission ID
+ * @return {Submission} 200 - Submission details
+ */
+submissions.get('/:id', verifyAuthToken, controller.getSubmissionById);
+
+/**
  * GET /api/submissions/{submissionId}/viva-questions
  * @summary Retrieve viva questions for a specific submission
  * @tags VivaQuestion

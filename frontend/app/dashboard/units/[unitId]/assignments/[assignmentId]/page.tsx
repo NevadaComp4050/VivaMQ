@@ -402,7 +402,7 @@ export default function AssignmentManagementPage({
                   </div>
                   <div>
                     <iframe
-                      src={`/api/submissions/${uploadedFiles[currentFileIndex]?.id}/file`}
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/submissions/${uploadedFiles[currentFileIndex]?.id}/file`}
                       className="w-full h-96 border border-gray-300 rounded"
                       title={`PDF Preview:  ${uploadedFiles[currentFileIndex]?.name}`}
                     />

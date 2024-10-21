@@ -51,7 +51,7 @@ submissions.get(
  * @param {string} id.path.required - ID of the submission to delete
  * @return {Submission} 200 - submission list
  */
-submissions.delete('/:id', verifyAuthToken, controller.delete);
+submissions.delete('/:id', controller.delete);
 
 /**
  * DELETE /submissions/

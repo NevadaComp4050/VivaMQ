@@ -83,8 +83,13 @@ export default class UnitService {
       return termOrder[a.term] - termOrder[b.term];
     });
 
+    // Filter out sessions without units
+    const filteredSessions = sortedSessions.filter(
+      (session) => session.units.length > 0
+    );
+
     // Process units to determine access type
-    const result = sortedSessions.map((session) => ({
+    const result = filteredSessions.map((session) => ({
       ...session,
       units: session.units.map((unit) => {
         let accessType = 'Owner'; // Default to Owner if the user is the owner

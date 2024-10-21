@@ -71,7 +71,7 @@ export default class SubmissionController extends Api {
     try {
       const { id } = req.params;
       const submission = await this.submissionService.delete(id);
-      this.send(res, submission, HttpStatusCode.Ok, 'deletedSubmission');
+      this.send(res, submission, HttpStatusCode.Ok, 'Soft Deleted Submission');
     } catch (e) {
       next(e);
     }

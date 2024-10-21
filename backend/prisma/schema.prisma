@@ -18,6 +18,7 @@ model User {
   role      Role         @default(STUDENT)
   units     Unit[]       @relation("UnitOwner")
   accesses  UnitAccess[]
+  deletedAt DateTime?
 }
 
 model Unit {
@@ -31,22 +32,25 @@ model Unit {
   tutors      Tutor[]
   assignments Assignment[]
   accesses    UnitAccess[]
+  deletedAt   DateTime?
 }
 
 model Session {
-  id          String @id @default(uuid())
+  id          String    @id @default(uuid())
   displayName String
   year        Int
   term        Term
   units       Unit[]
+  deletedAt   DateTime?
 }
 
 model Tutor {
-  id     String @id @default(uuid())
-  name   String
-  email  String @unique
-  unitId String
-  unit   Unit   @relation(fields: [unitId], references: [id])
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  unitId    String
+  unit      Unit      @relation(fields: [unitId], references: [id])
+  deletedAt DateTime?
 }
 
 model Student {
@@ -54,6 +58,7 @@ model Student {
   name        String
   email       String       @unique
   submissions Submission[]
+  deletedAt   DateTime?
 }
 
 model Assignment {
@@ -64,6 +69,7 @@ model Assignment {
   unitId      String
   unit        Unit         @relation(fields: [unitId], references: [id])
   submissions Submission[]
+  deletedAt   DateTime?
 }
 
 model Submission {
@@ -77,6 +83,7 @@ model Submission {
   studentCode    String?        @unique
   vivaQuestions  VivaQuestion[]
   vivaStatus     VIVASTATUS     @default(NOTSTARTED)
+  deletedAt      DateTime?
 }
 
 model VivaQuestion {
@@ -85,16 +92,18 @@ model VivaQuestion {
   question     Json       @db.Json
   status       String
   submission   Submission @relation(fields: [submissionId], references: [id])
+  deletedAt    DateTime?
 }
 
 model UnitAccess {
-  id     String       @id @default(uuid())
-  userId String
-  unitId String
-  role   AccessRole
-  status AccessStatus @default(ACCEPTED)
-  user   User         @relation(fields: [userId], references: [id])
-  unit   Unit         @relation(fields: [unitId], references: [id])
+  id        String       @id @default(uuid())
+  userId    String
+  unitId    String
+  role      AccessRole
+  status    AccessStatus @default(ACCEPTED)
+  user      User         @relation(fields: [userId], references: [id])
+  unit      Unit         @relation(fields: [unitId], references: [id])
+  deletedAt DateTime?
 
   @@unique([userId, unitId])
 }

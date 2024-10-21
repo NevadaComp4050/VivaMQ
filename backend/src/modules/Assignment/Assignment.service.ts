@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
 import S3PDFHandler from '@/utils/s3-util';
 import { submitSubmission } from '@/services/viva-service';
+
 export default class AssignmentService {
   private readonly s3Handler = new S3PDFHandler();
 
@@ -13,34 +14,52 @@ export default class AssignmentService {
   }
 
   public async get(id: string) {
-    const assignment = await prisma.assignment.findUnique({
-      where: { id },
+    const assignment = await prisma.assignment.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
     });
     return assignment;
   }
 
   public async getAll() {
-    const assignments = await prisma.assignment.findMany();
+    const assignments = await prisma.assignment.findMany({
+      where: {
+        deletedAt: null,
+      },
+    });
     return assignments;
   }
 
   public async delete(id: string) {
-    const assignment = await prisma.assignment.delete({
+    const assignment = await prisma.assignment.update({
       where: { id },
+      data: {
+        deletedAt: new Date(),
+      },
     });
     return assignment;
   }
 
   public async deleteAll() {
-    const { count } = await prisma.assignment.deleteMany();
+    const { count } = await prisma.assignment.updateMany({
+      where: { deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
     return count;
   }
 
   public async getAssignmentWithSubmissions(id: string) {
-    const assignment = await prisma.assignment.findUnique({
-      where: { id },
+    const assignment = await prisma.assignment.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
       include: {
-        submissions: true,
+        submissions: {
+          where: { deletedAt: null },
+        },
       },
     });
     return assignment;
@@ -54,12 +73,15 @@ export default class AssignmentService {
       throw new Error('Assignment ID must be provided');
     }
 
-    const assignment = await prisma.assignment.findUnique({
-      where: { id: data.assignmentId },
+    const assignment = await prisma.assignment.findFirst({
+      where: {
+        id: data.assignmentId,
+        deletedAt: null,
+      },
     });
 
     if (!assignment) {
-      throw new Error('Assignmen with id ' + data.assignmentId + ' not found');
+      throw new Error('Assignment with id ' + data.assignmentId + ' not found');
     }
 
     // Generate a unique key for S3 using the assignment ID and timestamp
@@ -85,10 +107,11 @@ export default class AssignmentService {
     limit: number,
     offset: number
   ) {
-    const whereClause = { assignmentId };
-
     const submissions = await prisma.submission.findMany({
-      where: whereClause,
+      where: {
+        assignmentId,
+        deletedAt: null,
+      },
       skip: offset,
       take: limit,
     });
@@ -100,7 +123,10 @@ export default class AssignmentService {
 
   public async mapStudentToSubmission(submissionId: string, studentId: string) {
     const submission = await prisma.submission.update({
-      where: { id: submissionId },
+      where: {
+        id: submissionId,
+        deletedAt: null,
+      },
       data: { studentId },
     });
     return submission;
@@ -112,38 +138,35 @@ export default class AssignmentService {
     const results = await Promise.all(
       mappings.map(async ({ submissionId, studentId }) => {
         try {
-          // Validate input data
           if (!studentId || !submissionId) {
             throw new Error('Both studentId and submissionId must be provided');
           }
 
-          // Attempt to update the submission with the studentCode
           const updatedSubmission = await prisma.submission.update({
-            where: { id: submissionId },
+            where: {
+              id: submissionId,
+              deletedAt: null,
+            },
             data: { studentCode: studentId },
           });
 
           return { success: true, submissionId, updatedSubmission };
         } catch (error) {
-          // Handle Prisma-specific errors
           if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            // Handle "Record not found" error
             if (error.code === 'P2025') {
               return {
                 success: false,
                 submissionId,
-                error: `Submission with ID ${submissionId} not found`,
+                error: `Submission with ID ${submissionId} not found or has been soft-deleted`,
               };
             }
           }
 
-          // General error handling
           return { success: false, submissionId, error: error.message };
         }
       })
     );
 
-    // Separate successful and failed updates for better reporting
     const successfulUpdates = results.filter((result) => result.success);
     const failedUpdates = results.filter((result) => !result.success);
 
@@ -161,7 +184,10 @@ export default class AssignmentService {
 
   public async getStudentSubmissionMapping(assignmentId: string) {
     const mappings = await prisma.submission.findMany({
-      where: { assignmentId },
+      where: {
+        assignmentId,
+        deletedAt: null,
+      },
       include: { student: true },
     });
 
@@ -175,19 +201,20 @@ export default class AssignmentService {
   }
 
   public async generateVivaQuestions(assignmentId: string) {
-    // Fetch all submissions for the assignment
     const submissions = await prisma.submission.findMany({
-      where: { assignmentId },
+      where: {
+        assignmentId,
+        deletedAt: null,
+      },
     });
 
-    // For each, trigger the viva question generation process
     for (const submission of submissions) {
       await submitSubmission(submission.id);
     }
 
     return {
       message:
-        'Viva generation process started for submisisons of count: ' +
+        'Viva generation process started for submissions of count: ' +
         String(submissions.length),
     };
   }

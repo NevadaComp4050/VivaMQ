@@ -11,7 +11,10 @@ export default class SubmissionService {
 
   public async getVivaQuestions(submissionId: string) {
     const vivaQuestions = await prisma.vivaQuestion.findMany({
-      where: { submissionId },
+      where: {
+        submissionId,
+        deletedAt: null, // Ensure only active records are fetched
+      },
     });
     return vivaQuestions;
   }
@@ -21,22 +24,31 @@ export default class SubmissionService {
   }
 
   public async delete(id: string) {
-    const submission = await prisma.submission.delete({
+    const submission = await prisma.submission.update({
       where: { id },
+      data: {
+        deletedAt: new Date(),
+      },
     });
     return submission;
   }
 
   public async deleteAll() {
-    const { count } = await prisma.submission.deleteMany();
+    const { count } = await prisma.submission.updateMany({
+      where: { deletedAt: null }, // Only update records that are not already deleted
+      data: { deletedAt: new Date() },
+    });
     return count;
   }
 
   public async getPDFById(id: string): Promise<Buffer | null> {
     try {
       // Fetch the submission from the database to get the S3 key
-      const submission = await prisma.submission.findUnique({
-        where: { id },
+      const submission = await prisma.submission.findFirst({
+        where: {
+          id,
+          deletedAt: null, // Ensure only active submissions are fetched
+        },
         select: { submissionFile: true },
       });
 
@@ -67,7 +79,10 @@ export default class SubmissionService {
 
           // Attempt to update the submission
           const updatedSubmission = await prisma.submission.update({
-            where: { id: submissionId },
+            where: {
+              id: submissionId,
+              deletedAt: null, // Ensure the submission is not soft-deleted
+            },
             data: { studentCode: studentId },
           });
 
@@ -80,7 +95,7 @@ export default class SubmissionService {
               return {
                 success: false,
                 submissionId,
-                error: `Submission with ID ${submissionId} not found`,
+                error: `Submission with ID ${submissionId} not found or has been soft-deleted`,
               };
             }
           }

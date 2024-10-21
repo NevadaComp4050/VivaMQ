@@ -23,6 +23,7 @@ model User {
 model Unit {
   id          String       @id @default(uuid())
   name        String
+  description String       @default("")
   sessionId   String
   ownerId     String
   owner       User         @relation("UnitOwner", fields: [ownerId], references: [id])

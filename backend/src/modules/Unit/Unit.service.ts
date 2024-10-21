@@ -119,6 +119,71 @@ export default class UnitService {
     return result;
   }
 
+  public async getUnitWithDetails(userId: string, unitId: string) {
+    const unit = await prisma.unit.findFirst({
+      where: {
+        id: unitId,
+        OR: [
+          { ownerId: userId },
+          {
+            accesses: {
+              some: {
+                userId,
+                status: 'ACCEPTED',
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        // Include related data as per the requirements
+        assignments: {
+          include: {
+            submissions: true, // Include submissions to gather status
+          },
+        },
+        tutors: true, // Include all tutor details
+      },
+    });
+
+    if (!unit) {
+      throw new Error(`Unit with ID ${unitId} not found or access denied.`);
+    }
+
+    // Calculate submission statuses for each assignment
+    const assignmentsWithStatus = unit.assignments.map((assignment) => {
+      const submissionStatuses = assignment.submissions.reduce<
+        Record<string, number>
+      >((acc, submission) => {
+        acc[submission.status] = (acc[submission.status] || 0) + 1;
+        return acc;
+      }, {});
+
+      return {
+        ...assignment,
+        submissionStatuses,
+      };
+    });
+
+    // Count the number of generated viva questions under this unit
+    const vivaQuestionCount = await prisma.vivaQuestion.count({
+      where: {
+        submission: {
+          assignment: {
+            unitId,
+          },
+        },
+      },
+    });
+
+    // Return the unit with additional details
+    return {
+      ...unit,
+      assignments: assignmentsWithStatus,
+      vivaQuestionCount,
+    };
+  }
+
   public async updateUnitDetails(
     unitId: string,
     data: { name?: string; term?: Term; year?: number }

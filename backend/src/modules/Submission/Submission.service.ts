@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { submitSubmission } from '@/services/viva-service';
+import { queueVivaGeneration } from '@/services/viva-service';
 
 export default class SubmissionService {
   public async getVivaQuestions(submissionId: string) {
@@ -10,7 +10,7 @@ export default class SubmissionService {
   }
 
   public async generateVivaQuestions(submissionId: string) {
-    await submitSubmission(submissionId);
+    await queueVivaGeneration(submissionId);
   }
 
   public async delete(id: string) {

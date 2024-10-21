@@ -104,20 +104,14 @@ export default class UnitController extends Api {
         });
       }
 
-      const unit = await this.unitService.getUnit(ownerId, id);
+      // Fetch the unit with all required details
+      const unit = await this.unitService.getUnitWithDetails(ownerId, id);
       if (!unit) {
         return res.status(HttpStatusCode.NotFound).json({
           message: 'Unit not found or not accessible',
           data: null,
         });
       }
-
-      // get me assignments that are under this unit
-      // get me tutors that are under this unit
-      // get me name of the unit
-      // get me description of the unit
-      // get me number of submissions per assignment <--- total is here
-      // get me the state of the viva generations under a unit 10 generated 
 
       this.send(res, unit, HttpStatusCode.Ok, 'gotUnit:' + id);
     } catch (e) {

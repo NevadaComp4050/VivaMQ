@@ -18,7 +18,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Stepper, Step, StepLabel } from "~/components/ui/stepper";
 import { toast } from "~/components/ui/use-toast";
-import { FileTextIcon, UsersIcon, FileEditIcon, Loader2, UploadIcon, FileIcon, CheckIcon, PlusIcon } from "lucide-react";
+import { FileTextIcon, UsersIcon, FileEditIcon, Loader2, UploadIcon, FileIcon, CheckIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import createApiClient from '~/lib/api-client';
 import { UploadedFileItem } from "~/components/components/uploaded-file-item";
@@ -61,6 +61,8 @@ export default function AssignmentManagementPage({
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [currentStudentId, setCurrentStudentId] = useState('');
   const { data: session } = useSession();
+  const [pendingMappings, setPendingMappings] = useState<Array<{ submissionId: string, studentId: string }>>([]);
+  const [currentFileContent, setCurrentFileContent] = useState<string | null>(null);
 
   const fetchAssignment = useCallback(async () => {
     if (!session?.user?.accessToken) return;
@@ -168,6 +170,16 @@ export default function AssignmentManagementPage({
       const response = await apiClient.post(`/assignments/${params.assignmentId}/submissionMapping`, formData);
       const mappedSubmissions = response.data.data;
 
+      const bulkMappings = Object.entries(mappedSubmissions).map(([fileName, studentId]) => {
+        const submission = uploadedFiles.find(file => file.name === fileName);
+        return {
+          submissionId: submission?.id,
+          studentId: studentId as string
+        };
+      }).filter(mapping => mapping.submissionId);
+
+      await apiClient.post('/submissions/bulkSubmissionMapping', { mappings: bulkMappings });
+
       setUploadedFiles(prevFiles => 
         prevFiles.map(file => ({
           ...file,
@@ -177,15 +189,15 @@ export default function AssignmentManagementPage({
 
       toast({
         title: "Success",
-        description: "CSV processed successfully",
+        description: "CSV processed and submissions mapped successfully",
       });
 
-      setActiveStep(3);
+      setActiveStep(2); // Change this from 3 to 2
     } catch (error) {
       console.error('Error processing CSV:', error);
       toast({
         title: "Error",
-        description: "Failed to process CSV",
+        description: "Failed to process CSV or map submissions",
         variant: "destructive",
       });
     }
@@ -204,34 +216,35 @@ export default function AssignmentManagementPage({
     const apiClient = createApiClient(session.user.accessToken);
     const currentFile = uploadedFiles[currentFileIndex];
 
-    try {
-      await apiClient.post(`/assignments/${params.assignmentId}/submissionMapping/${currentFile.id}`, {
-        studentId: currentStudentId.trim(),
-      });
+    setPendingMappings(prev => [...prev, { submissionId: currentFile.id, studentId: currentStudentId.trim() }]);
 
-      setUploadedFiles(prevFiles => 
-        prevFiles.map((file, index) => 
-          index === currentFileIndex ? { ...file, studentId: currentStudentId.trim() } : file
-        )
-      );
+    setUploadedFiles(prevFiles => 
+      prevFiles.map((file, index) => 
+        index === currentFileIndex ? { ...file, studentId: currentStudentId.trim() } : file
+      )
+    );
 
-      if (currentFileIndex < uploadedFiles.length - 1) {
-        setCurrentFileIndex(currentFileIndex + 1);
-        setCurrentStudentId('');
-      } else {
-        setActiveStep(3);
+    if (currentFileIndex < uploadedFiles.length - 1) {
+      setCurrentFileIndex(currentFileIndex + 1);
+      setCurrentStudentId('');
+    } else {
+      try {
+        await apiClient.post('/submissions/bulkSubmissionMapping', { mappings: [...pendingMappings, { submissionId: currentFile.id, studentId: currentStudentId.trim() }] });
+        
+        setActiveStep(2); // Change this from 3 to 2
         toast({
           title: "Success",
           description: "All files have been assigned student IDs",
         });
+        setPendingMappings([]);
+      } catch (error) {
+        console.error('Error mapping student IDs:', error);
+        toast({
+          title: "Error",
+          description: "Failed to assign student IDs. Please try again.",
+          variant: "destructive",
+        });
       }
-    } catch (error) {
-      console.error('Error mapping student ID:', error);
-      toast({
-        title: "Error",
-        description: "Failed to assign student ID. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -240,6 +253,61 @@ export default function AssignmentManagementPage({
       handleStudentIdSubmit();
     }
   };
+
+  const handleDeleteSubmission = async (submissionId: string) => {
+    if (!session?.user?.accessToken) return;
+
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      await apiClient.delete(`/submissions/${submissionId}`);
+      toast({
+        title: "Success",
+        description: "Submission deleted successfully",
+      });
+      fetchAssignment();
+    } catch (error) {
+      console.error('Error deleting submission:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete submission. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchFileContent = useCallback(async (fileId: string) => {
+    if (!session?.user?.accessToken) return;
+
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      const response = await apiClient.get(`submissions/${fileId}/file`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      setCurrentFileContent(url);
+    } catch (error) {
+      console.error('Error fetching file content:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch file content. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (uploadedFiles[currentFileIndex]?.id) {
+      fetchFileContent(uploadedFiles[currentFileIndex].id);
+    }
+
+    return () => {
+      if (currentFileContent) {
+        URL.revokeObjectURL(currentFileContent);
+      }
+    };
+  }, [currentFileIndex, uploadedFiles, fetchFileContent]);
+
 
   if (loading) {
     return (
@@ -296,11 +364,16 @@ export default function AssignmentManagementPage({
                         <TableCell>{submission.status}</TableCell>
                         <TableCell>{submission.vivaStatus}</TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm" asChild>
-                            <Link href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${submission.id}`}>
-                              Review
-                            </Link>
-                          </Button>
+                          <div className="flex space-x-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${submission.id}`}>
+                                Review
+                              </Link>
+                            </Button>
+                            <Button variant="destructive" size="sm" onClick={() => handleDeleteSubmission(submission.id)}>
+                              Delete
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -401,11 +474,20 @@ export default function AssignmentManagementPage({
                     </Button>
                   </div>
                   <div>
-                    <iframe
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/submissions/${uploadedFiles[currentFileIndex]?.id}/file`}
-                      className="w-full h-96 border border-gray-300 rounded"
-                      title={`PDF Preview:  ${uploadedFiles[currentFileIndex]?.name}`}
-                    />
+                    <div className="w-full h-96 border border-gray-300 rounded overflow-hidden">
+                      {currentFileContent ? (
+                        <embed 
+                          src={currentFileContent} 
+                          type="application/pdf" 
+                          width="100%" 
+                          height="100%"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import { useDropzone } from 'react-dropzone';
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -14,134 +16,145 @@ import {
 } from "~/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import {
-  FileTextIcon,
-  UsersIcon,
-  FileEditIcon,
-  Loader2,
-  UploadIcon,
-} from "lucide-react";
-import Link from "next/link";
-import { toast } from "~/components/ui/use-toast";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
+import { toast } from "~/components/ui/use-toast";
+import { FileTextIcon, UsersIcon, FileEditIcon, Loader2, UploadIcon } from "lucide-react";
+import Link from "next/link";
+import createApiClient from '~/lib/api-client';
 
 interface Submission {
   id: string;
-  studentName: string;
-  studentId: string;
-  submissionDate: string;
+  assignmentId: string;
+  studentId: string | null;
+  submissionFile: string;
   status: string;
-  pdfSubmission?: {
-    fileName: string;
-  };
+  vivaStatus: string;
 }
 
 interface Assignment {
   id: string;
   name: string;
-  description: string;
-  dueDate: string;
+  specs: string;
+  settings: string;
+  unitId: string;
+  submissions: Submission[];
 }
 
-export default function Component({
+export default function AssignmentManagementPage({
   params,
 }: {
   params: { unitId: string; assignmentId: string };
 }) {
   const [assignment, setAssignment] = useState<Assignment | null>(null);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [studentId, setStudentId] = useState("");
-  const [studentName, setStudentName] = useState("");
+  const [csvDialogOpen, setCsvDialogOpen] = useState(false);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const { data: session } = useSession();
 
-  useEffect(() => {
-    fetchAssignmentAndSubmissions();
-  }, [params.unitId, params.assignmentId]);
+  const fetchAssignment = useCallback(async () => {
+    if (!session?.user?.accessToken) return;
 
-  const fetchAssignmentAndSubmissions = async () => {
+    const apiClient = createApiClient(session.user.accessToken);
     try {
       setLoading(true);
-      const [assignmentResponse, submissionsResponse] = await Promise.all([
-        fetch(`/api/units/${params.unitId}/assignments/${params.assignmentId}`),
-        fetch(
-          `/api/units/${params.unitId}/assignments/${params.assignmentId}/submissions`
-        ),
-      ]);
-
-      if (!assignmentResponse.ok || !submissionsResponse.ok) {
-        throw new Error("Failed to fetch data");
-      }
-
-      const assignmentData: Assignment = await assignmentResponse.json();
-      const submissionsData: Submission[] = await submissionsResponse.json();
-
-      setAssignment(assignmentData);
-      setSubmissions(submissionsData);
-    } catch (err) {
-      console.error(err);
+      const response = await apiClient.get(`/assignments/${params.assignmentId}`);
+      setAssignment(response.data.data);
+    } catch (error) {
+      console.error("Error fetching assignment:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch data. Please try again.",
+        description: "Failed to fetch assignment data. Please try again.",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.assignmentId, session]);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0]);
-    }
-  };
+  useEffect(() => {
+    fetchAssignment();
+  }, [fetchAssignment]);
 
-  const handleUpload = async () => {
-    if (!selectedFile || !studentId || !studentName) {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (!session?.user?.accessToken) return;
+
+    const apiClient = createApiClient(session.user.accessToken);
+    const uploadPromises = acceptedFiles.map(async (file) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await apiClient.post(`/assignments/${params.assignmentId}/submissionUpload`, formData);
+        return response.data.data;
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        toast({
+          title: "Error",
+          description: `Failed to upload ${file.name}`,
+          variant: "destructive",
+        });
+        return null;
+      }
+    });
+
+    const results = await Promise.all(uploadPromises);
+    const successfulUploads = results.filter((result): result is Submission => result !== null);
+
+    if (successfulUploads.length > 0) {
+      setAssignment(prev => prev ? {
+        ...prev,
+        submissions: [...prev.submissions, ...successfulUploads]
+      } : null);
       toast({
-        title: "Error",
-        description: "Please fill in all fields and select a file.",
-        variant: "destructive",
+        title: "Success",
+        description: `Uploaded ${successfulUploads.length} files`,
       });
-      return;
     }
 
+    setUploadDialogOpen(false);
+  }, [params.assignmentId, session]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+
+  const handleCsvUpload = async () => {
+    if (!csvFile || !session?.user?.accessToken) return;
+
+    const apiClient = createApiClient(session.user.accessToken);
     const formData = new FormData();
-    formData.append("file", selectedFile);
-    formData.append("assignmentId", params.assignmentId);
-    formData.append("studentId", studentId);
-    formData.append("studentName", studentName);
+    formData.append('file', csvFile);
 
     try {
-      const response = await fetch("/api/submissions/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await apiClient.post(`/assignments/${params.assignmentId}/submissionMapping`, formData);
+      const mappedSubmissions = response.data.data;
 
-      if (!response.ok) {
-        throw new Error("Failed to upload submission");
-      }
+      setAssignment(prev => prev ? {
+        ...prev,
+        submissions: prev.submissions.map(sub => {
+          const mapped = mappedSubmissions.find((m: Submission) => m.id === sub.id);
+          return mapped || sub;
+        })
+      } : null);
 
       toast({
         title: "Success",
-        description: "Submission uploaded successfully.",
+        description: "CSV processed and submissions mapped successfully",
       });
-      setUploadDialogOpen(false);
-      fetchAssignmentAndSubmissions();
     } catch (error) {
-      console.error("Error uploading submission:", error);
+      console.error('Error processing CSV:', error);
       toast({
         title: "Error",
-        description: "Failed to upload submission. Please try again.",
+        description: "Failed to process CSV",
         variant: "destructive",
       });
     }
+
+    setCsvDialogOpen(false);
   };
 
   if (loading) {
@@ -187,21 +200,19 @@ export default function Component({
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold">Description</h3>
-                  <p>{assignment.description}</p>
+                  <h3 className="font-semibold">Specifications</h3>
+                  <p>{assignment.specs}</p>
                 </div>
                 <div>
-                  <h3 className="font-semibold">Due Date</h3>
-                  <p>{new Date(assignment.dueDate).toLocaleString()}</p>
+                  <h3 className="font-semibold">Settings</h3>
+                  <p>{assignment.settings}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold">Total Submissions</h3>
-                  <p>{submissions.length}</p>
+                  <p>{assignment.submissions.length}</p>
                 </div>
                 <Button asChild>
-                  <Link
-                    href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/rubrics`}
-                  >
+                  <Link href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/rubrics`}>
                     <FileEditIcon className="w-4 h-4 mr-2" />
                     Manage Rubric
                   </Link>
@@ -217,43 +228,51 @@ export default function Component({
               <CardTitle>Submissions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="mb-4">
-                <Dialog
-                  open={uploadDialogOpen}
-                  onOpenChange={setUploadDialogOpen}
-                >
+              <div className="flex space-x-4 mb-4">
+                <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
                   <DialogTrigger asChild>
                     <Button>
                       <UploadIcon className="w-4 h-4 mr-2" />
-                      Upload Submission
+                      Upload Submissions
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Upload Submission</DialogTitle>
+                      <DialogTitle>Upload Submissions</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4">
-                      <Input
-                        type="file"
-                        onChange={handleFileChange}
-                        accept=".pdf"
-                      />
-                      <Input
-                        placeholder="Student ID"
-                        value={studentId}
-                        onChange={(e) => setStudentId(e.target.value)}
-                      />
-                      <Input
-                        placeholder="Student Name"
-                        value={studentName}
-                        onChange={(e) => setStudentName(e.target.value)}
-                      />
-                      <Button onClick={handleUpload}>Upload</Button>
+                    <div {...getRootProps()} className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer">
+                      <input {...getInputProps()} />
+                      {isDragActive ? (
+                        <p>Drop the PDF files here ...</p>
+                      ) : (
+                        <p>Drag 'n' drop some PDF files here, or click to select files</p>
+                      )}
                     </div>
                   </DialogContent>
                 </Dialog>
+
+                <Dialog open={csvDialogOpen} onOpenChange={setCsvDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <UploadIcon className="w-4 h-4 mr-2" />
+                      Upload CSV
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Upload CSV for Student ID Mapping</DialogTitle>
+                    </DialogHeader>
+                    <Input
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) => setCsvFile(e.target.files ? e.target.files[0] : null)}
+                    />
+                    <Button onClick={handleCsvUpload}>Process CSV</Button>
+                  </DialogContent>
+                </Dialog>
               </div>
-              {submissions.length === 0 ? (
+
+              {assignment.submissions.length === 0 ? (
                 <p className="text-center text-muted-foreground">
                   No submissions yet.
                 </p>
@@ -261,31 +280,23 @@ export default function Component({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Student Name</TableHead>
+                      <TableHead>Submission File</TableHead>
                       <TableHead>Student ID</TableHead>
-                      <TableHead>Submission Date</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>File</TableHead>
+                      <TableHead>Viva Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {submissions.map((submission) => (
+                    {assignment.submissions.map((submission) => (
                       <TableRow key={submission.id}>
-                        <TableCell>{submission.studentName}</TableCell>
-                        <TableCell>{submission.studentId}</TableCell>
-                        <TableCell>
-                          {new Date(submission.submissionDate).toLocaleString()}
-                        </TableCell>
+                        <TableCell>{submission.submissionFile.split('/').pop()}</TableCell>
+                        <TableCell>{submission.studentId || 'Not assigned'}</TableCell>
                         <TableCell>{submission.status}</TableCell>
-                        <TableCell>
-                          {submission.pdfSubmission?.fileName || "N/A"}
-                        </TableCell>
+                        <TableCell>{submission.vivaStatus}</TableCell>
                         <TableCell>
                           <Button variant="outline" size="sm" asChild>
-                            <Link
-                              href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${submission.id}`}
-                            >
+                            <Link href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${submission.id}`}>
                               Review
                             </Link>
                           </Button>

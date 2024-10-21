@@ -63,6 +63,7 @@ export default function AssignmentManagementPage({
   const { data: session } = useSession();
   const [pendingMappings, setPendingMappings] = useState<Array<{ submissionId: string, studentId: string }>>([]);
   const [currentFileContent, setCurrentFileContent] = useState<string | null>(null);
+  const [unmappedFiles, setUnmappedFiles] = useState<UploadedFile[]>([]);
 
   const fetchAssignment = useCallback(async () => {
     if (!session?.user?.accessToken) return;
@@ -154,6 +155,8 @@ export default function AssignmentManagementPage({
       title: "Upload Complete",
       description: `Uploaded ${acceptedFiles.length} files`,
     });
+
+    setActiveStep(1);
   }, [params.assignmentId, session]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { 'application/pdf': ['.pdf'] } });
@@ -162,49 +165,64 @@ export default function AssignmentManagementPage({
     const file = event.target.files?.[0];
     if (!file || !session?.user?.accessToken) return;
 
-    const apiClient = createApiClient(session.user.accessToken);
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      const response = await apiClient.post(`/assignments/${params.assignmentId}/submissionMapping`, formData);
-      const mappedSubmissions = response.data.data;
+      const response = await fetch('/api/process-csv', {
+        method: 'POST',
+        body: formData,
+      });
 
-      const bulkMappings = Object.entries(mappedSubmissions).map(([fileName, studentId]) => {
-        const submission = uploadedFiles.find(file => file.name === fileName);
-        return {
-          submissionId: submission?.id,
-          studentId: studentId as string
-        };
-      }).filter(mapping => mapping.submissionId);
+      if (!response.ok) {
+        throw new Error('Failed to process CSV');
+      }
 
-      await apiClient.post('/submissions/bulkSubmissionMapping', { mappings: bulkMappings });
+      const mappedSubmissions = await response.json();
 
-      setUploadedFiles(prevFiles => 
-        prevFiles.map(file => ({
-          ...file,
-          studentId: mappedSubmissions[file.name] || file.studentId,
-        }))
-      );
+      const mappedFiles = uploadedFiles.filter(file => mappedSubmissions[file.name]);
+      const unmappedFiles = uploadedFiles.filter(file => !mappedSubmissions[file.name]);
+
+      setUploadedFiles(mappedFiles.map(file => ({
+        ...file,
+        studentId: mappedSubmissions[file.name],
+      })));
+
+      setUnmappedFiles(unmappedFiles);
+
+      setPendingMappings(mappedFiles.map(file => ({
+        submissionId: file.id,
+        studentId: mappedSubmissions[file.name],
+      })));
 
       toast({
         title: "Success",
-        description: "CSV processed and submissions mapped successfully",
+        description: "CSV processed successfully",
       });
 
-      setActiveStep(2); // Change this from 3 to 2
+      if (unmappedFiles.length > 0) {
+        setActiveStep(2);
+      } else {
+        setActiveStep(3);
+      }
     } catch (error) {
       console.error('Error processing CSV:', error);
       toast({
         title: "Error",
-        description: "Failed to process CSV or map submissions",
+        description: "Failed to process CSV",
         variant: "destructive",
       });
     }
   };
 
-  const handleStudentIdSubmit = async () => {
-    if (!currentStudentId.trim() || !session?.user?.accessToken) {
+  const handleSkipCsvUpload = () => {
+    setUnmappedFiles(uploadedFiles);
+    setUploadedFiles([]);
+    setActiveStep(2);
+  };
+
+  const handleStudentIdSubmit = () => {
+    if (!currentStudentId.trim()) {
       toast({
         title: "Error",
         description: "Please enter a valid Student ID",
@@ -213,38 +231,21 @@ export default function AssignmentManagementPage({
       return;
     }
 
-    const apiClient = createApiClient(session.user.accessToken);
-    const currentFile = uploadedFiles[currentFileIndex];
+    const currentFile = unmappedFiles[currentFileIndex];
 
     setPendingMappings(prev => [...prev, { submissionId: currentFile.id, studentId: currentStudentId.trim() }]);
 
-    setUploadedFiles(prevFiles => 
+    setUnmappedFiles(prevFiles => 
       prevFiles.map((file, index) => 
         index === currentFileIndex ? { ...file, studentId: currentStudentId.trim() } : file
       )
     );
 
-    if (currentFileIndex < uploadedFiles.length - 1) {
+    if (currentFileIndex < unmappedFiles.length - 1) {
       setCurrentFileIndex(currentFileIndex + 1);
       setCurrentStudentId('');
     } else {
-      try {
-        await apiClient.post('/submissions/bulkSubmissionMapping', { mappings: [...pendingMappings, { submissionId: currentFile.id, studentId: currentStudentId.trim() }] });
-        
-        setActiveStep(2); // Change this from 3 to 2
-        toast({
-          title: "Success",
-          description: "All files have been assigned student IDs",
-        });
-        setPendingMappings([]);
-      } catch (error) {
-        console.error('Error mapping student IDs:', error);
-        toast({
-          title: "Error",
-          description: "Failed to assign student IDs. Please try again.",
-          variant: "destructive",
-        });
-      }
+      setActiveStep(3);
     }
   };
 
@@ -297,8 +298,8 @@ export default function AssignmentManagementPage({
   }, [session]);
 
   useEffect(() => {
-    if (uploadedFiles[currentFileIndex]?.id) {
-      fetchFileContent(uploadedFiles[currentFileIndex].id);
+    if (unmappedFiles[currentFileIndex]?.id) {
+      fetchFileContent(unmappedFiles[currentFileIndex].id);
     }
 
     return () => {
@@ -306,8 +307,34 @@ export default function AssignmentManagementPage({
         URL.revokeObjectURL(currentFileContent);
       }
     };
-  }, [currentFileIndex, uploadedFiles, fetchFileContent]);
+  }, [currentFileIndex, unmappedFiles, fetchFileContent]);
 
+  const handleConfirmAndFinish = async () => {
+    if (!session?.user?.accessToken) return;
+
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      await apiClient.post('/submissions/bulkSubmissionMapping', { mappings: pendingMappings });
+      
+      toast({
+        title: "Success",
+        description: "All files have been assigned student IDs",
+      });
+
+      fetchAssignment();
+      setActiveStep(0);
+      setUploadedFiles([]);
+      setUnmappedFiles([]);
+      setPendingMappings([]);
+    } catch (error) {
+      console.error('Error mapping student IDs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to assign student IDs. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -389,12 +416,17 @@ export default function AssignmentManagementPage({
               <StepLabel>Upload Submissions</StepLabel>
             </Step>
             <Step>
+              <StepLabel>Upload CSV or Skip</StepLabel>
+            </Step>
+            <Step>
               <StepLabel>Map Student IDs</StepLabel>
             </Step>
             <Step>
               <StepLabel>Review and Confirm</StepLabel>
             </Step>
           </Stepper>
+
+          
 
           {activeStep === 0 && (
             <Card>
@@ -427,11 +459,6 @@ export default function AssignmentManagementPage({
                         />
                       ))}
                     </ul>
-                    {uploadedFiles.every(file => file.status === 'success') && (
-                      <Button className="mt-4" onClick={() => setActiveStep(1)}>
-                        Proceed to Map Student IDs
-                      </Button>
-                    )}
                   </div>
                 )}
               </CardContent>
@@ -441,10 +468,10 @@ export default function AssignmentManagementPage({
           {activeStep === 1 && (
             <Card>
               <CardHeader>
-                <CardTitle>Map Student IDs</CardTitle>
+                <CardTitle>Upload CSV or Skip</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="mb-4">
+                <div className="flex flex-col items-center gap-4">
                   <Input
                     type="file"
                     accept=".csv"
@@ -458,10 +485,23 @@ export default function AssignmentManagementPage({
                       Upload CSV with Student IDs
                     </label>
                   </Button>
+                  <Button variant="outline" onClick={handleSkipCsvUpload}>
+                    Skip CSV Upload
+                  </Button>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeStep === 2 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Map Student IDs</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="studentId">Student ID for {uploadedFiles[currentFileIndex]?.name}</Label>
+                    <Label htmlFor="studentId">Student ID for {unmappedFiles[currentFileIndex]?.name}</Label>
                     <Input
                       id="studentId"
                       placeholder="Enter student ID"
@@ -470,7 +510,7 @@ export default function AssignmentManagementPage({
                       onKeyPress={handleKeyPress}
                     />
                     <Button className="mt-4" onClick={handleStudentIdSubmit}>
-                      {currentFileIndex < uploadedFiles.length - 1 ? 'Next' : 'Finish'}
+                      {currentFileIndex < unmappedFiles.length - 1 ? 'Next' : 'Finish'}
                     </Button>
                   </div>
                   <div>
@@ -494,7 +534,7 @@ export default function AssignmentManagementPage({
             </Card>
           )}
 
-          {activeStep === 2 && (
+          {activeStep === 3 && (
             <Card>
               <CardHeader>
                 <CardTitle>Review and Confirm</CardTitle>
@@ -509,7 +549,7 @@ export default function AssignmentManagementPage({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {uploadedFiles.map((file) => (
+                    {[...uploadedFiles, ...unmappedFiles].map((file) => (
                       <TableRow key={file.id}>
                         <TableCell>{file.name}</TableCell>
                         <TableCell>{file.studentId || 'Not assigned'}</TableCell>
@@ -524,11 +564,7 @@ export default function AssignmentManagementPage({
                     ))}
                   </TableBody>
                 </Table>
-                <Button className="mt-4" onClick={() => {
-                  fetchAssignment();
-                  setActiveStep(0);
-                  setUploadedFiles([]);
-                }}>
+                <Button className="mt-4" onClick={handleConfirmAndFinish}>
                   Confirm and Finish
                 </Button>
               </CardContent>

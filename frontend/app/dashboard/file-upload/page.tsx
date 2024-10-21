@@ -6,6 +6,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { Progress } from "~/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,8 @@ interface UploadedFile {
   id: string;
   name: string;
   studentId?: string;
+  progress: number;
+  status: 'uploading' | 'success' | 'error';
 }
 
 export default function FileUploadPage() {
@@ -27,9 +30,19 @@ export default function FileUploadPage() {
   const [showCsvUpload, setShowCsvUpload] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
+  const [currentStudentId, setCurrentStudentId] = useState('');
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const uploadPromises = acceptedFiles.map(async (file) => {
+    const newFiles = acceptedFiles.map(file => ({
+      id: '',
+      name: file.name,
+      progress: 0,
+      status: 'uploading' as const,
+    }));
+
+    setUploadedFiles(prevFiles => [...prevFiles, ...newFiles]);
+
+    const uploadPromises = acceptedFiles.map(async (file, index) => {
       const formData = new FormData();
       formData.append('file', file);
 
@@ -44,9 +57,24 @@ export default function FileUploadPage() {
         }
 
         const data = await response.json();
-        return { id: data.id, name: file.name };
+        setUploadedFiles(prevFiles => 
+          prevFiles.map((prevFile, i) => 
+            i === prevFiles.length - acceptedFiles.length + index
+              ? { ...prevFile, id: data.id, progress: 100, status: 'success' as const }
+              : prevFile
+          )
+        );
+
+        return { id: data.id, name: file.name, progress: 100, status: 'success' as const };
       } catch (error) {
         console.error('Error uploading file:', error);
+        setUploadedFiles(prevFiles => 
+          prevFiles.map((prevFile, i) => 
+            i === prevFiles.length - acceptedFiles.length + index
+              ? { ...prevFile, progress: 100, status: 'error' as const }
+              : prevFile
+          )
+        );
         toast({
           title: "Error",
           description: `Failed to upload ${file.name}`,
@@ -56,12 +84,11 @@ export default function FileUploadPage() {
       }
     });
 
-    const uploadedFiles = (await Promise.all(uploadPromises)).filter((file): file is UploadedFile => file !== null);
-    setUploadedFiles(prevFiles => [...prevFiles, ...uploadedFiles]);
+    await Promise.all(uploadPromises);
 
     toast({
-      title: "Success",
-      description: `Uploaded ${uploadedFiles.length} files`,
+      title: "Upload Complete",
+      description: `Uploaded ${acceptedFiles.length} files`,
     });
   }, []);
 
@@ -85,6 +112,7 @@ export default function FileUploadPage() {
       }
 
       const data = await response.json();
+      
       setUploadedFiles(prevFiles => 
         prevFiles.map(file => ({
           ...file,
@@ -92,10 +120,20 @@ export default function FileUploadPage() {
         }))
       );
 
-      toast({
-        title: "Success",
-        description: "CSV processed successfully",
-      });
+      const unmatchedFiles = uploadedFiles.filter(file => !data[file.name]);
+      if (unmatchedFiles.length > 0) {
+        toast({
+          title: "Warning",
+          description: `${unmatchedFiles.length} files couldn't be matched. Please use the wizard to assign their student IDs.`,
+          variant: "warning",
+        });
+        setShowWizard(true);
+      } else {
+        toast({
+          title: "Success",
+          description: "All files have been matched with student IDs",
+        });
+      }
     } catch (error) {
       console.error('Error processing CSV:', error);
       toast({
@@ -106,15 +144,25 @@ export default function FileUploadPage() {
     }
   };
 
-  const handleStudentIdSubmit = (studentId: string) => {
+  const handleStudentIdSubmit = () => {
+    if (!currentStudentId.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid Student ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploadedFiles(prevFiles => 
       prevFiles.map((file, index) => 
-        index === currentFileIndex ? { ...file, studentId } : file
+        index === currentFileIndex ? { ...file, studentId: currentStudentId } : file
       )
     );
 
     if (currentFileIndex < uploadedFiles.length - 1) {
       setCurrentFileIndex(currentFileIndex + 1);
+      setCurrentStudentId('');
     } else {
       setShowWizard(false);
       toast({
@@ -123,6 +171,14 @@ export default function FileUploadPage() {
       });
     }
   };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleStudentIdSubmit();
+    }
+  };
+
+  const unmatchedFiles = uploadedFiles.filter(file => !file.studentId);
 
   return (
     <div className="container mx-auto p-4">
@@ -150,9 +206,17 @@ export default function FileUploadPage() {
             <CardTitle>Uploaded Files</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul>
+            <ul className="space-y-2">
               {uploadedFiles.map((file, index) => (
-                <li key={index}>{file.name} {file.studentId && `- Student ID: ${file.studentId}`}</li>
+                <li key={index} className="flex items-center space-x-2">
+                  <span className={`flex-grow ${file.status === 'success' ? 'text-green-600' : file.status === 'error' ? 'text-red-600' : 'text-gray-600'}`}>
+                    {file.name} {file.studentId && `- Student ID: ${file.studentId}`}
+                  </span>
+                  <Progress value={file.progress} className="w-24" />
+                  <span className="w-16 text-right">
+                    {file.status === 'uploading' ? 'Uploading...' : file.status === 'success' ? 'Uploaded' : 'Failed'}
+                  </span>
+                </li>
               ))}
             </ul>
           </CardContent>
@@ -182,14 +246,14 @@ export default function FileUploadPage() {
           <DialogHeader>
             <DialogTitle>Assign Student IDs</DialogTitle>
             <DialogDescription>
-              Please enter the student ID for each file.
+              Please enter the student ID for each file and press Enter or click Next/Finish.
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-3 gap-4">
             <div className="overflow-y-auto max-h-96">
               <Tabs value={currentFileIndex.toString()} onValueChange={(value) => setCurrentFileIndex(parseInt(value))}>
                 <TabsList className="grid grid-cols-1 h-full">
-                  {uploadedFiles.map((file, index) => (
+                  {unmatchedFiles.map((file, index) => (
                     <TabsTrigger key={index} value={index.toString()} className="justify-start">
                       {file.name}
                     </TabsTrigger>
@@ -202,17 +266,19 @@ export default function FileUploadPage() {
               <Input
                 id="studentId"
                 placeholder="Enter student ID"
-                value={uploadedFiles[currentFileIndex]?.studentId || ''}
-                onChange={(e) => handleStudentIdSubmit(e.target.value)}
+                value={currentStudentId}
+                onChange={(e) => setCurrentStudentId(e.target.value)}
+                onKeyPress={handleKeyPress}
               />
-              <Button className="mt-4" onClick={() => handleStudentIdSubmit(uploadedFiles[currentFileIndex]?.studentId || '')}>
-                {currentFileIndex < uploadedFiles.length - 1 ? 'Next' : 'Finish'}
+              <Button className="mt-4" onClick={handleStudentIdSubmit}>
+                {currentFileIndex < unmatchedFiles.length - 1 ? 'Next' : 'Finish'}
               </Button>
             </div>
             <div>
               <iframe
-                src={`/api/pdf-preview/${uploadedFiles[currentFileIndex]?.id}`}
+                src={`/api/pdf-preview/${unmatchedFiles[currentFileIndex]?.id}`}
                 className="w-full h-96 border border-gray-300 rounded"
+                title={`PDF Preview: ${unmatchedFiles[currentFileIndex]?.name}`}
               />
             </div>
           </div>

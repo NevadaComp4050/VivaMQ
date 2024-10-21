@@ -27,6 +27,7 @@ interface Submission {
   id: string;
   assignmentId: string;
   studentId: string | null;
+  studentCode ?: string;
   submissionFile: string;
   status: string;
   vivaStatus: string;
@@ -73,6 +74,9 @@ export default function AssignmentManagementPage({
       setLoading(true);
       const response = await apiClient.get(`/assignments/${params.assignmentId}`);
       setAssignment(response.data.data);
+
+      console.log(response.data.data);
+
     } catch (error) {
       console.error("Error fetching assignment:", error);
       toast({
@@ -387,7 +391,7 @@ export default function AssignmentManagementPage({
                     {assignment.submissions.map((submission) => (
                       <TableRow key={submission.id}>
                         <TableCell>{submission.submissionFile.split('/').pop()}</TableCell>
-                        <TableCell>{submission.studentId || 'Not assigned'}</TableCell>
+                        <TableCell>{submission.studentCode ?? 'Not assigned'}</TableCell>
                         <TableCell>{submission.status}</TableCell>
                         <TableCell>{submission.vivaStatus}</TableCell>
                         <TableCell>

@@ -123,23 +123,6 @@ assignments.get(
 );
 
 /**
- * POST /assignments/{assignmentId}/bulkSubmissionMapping
- * @summary Map multiple students to submissions
- * @tags Submissions
- * @param {object} request.body.required - Request body containing an array of mappings
- * @param {Array.<object>} request.body.mappings.required - Array of mappings
- * @param {string} request.body.mappings[].submissionId.required - ID of the submission
- * @param {string} request.body.mappings[].studentId.required - ID of the student
- * @return {Array.<Submission>} 200 - Submissions updated with student mappings
- */
-assignments.post(
-  '/:id/bulkSubmissionMapping',
-  verifyAuthToken,
-  VerifyAssignmentReadWriteAccess,
-  controller.mapMultipleSubmissions
-);
-
-/**
  * POST /assignments/{assignmentId}/generateViva
  * @summary Trigger viva generation for a particular assignment
  * @tags Viva

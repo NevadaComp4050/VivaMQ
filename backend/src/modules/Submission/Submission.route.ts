@@ -7,10 +7,10 @@ const controller = new SubmissionController();
 
 /**
  * GET /api/submissions/{id}
- * @summary Retrieve details of a specific submission
+ * @summary Retrieve details of a specific submission, including viva questions
  * @tags Submission
  * @param {string} id.path.required - Submission ID
- * @return {Submission} 200 - Submission details
+ * @return {Submission} 200 - Submission details including viva questions
  */
 submissions.get('/:id', verifyAuthToken, controller.getSubmissionById);
 

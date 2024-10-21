@@ -13,6 +13,7 @@ const AI_TO_BE_QUEUE = 'AItoBE';
 
 let connection: amqp.Connection | null = null;
 let channel: amqp.Channel | null = null;
+const sentUUIDs = new Set<string>();
 
 // Set up the RabbitMQ connection and channels
 export async function setupQueue() {
@@ -56,6 +57,9 @@ export async function submitSubmission(submissionID: string) {
       uuid: submissionID,
     };
 
+    // Store the UUID of the sent message
+    sentUUIDs.add(submissionID);
+
     await sendToAIService(message);
   } catch (error) {
     console.error('Error processing submission:', error);
@@ -80,6 +84,14 @@ async function handleAIResponse(msg: amqp.Message | null) {
     data: rawData,
     uuid,
   }: { type: string; data: any; uuid: string } = response;
+
+  // Check if the UUID matches a previously sent message
+  if (!sentUUIDs.has(uuid)) {
+    console.warn(`Received message with unknown UUID: ${uuid}`);
+    if (channel) channel.ack(msg);
+    return;
+  }
+
   if (channel) channel.ack(msg);
 
   try {
@@ -90,6 +102,7 @@ async function handleAIResponse(msg: amqp.Message | null) {
 
     if (type === 'vivaQuestions') {
       await handleVivaQuestions(data, uuid);
+      sentUUIDs.delete(uuid); // Remove the UUID after processing
     } else if (type === 'error') {
       console.error('Error from AI service:', data);
     } else {

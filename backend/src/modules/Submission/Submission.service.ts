@@ -1,6 +1,7 @@
 import { Prisma, type Submission } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import S3PDFHandler from '@/utils/s3-util';
+import { submitSubmission } from '@/services/viva-service';
 
 export default class SubmissionService {
   private readonly s3Handler: S3PDFHandler;
@@ -15,6 +16,13 @@ export default class SubmissionService {
         where: {
           id,
           deletedAt: null, // Ensure the submission is not soft-deleted
+        },
+        include: {
+          vivaQuestions: {
+            where: {
+              deletedAt: null, // Ensure only active viva questions are fetched
+            },
+          },
         },
       });
 
@@ -36,7 +44,7 @@ export default class SubmissionService {
   }
 
   public async generateVivaQuestions(submissionId: string) {
-    // await queueVivaGeneration(submissionId);
+    await submitSubmission(submissionId);
   }
 
   public async delete(id: string) {

@@ -16,24 +16,24 @@ model User {
   phone     String?
   password  String
   role      Role         @default(STUDENT)
+  deletedAt DateTime?
+  rubrics   Rubric[]
   units     Unit[]       @relation("UnitOwner")
   accesses  UnitAccess[]
-  rubrics   Rubric[]
-  deletedAt DateTime?
 }
 
 model Unit {
   id          String       @id @default(uuid())
   name        String
-  description String       @default("")
   sessionId   String
   ownerId     String
+  description String       @default("")
+  deletedAt   DateTime?
+  assignments Assignment[]
+  tutors      Tutor[]
   owner       User         @relation("UnitOwner", fields: [ownerId], references: [id])
   session     Session      @relation(fields: [sessionId], references: [id])
-  tutors      Tutor[]
-  assignments Assignment[]
   accesses    UnitAccess[]
-  deletedAt   DateTime?
 }
 
 model Session {
@@ -41,8 +41,8 @@ model Session {
   displayName String
   year        Int
   term        Term
-  units       Unit[]
   deletedAt   DateTime?
+  units       Unit[]
 }
 
 model Tutor {
@@ -50,16 +50,16 @@ model Tutor {
   name      String
   email     String    @unique
   unitId    String
-  unit      Unit      @relation(fields: [unitId], references: [id])
   deletedAt DateTime?
+  unit      Unit      @relation(fields: [unitId], references: [id])
 }
 
 model Student {
   id          String       @id @default(uuid())
   name        String
   email       String       @unique
-  submissions Submission[]
   deletedAt   DateTime?
+  submissions Submission[]
 }
 
 model Assignment {
@@ -68,11 +68,11 @@ model Assignment {
   specs       String
   settings    String
   unitId      String
-  unit        Unit         @relation(fields: [unitId], references: [id])
-  submissions Submission[]
-  description String?
-  rubrics     Rubric[]
   deletedAt   DateTime?
+  description String?
+  unit        Unit         @relation(fields: [unitId], references: [id])
+  rubrics     Rubric[]
+  submissions Submission[]
 }
 
 model Submission {
@@ -81,15 +81,15 @@ model Submission {
   studentId         String?
   submissionFile    String
   status            String
-  summary           String?
+  vivaStatus        VIVASTATUS     @default(NOTSTARTED)
+  studentCode       String?
+  deletedAt         DateTime?
   qualityAssessment String?
+  summary           String?
+  vivaRequestDate   DateTime?      @default(now())
   assignment        Assignment     @relation(fields: [assignmentId], references: [id])
   student           Student?       @relation(fields: [studentId], references: [id])
-  studentCode       String?
   vivaQuestions     VivaQuestion[]
-  vivaStatus        VIVASTATUS     @default(NOTSTARTED)
-  deletedAt         DateTime?
-  vivaRequestDate   DateTime?      @default(now())
 }
 
 model VivaQuestion {
@@ -97,8 +97,8 @@ model VivaQuestion {
   submissionId String
   question     Json       @db.Json
   status       String
-  submission   Submission @relation(fields: [submissionId], references: [id])
   deletedAt    DateTime?
+  submission   Submission @relation(fields: [submissionId], references: [id])
 }
 
 model UnitAccess {
@@ -107,9 +107,9 @@ model UnitAccess {
   unitId    String
   role      AccessRole
   status    AccessStatus @default(ACCEPTED)
-  user      User         @relation(fields: [userId], references: [id])
-  unit      Unit         @relation(fields: [unitId], references: [id])
   deletedAt DateTime?
+  unit      Unit         @relation(fields: [unitId], references: [id])
+  user      User         @relation(fields: [userId], references: [id])
 
   @@unique([userId, unitId])
 }
@@ -120,9 +120,9 @@ model Rubric {
   createdById  String
   assignmentId String
   rubricFile   String
-  createdBy    User       @relation(fields: [createdById], references: [id])
-  assignment   Assignment @relation(fields: [assignmentId], references: [id])
   deletedAt    DateTime?
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  createdBy    User       @relation(fields: [createdById], references: [id])
 }
 
 enum Role {

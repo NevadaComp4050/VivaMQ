@@ -723,7 +723,7 @@ export default function AssignmentManagementPage({
               <CardContent>
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold mb-2">
-                    Mapped Submissions
+                    CSV Mapped Submissions
                   </h3>
                   {mappedSubmissions.length === 0 ? (
                     <p className="text-muted-foreground">
@@ -743,7 +743,7 @@ export default function AssignmentManagementPage({
                           <TableRow key={file.id}>
                             <TableCell>{file.name}</TableCell>
                             <TableCell>
-                              {file.studentId || "Not assigned"}
+                              {file.studentId ?? "Not assigned"}
                             </TableCell>
                             <TableCell>
                               {file.status === "success" ? (
@@ -761,7 +761,7 @@ export default function AssignmentManagementPage({
 
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold mb-2">
-                    Unmapped Submissions
+                    Manually Mapped Submissions
                   </h3>
                   {remainingUnmappedSubmissions.length === 0 ? (
                     <p className="text-muted-foreground">

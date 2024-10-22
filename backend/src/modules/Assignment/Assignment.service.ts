@@ -13,14 +13,47 @@ export default class AssignmentService {
     return assignment;
   }
 
-  public async get(id: string) {
+  public async get(id: string, userId: string) {
+    // Find the assignment, including unit and accesses
     const assignment = await prisma.assignment.findFirst({
       where: {
         id,
         deletedAt: null,
       },
+      include: {
+        unit: {
+          include: {
+            accesses: true,
+          },
+        },
+      },
     });
-    return assignment;
+
+    if (!assignment) {
+      throw new Error(`Assignment with ID ${id} not found or access denied.`);
+    }
+
+    // Determine if the user has write access
+    let writeable = false;
+
+    // Check if the user is the unit owner
+    if (assignment.unit.ownerId === userId) {
+      writeable = true;
+    } else {
+      // Check if the user has READ_WRITE access to the unit
+      const userAccess = assignment.unit.accesses.find(
+        (access) => access.userId === userId && access.role === 'READ_WRITE'
+      );
+      if (userAccess) {
+        writeable = true;
+      }
+    }
+
+    // Return assignment details along with writeable status
+    return {
+      ...assignment,
+      writeable,
+    };
   }
 
   public async getAll() {

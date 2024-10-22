@@ -54,6 +54,7 @@ interface Assignment {
   settings: string;
   unitId: string;
   submissions: Submission[];
+  writeable: boolean;
 }
 
 interface UploadedFile {
@@ -230,7 +231,7 @@ export default function AssignmentManagementPage({
         }
       }
 
-      const mappedSubmissions = await response.json();
+      const mappedSubmissions = await response.json() as Record<string, string>;
 
       // Normalize file names to handle case sensitivity and whitespace
       const normalizedMappings: Record<string, string> = {};
@@ -514,7 +515,7 @@ export default function AssignmentManagementPage({
       >
         <TabsList>
           <TabsTrigger value="view">View Submissions</TabsTrigger>
-          <TabsTrigger value="upload">Upload New Submissions</TabsTrigger>
+          <TabsTrigger value="upload" disabled={!assignment.writeable}>Upload New Submissions</TabsTrigger>
         </TabsList>
         <TabsContent value="view">
           <Card>

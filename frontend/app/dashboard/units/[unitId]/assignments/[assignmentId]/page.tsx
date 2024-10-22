@@ -168,42 +168,55 @@ export default function AssignmentManagementPage({
   const handleCsvUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !session?.user?.accessToken) return;
-
+  
     const formData = new FormData();
     formData.append('file', file);
-
+  
     try {
       const response = await fetch('/api/process-csv', {
         method: 'POST',
         body: formData,
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to process CSV');
       }
-
+  
       const mappedSubmissions = await response.json();
-
-      const mappedFiles = uploadedFiles.filter(file => mappedSubmissions[file.name]);
-      const unmappedFiles = uploadedFiles.filter(file => !mappedSubmissions[file.name]);
-
+  
+      // Normalize file names to handle case sensitivity and whitespace
+      const normalizedMappings: Record<string, string> = {};
+      for (const [fileName, studentId] of Object.entries(mappedSubmissions)) {
+        normalizedMappings[fileName.trim().toLowerCase()] = studentId.trim();
+      }
+  
+      const mappedFiles = uploadedFiles.filter(file => {
+        const normalizedFileName = file.name.trim().toLowerCase();
+        return normalizedMappings[normalizedFileName];
+      });
+  
+      const unmappedFiles = uploadedFiles.filter(file => {
+        const normalizedFileName = file.name.trim().toLowerCase();
+        return !normalizedMappings[normalizedFileName];
+      });
+  
       setUploadedFiles(mappedFiles.map(file => ({
         ...file,
-        studentId: mappedSubmissions[file.name],
+        studentId: normalizedMappings[file.name.trim().toLowerCase()],
       })));
-
+  
       setUnmappedFiles(unmappedFiles);
-
+  
       setPendingMappings(mappedFiles.map(file => ({
         submissionId: file.id,
-        studentId: mappedSubmissions[file.name],
+        studentId: normalizedMappings[file.name.trim().toLowerCase()],
       })));
-
+  
       toast({
         title: "Success",
         description: "CSV processed successfully",
       });
-
+  
       if (unmappedFiles.length > 0) {
         setActiveStep(2);
       } else {
@@ -218,6 +231,7 @@ export default function AssignmentManagementPage({
       });
     }
   };
+  
 
   const handleSkipCsvUpload = () => {
     setUnmappedFiles(uploadedFiles);
@@ -261,7 +275,7 @@ export default function AssignmentManagementPage({
 
   const handleDeleteSubmission = async (submissionId: string) => {
     if (!session?.user?.accessToken) return;
-
+  
     const apiClient = createApiClient(session.user.accessToken);
     try {
       await apiClient.delete(`/submissions/${submissionId}`);
@@ -269,7 +283,15 @@ export default function AssignmentManagementPage({
         title: "Success",
         description: "Submission deleted successfully",
       });
-      fetchAssignment();
+      
+      // Optimistically update the local state
+      setAssignment(prevAssignment => {
+        if (!prevAssignment) return prevAssignment;
+        return {
+          ...prevAssignment,
+          submissions: prevAssignment.submissions.filter(sub => sub.id !== submissionId),
+        };
+      });
     } catch (error) {
       console.error('Error deleting submission:', error);
       toast({
@@ -279,6 +301,7 @@ export default function AssignmentManagementPage({
       });
     }
   };
+  
 
   const fetchFileContent = useCallback(async (fileId: string) => {
     if (!session?.user?.accessToken) return;

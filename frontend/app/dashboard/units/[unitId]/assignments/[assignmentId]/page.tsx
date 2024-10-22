@@ -18,7 +18,14 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Stepper, Step, StepLabel } from "~/components/ui/stepper";
 import { toast } from "~/components/ui/use-toast";
-import { Loader2, UploadIcon, FileIcon, CheckIcon } from "lucide-react";
+import {
+  Loader2,
+  UploadIcon,
+  FileIcon,
+  CheckIcon,
+  ArrowRightIcon,
+  ArrowLeftIcon,
+} from "lucide-react";
 import Link from "next/link";
 import createApiClient from "~/lib/api-client";
 import { UploadedFileItem } from "~/components/components/uploaded-file-item";
@@ -296,7 +303,7 @@ export default function AssignmentManagementPage({
     const currentFile = unmappedFiles[currentFileIndex];
 
     setPendingMappings((prev) => [
-      ...prev,
+      ...prev.filter((mapping) => mapping.submissionId !== currentFile.id),
       { submissionId: currentFile.id, studentId: currentStudentId.trim() },
     ]);
 
@@ -309,8 +316,7 @@ export default function AssignmentManagementPage({
     );
 
     if (currentFileIndex < unmappedFiles.length - 1) {
-      setCurrentFileIndex(currentFileIndex + 1);
-      setCurrentStudentId("");
+      handleNextFile();
     } else {
       setActiveStep(3);
     }
@@ -446,6 +452,20 @@ export default function AssignmentManagementPage({
       setActiveStep(2);
     } else {
       setActiveStep(3);
+    }
+  };
+
+  const handlePreviousFile = () => {
+    if (currentFileIndex > 0) {
+      setCurrentFileIndex(currentFileIndex - 1);
+      setCurrentStudentId(unmappedFiles[currentFileIndex - 1].studentId || "");
+    }
+  };
+
+  const handleNextFile = () => {
+    if (currentFileIndex < unmappedFiles.length - 1) {
+      setCurrentFileIndex(currentFileIndex + 1);
+      setCurrentStudentId(unmappedFiles[currentFileIndex + 1].studentId || "");
     }
   };
 
@@ -676,11 +696,28 @@ export default function AssignmentManagementPage({
                       onChange={(e) => setCurrentStudentId(e.target.value)}
                       onKeyPress={handleKeyPress}
                     />
-                    <Button className="mt-4" onClick={handleStudentIdSubmit}>
-                      {currentFileIndex < unmappedFiles.length - 1
-                        ? "Next"
-                        : "Finish"}
-                    </Button>
+                    <div className="flex justify-between mt-4">
+                      <Button
+                        onClick={handlePreviousFile}
+                        disabled={currentFileIndex === 0}
+                      >
+                        <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                        Previous
+                      </Button>
+                      <Button onClick={handleStudentIdSubmit}>
+                        {currentFileIndex < unmappedFiles.length - 1 ? (
+                          <>
+                            Next
+                            <ArrowRightIcon className="ml-2 h-4 w-4" />
+                          </>
+                        ) : (
+                          "Finish"
+                        )}
+                      </Button>
+                    </div>
+                    <div className="mt-4 text-sm text-muted-foreground">
+                      {currentFileIndex + 1} of {unmappedFiles.length}
+                    </div>
                   </div>
                   <div>
                     <div className="w-full h-96 border border-gray-300 rounded overflow-hidden">
@@ -699,7 +736,7 @@ export default function AssignmentManagementPage({
                           }}
                         />
                       ) : (
-                        <div className="flexi tems-center justify-center h-full">
+                        <div className="flex items-center justify-center h-full">
                           <Loader2 className="h-8 w-8 animate-spin" />
                         </div>
                       )}

@@ -18,12 +18,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Stepper, Step, StepLabel } from "~/components/ui/stepper";
 import { toast } from "~/components/ui/use-toast";
-import {
-  Loader2,
-  UploadIcon,
-  FileIcon,
-  CheckIcon,
-} from "lucide-react";
+import { Loader2, UploadIcon, FileIcon, CheckIcon } from "lucide-react";
 import Link from "next/link";
 import createApiClient from "~/lib/api-client";
 import { UploadedFileItem } from "~/components/components/uploaded-file-item";
@@ -797,6 +792,13 @@ export default function AssignmentManagementPage({
                   )}
                 </div>
 
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveStep(2)}
+                  className="mr-4"
+                >
+                  Back
+                </Button>
                 <Button className="mt-4" onClick={handleConfirmAndFinish}>
                   Confirm and Finish
                 </Button>

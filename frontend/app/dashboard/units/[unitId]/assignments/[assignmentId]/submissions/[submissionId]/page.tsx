@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -13,9 +13,17 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { Loader2 } from "lucide-react";
+import { Loader2, Maximize2 } from "lucide-react";
+import { useToast } from "~/components/ui/use-toast";
 import createApiClient from "~/lib/api-client";
 import { useSession } from "next-auth/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 
 interface VivaQuestion {
   id: string;
@@ -45,7 +53,38 @@ export default function SingleSubmissionReviewPage({
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentFileContent, setCurrentFileContent] = useState<string | null>(
+    null
+  );
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
   const { data: session } = useSession();
+  const { toast } = useToast();
+  const fileContentRef = useRef<string | null>(null);
+
+  const fetchFileContent = useCallback(
+    async (fileId: string) => {
+      if (!session?.user?.accessToken) return;
+
+      const apiClient = createApiClient(session.user.accessToken);
+      try {
+        const response = await apiClient.get(`submissions/${fileId}/file`, {
+          responseType: "blob",
+        });
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        fileContentRef.current = url;
+        setCurrentFileContent(url);
+      } catch (error) {
+        console.error("Error fetching file content:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch file content. Please try again.",
+          variant: "destructive",
+        });
+      }
+    },
+    [session, toast]
+  );
 
   useEffect(() => {
     const fetchSubmission = async () => {
@@ -56,6 +95,9 @@ export default function SingleSubmissionReviewPage({
           `/submissions/${params.submissionId}`
         );
         setSubmission(response.data.data);
+        if (response.data.data.submissionFile) {
+          fetchFileContent(response.data.data.id);
+        }
       } catch (err) {
         setError("Error fetching submission data");
         console.error(err);
@@ -65,7 +107,7 @@ export default function SingleSubmissionReviewPage({
     };
 
     fetchSubmission();
-  }, [params.submissionId]);
+  }, [params.submissionId, session, fetchFileContent]);
 
   if (loading) {
     return (
@@ -122,12 +164,56 @@ export default function SingleSubmissionReviewPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Submission Content</CardTitle>
+            <CardTitle className="flex justify-between items-center">
+              Submission Content
+              <Dialog
+                open={isFullscreenOpen}
+                onOpenChange={setIsFullscreenOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-full w-[90vw] h-[90vh]">
+                  {currentFileContent && (
+                    <div className="flex flex-col gap-6">
+                      <DialogHeader>
+                        <DialogTitle>Submission Content</DialogTitle>
+                      </DialogHeader>
+                      <div className="w-full h-full">
+                        <embed
+                          src={currentFileContent}
+                          type="application/pdf"
+                          width="100%"
+                          height="100%"
+                          className="rounded-md w-full h-full"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[300px] w-full rounded-md border p-4">
-              <p>{submission.summary || "No summary available"}</p>
-            </ScrollArea>
+            <div className="h-[300px] w-full rounded-md border p-4">
+              {currentFileContent && (
+                <embed
+                  src={currentFileContent}
+                  type="application/pdf"
+                  width="100%"
+                  height="100%"
+                  onError={() => {
+                    toast({
+                      title: "Error",
+                      description: "Failed to load PDF.",
+                      variant: "destructive",
+                    });
+                  }}
+                />
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

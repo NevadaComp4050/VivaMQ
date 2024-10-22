@@ -1,13 +1,12 @@
-// process-csv API code
-import { NextRequest, NextResponse } from 'next/server';
-import { parse } from 'csv-parse/sync';
+import { NextRequest, NextResponse } from "next/server";
+import { parse } from "csv-parse/sync";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
-  const file = formData.get('file') as File;
+  const file = formData.get("file") as File;
 
   if (!file) {
-    return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
   }
 
   const text = await file.text();
@@ -15,6 +14,7 @@ export async function POST(request: NextRequest) {
 
   const mapping: Record<string, string> = {};
   const duplicates: string[] = [];
+  const seen: Set<string> = new Set();
 
   for (const record of records) {
     const fileName = record.fileName?.trim().toLowerCase();
@@ -22,15 +22,20 @@ export async function POST(request: NextRequest) {
 
     if (!fileName || !studentId) continue;
 
-    if (mapping[fileName]) {
+    if (seen.has(fileName)) {
       duplicates.push(record.fileName);
-    } else {
-      mapping[fileName] = studentId;
+      continue;
     }
+
+    seen.add(fileName);
+    mapping[fileName] = studentId;
   }
 
   if (duplicates.length > 0) {
-    return NextResponse.json({ error: 'Duplicate entries found', duplicates }, { status: 400 });
+    return NextResponse.json(
+      { error: "Duplicate entries found", duplicates },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json(mapping);

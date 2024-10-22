@@ -14,25 +14,27 @@ import {
 } from "~/components/ui/table";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
+import createApiClient from "~/lib/api-client";
+import { useSession } from "next-auth/react";
 
-interface Question {
+interface VivaQuestion {
   id: string;
-  text: string;
-  category: string;
+  submissionId: string;
+  question: string;
+  status: string;
 }
 
 interface Submission {
   id: string;
-  studentName: string;
-  studentId: string;
-  submissionDate: string;
+  assignmentId: string;
+  studentId: string | null;
+  submissionFile: string;
   status: string;
-  content?: string;
-  pdfSubmission?: {
-    fileName: string;
-    extractedText?: string;
-  };
-  questions: Question[];
+  summary: string | null;
+  qualityAssessment: string | null;
+  studentCode: string | null;
+  vivaStatus: string;
+  vivaQuestions: VivaQuestion[];
 }
 
 export default function SingleSubmissionReviewPage({
@@ -43,18 +45,17 @@ export default function SingleSubmissionReviewPage({
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchSubmission = async () => {
       try {
-        const response = await fetch(
-          `/api/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${params.submissionId}`
+        if (!session?.user?.accessToken) return;
+        const apiClient = createApiClient(session.user.accessToken);
+        const response = await apiClient.get(
+          `/submissions/${params.submissionId}`
         );
-        if (!response.ok) {
-          throw new Error("Failed to fetch submission");
-        }
-        const data = await response.json();
-        setSubmission(data);
+        setSubmission(response.data.data);
       } catch (err) {
         setError("Error fetching submission data");
         console.error(err);
@@ -64,7 +65,7 @@ export default function SingleSubmissionReviewPage({
     };
 
     fetchSubmission();
-  }, [params.unitId, params.assignmentId, params.submissionId]);
+  }, [params.submissionId]);
 
   if (loading) {
     return (
@@ -81,7 +82,7 @@ export default function SingleSubmissionReviewPage({
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-6">
-        Review Submission: {submission.studentName}
+        Review Submission: {submission.id}
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -92,29 +93,29 @@ export default function SingleSubmissionReviewPage({
           <CardContent>
             <div className="space-y-2">
               <div>
-                <Label>Student Name</Label>
-                <div>{submission.studentName}</div>
+                <Label>Submission ID</Label>
+                <div>{submission.id}</div>
+              </div>
+              <div>
+                <Label>Assignment ID</Label>
+                <div>{submission.assignmentId}</div>
               </div>
               <div>
                 <Label>Student ID</Label>
-                <div>{submission.studentId}</div>
-              </div>
-              <div>
-                <Label>Submission Date</Label>
-                <div>
-                  {new Date(submission.submissionDate).toLocaleString()}
-                </div>
+                <div>{submission.studentId || "N/A"}</div>
               </div>
               <div>
                 <Label>Status</Label>
                 <div>{submission.status}</div>
               </div>
-              {submission.pdfSubmission && (
-                <div>
-                  <Label>PDF File</Label>
-                  <div>{submission.pdfSubmission.fileName}</div>
-                </div>
-              )}
+              <div>
+                <Label>Viva Status</Label>
+                <div>{submission.vivaStatus}</div>
+              </div>
+              <div>
+                <Label>Submission File</Label>
+                <div>{submission.submissionFile}</div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -125,11 +126,7 @@ export default function SingleSubmissionReviewPage({
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px] w-full rounded-md border p-4">
-              <p>
-                {submission.pdfSubmission?.extractedText ||
-                  submission.content ||
-                  "No content available"}
-              </p>
+              <p>{submission.summary || "No summary available"}</p>
             </ScrollArea>
           </CardContent>
         </Card>
@@ -137,21 +134,21 @@ export default function SingleSubmissionReviewPage({
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Generated Questions</CardTitle>
+          <CardTitle>Viva Questions</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Question</TableHead>
-                <TableHead>Category</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {submission.questions.map((question) => (
+              {submission.vivaQuestions.map((question) => (
                 <TableRow key={question.id}>
-                  <TableCell>{question.text}</TableCell>
-                  <TableCell>{question.category}</TableCell>
+                  <TableCell>{question.question}</TableCell>
+                  <TableCell>{question.status}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

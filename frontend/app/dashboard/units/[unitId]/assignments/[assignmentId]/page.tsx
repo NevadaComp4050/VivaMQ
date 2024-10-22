@@ -19,15 +19,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Stepper, Step, StepLabel } from "~/components/ui/stepper";
 import { toast } from "~/components/ui/use-toast";
 import {
-  FileTextIcon,
-  UsersIcon,
-  FileEditIcon,
   Loader2,
   UploadIcon,
   FileIcon,
   CheckIcon,
-  PlusIcon,
-  Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
 import createApiClient from "~/lib/api-client";

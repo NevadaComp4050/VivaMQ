@@ -83,19 +83,49 @@ export default class AssignmentService {
     return count;
   }
 
-  public async getAssignmentWithSubmissions(id: string) {
+  public async getAssignmentWithSubmissions(
+    assignmentId: string,
+    userId: string
+  ) {
+    // Fetch assignment and related submissions
     const assignment = await prisma.assignment.findFirst({
       where: {
-        id,
+        id: assignmentId,
         deletedAt: null,
       },
       include: {
         submissions: {
           where: { deletedAt: null },
         },
+        unit: {
+          include: {
+            accesses: true,
+          },
+        },
       },
     });
-    return assignment;
+
+    if (!assignment) {
+      return null;
+    }
+
+    // Determine if the user has write access
+    let writeable = false;
+    if (assignment.unit.ownerId === userId) {
+      writeable = true;
+    } else {
+      const userAccess = assignment.unit.accesses.find(
+        (access) => access.userId === userId && access.role === 'READ_WRITE'
+      );
+      if (userAccess) {
+        writeable = true;
+      }
+    }
+
+    return {
+      ...assignment,
+      writeable,
+    };
   }
 
   public async createSubmission(data: {

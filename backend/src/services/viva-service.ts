@@ -40,16 +40,24 @@ export async function submitSubmission(submissionID: string) {
   console.log('Processing submission:', submissionID);
 
   try {
+    // Fetch submission data
     const submission = await prisma.submission.findUnique({
       where: { id: submissionID },
     });
     if (!submission)
       throw new Error(`Submission with ID ${submissionID} not found`);
 
+    // Fetch submission text
     const submissionFileLookupResult = await fetchSubmissionText(submissionID);
     if (!submissionFileLookupResult?.text) {
       throw new Error(`No text found for submission ${submissionID}`);
     }
+
+    // Update vivaStatus to INPROGRESS
+    await prisma.submission.update({
+      where: { id: submissionID },
+      data: { vivaStatus: 'INPROGRESS' },
+    });
 
     const message: Message = {
       type: 'vivaQuestions',
@@ -60,9 +68,16 @@ export async function submitSubmission(submissionID: string) {
     // Store the UUID of the sent message
     sentUUIDs.add(submissionID);
 
+    // Send message to AI service
     await sendToAIService(message);
   } catch (error) {
     console.error('Error processing submission:', error);
+
+    // Update vivaStatus to ERROR
+    await prisma.submission.update({
+      where: { id: submissionID },
+      data: { vivaStatus: 'ERROR' },
+    });
   }
 }
 
@@ -105,36 +120,60 @@ async function handleAIResponse(msg: amqp.Message | null) {
       sentUUIDs.delete(uuid); // Remove the UUID after processing
     } else if (type === 'error') {
       console.error('Error from AI service:', data);
+
+      // Update vivaStatus to ERROR
+      await prisma.submission.update({
+        where: { id: uuid },
+        data: { vivaStatus: 'ERROR' },
+      });
     } else {
       console.warn(`Unhandled message type: ${type}`);
     }
   } catch (error) {
     console.error('Failed to parse nested data as JSON:', error);
+
+    // Update vivaStatus to ERROR
+    await prisma.submission.update({
+      where: { id: uuid },
+      data: { vivaStatus: 'ERROR' },
+    });
   }
 }
 
 // Handle viva questions from the AI service
 async function handleVivaQuestions(data: any, uuid: string) {
   if (Array.isArray(data?.questions) && data.questions.length > 0) {
-    for (const question of data.questions) {
-      if (question?.question_text) {
-        const vivaId = uuidv4();
-        const vivaQuestion: Prisma.VivaQuestionCreateInput = {
-          id: vivaId,
-          submission: { connect: { id: uuid } },
-          question: question.question_text as Prisma.InputJsonValue,
-          status: 'GENERATED',
-        };
+    try {
+      for (const question of data.questions) {
+        if (question?.question_text) {
+          const vivaId = uuidv4();
+          const vivaQuestion: Prisma.VivaQuestionCreateInput = {
+            id: vivaId,
+            submission: { connect: { id: uuid } },
+            question: question.question_text as Prisma.InputJsonValue,
+            status: 'GENERATED',
+          };
 
-        try {
           await prisma.vivaQuestion.create({ data: vivaQuestion });
           console.log('Viva question saved. ID:', vivaId);
-        } catch (error) {
-          console.error('Error saving viva question:', error);
+        } else {
+          console.warn('Invalid question structure:', question);
         }
-      } else {
-        console.warn('Invalid question structure:', question);
       }
+
+      // Update vivaStatus to COMPLETED after all questions are created
+      await prisma.submission.update({
+        where: { id: uuid },
+        data: { vivaStatus: 'COMPLETED' },
+      });
+    } catch (error) {
+      console.error('Error saving viva question:', error);
+
+      // Update vivaStatus to ERROR
+      await prisma.submission.update({
+        where: { id: uuid },
+        data: { vivaStatus: 'ERROR' },
+      });
     }
   } else {
     console.warn(

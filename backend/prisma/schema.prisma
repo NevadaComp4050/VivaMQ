@@ -85,10 +85,11 @@ model Submission {
   qualityAssessment String?
   assignment        Assignment     @relation(fields: [assignmentId], references: [id])
   student           Student?       @relation(fields: [studentId], references: [id])
-  studentCode       String?        @unique
+  studentCode       String?
   vivaQuestions     VivaQuestion[]
   vivaStatus        VIVASTATUS     @default(NOTSTARTED)
   deletedAt         DateTime?
+  vivaRequestDate   DateTime?      @default(now())
 }
 
 model VivaQuestion {
@@ -152,4 +153,5 @@ enum VIVASTATUS {
   NOTSTARTED
   INPROGRESS
   COMPLETED
+  ERROR
 }

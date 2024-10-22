@@ -15,6 +15,7 @@ export default class UnitService {
       where: {
         term: data.term,
         year: data.year,
+        deletedAt: null,
       },
     });
 
@@ -40,9 +41,11 @@ export default class UnitService {
     return unit;
   }
 
-  // Updated method to get units grouped by session, sorted by year and term
   public async getUnitsGroupedBySession(userId: string) {
     const sessions = await prisma.session.findMany({
+      where: {
+        deletedAt: null,
+      },
       include: {
         units: {
           where: {
@@ -57,6 +60,7 @@ export default class UnitService {
                 },
               },
             ],
+            deletedAt: null, // Include only non-deleted units
           },
           include: {
             accesses: true,
@@ -65,14 +69,11 @@ export default class UnitService {
       },
     });
 
-    // Custom sorting function for sessions by year and term
     const sortedSessions = sessions.sort((a, b) => {
-      // Sort by year in descending order
       if (a.year !== b.year) {
         return b.year - a.year;
       }
 
-      // Sort by term in custom order: SESSION_3 > SESSION_2 > SESSION_1 > ALL_YEAR
       const termOrder = {
         SESSION_3: 0,
         SESSION_2: 1,
@@ -83,24 +84,20 @@ export default class UnitService {
       return termOrder[a.term] - termOrder[b.term];
     });
 
-    // Filter out sessions without units
     const filteredSessions = sortedSessions.filter(
       (session) => session.units.length > 0
     );
 
-    // Process units to determine access type
     const result = filteredSessions.map((session) => ({
       ...session,
       units: session.units.map((unit) => {
-        let accessType = 'Owner'; // Default to Owner if the user is the owner
+        let accessType = 'Owner';
 
-        // If the user is not the owner, check the accesses relation
         if (unit.ownerId !== userId) {
           const userAccess = unit.accesses.find(
             (access) => access.userId === userId
           );
 
-          // If the user has access through UnitAccess, determine the access role
           if (userAccess) {
             if (userAccess.role === 'READ_ONLY') {
               accessType = 'Read-Only';
@@ -112,7 +109,6 @@ export default class UnitService {
           }
         }
 
-        // Return the unit with the additional accessType field, excluding accesses
         const { accesses, ...unitWithoutAccesses } = unit;
         return {
           ...unitWithoutAccesses,
@@ -139,15 +135,20 @@ export default class UnitService {
             },
           },
         ],
+        deletedAt: null,
       },
       include: {
-        // Include related data as per the requirements
         assignments: {
+          where: { deletedAt: null },
           include: {
-            submissions: true, // Include submissions to gather status
+            submissions: {
+              where: { deletedAt: null }, // Include only non-deleted submissions
+            },
           },
         },
-        tutors: true, // Include all tutor details
+        tutors: {
+          where: { deletedAt: null },
+        },
       },
     });
 
@@ -155,7 +156,6 @@ export default class UnitService {
       throw new Error(`Unit with ID ${unitId} not found or access denied.`);
     }
 
-    // Calculate submission statuses for each assignment
     const assignmentsWithStatus = unit.assignments.map((assignment) => {
       const submissionStatuses = assignment.submissions.reduce<
         Record<string, number>
@@ -170,18 +170,17 @@ export default class UnitService {
       };
     });
 
-    // Count the number of generated viva questions under this unit
     const vivaQuestionCount = await prisma.vivaQuestion.count({
       where: {
         submission: {
           assignment: {
             unitId,
+            deletedAt: null,
           },
         },
       },
     });
 
-    // Return the unit with additional details
     return {
       ...unit,
       assignments: assignmentsWithStatus,
@@ -193,7 +192,6 @@ export default class UnitService {
     unitId: string,
     data: { name?: string; term?: Term; year?: number }
   ) {
-    // Remove undefined properties from the update object
     const updateData = Object.fromEntries(
       Object.entries(data).filter(([_, v]) => v !== undefined)
     );
@@ -220,25 +218,23 @@ export default class UnitService {
             },
           },
         ],
+        deletedAt: null, // Only include non-deleted units
       },
       include: {
-        accesses: true, // Include access information
+        accesses: true,
       },
       skip: offset,
       take: limit,
     });
 
-    // Process units to determine access type
     const result = units.map((unit) => {
-      let accessType = 'Owner'; // Default to Owner if the user is the owner
+      let accessType = 'Owner';
 
-      // If the user is not the owner, check the accesses relation
       if (unit.ownerId !== userId) {
         const userAccess = unit.accesses.find(
           (access) => access.userId === userId
         );
 
-        // Determine access role
         if (userAccess) {
           if (userAccess.role === 'READ_ONLY') {
             accessType = 'Read-Only';
@@ -250,7 +246,6 @@ export default class UnitService {
         }
       }
 
-      // Return the unit with additional accessType field
       const { accesses, ...unitWithoutAccesses } = unit;
       return {
         ...unitWithoutAccesses,
@@ -276,9 +271,10 @@ export default class UnitService {
             },
           },
         ],
+        deletedAt: null,
       },
       include: {
-        accesses: true, // Include access information
+        accesses: true,
       },
     });
 
@@ -286,8 +282,7 @@ export default class UnitService {
       throw new Error(`Unit with ID ${unitId} not found or access denied.`);
     }
 
-    // Determine access type
-    let accessType = 'Owner'; // Default to Owner if the user is the owner
+    let accessType = 'Owner';
     if (unit.ownerId !== userId) {
       const userAccess = unit.accesses.find(
         (access) => access.userId === userId
@@ -304,7 +299,6 @@ export default class UnitService {
       }
     }
 
-    // Return the unit with additional accessType field
     const { accesses, ...unitWithoutAccesses } = unit;
     return {
       ...unitWithoutAccesses,
@@ -320,13 +314,17 @@ export default class UnitService {
   }
 
   public async delete(id: string) {
-    return await prisma.unit.delete({
+    return await prisma.unit.update({
       where: { id },
+      data: { deletedAt: new Date() },
     });
   }
 
   public async deleteAll() {
-    const { count } = await prisma.unit.deleteMany();
+    const { count } = await prisma.unit.updateMany({
+      where: { deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
     return count;
   }
 
@@ -338,7 +336,7 @@ export default class UnitService {
         settings: data.settings,
         unit: {
           connect: {
-            id: unitId, // Using unitId from controller
+            id: unitId,
           },
         },
       },
@@ -347,7 +345,10 @@ export default class UnitService {
 
   public async getAssignments(unitId: string, limit: number, offset: number) {
     return await prisma.assignment.findMany({
-      where: { unitId },
+      where: {
+        unitId,
+        deletedAt: null, // Only include non-deleted assignments
+      },
       skip: offset,
       take: limit,
     });

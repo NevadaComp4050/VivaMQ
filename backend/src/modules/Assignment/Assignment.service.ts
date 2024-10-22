@@ -84,18 +84,15 @@ export default class AssignmentService {
       throw new Error('Assignment with id ' + data.assignmentId + ' not found');
     }
 
-    // Generate a unique key for S3 using the assignment ID and timestamp
     const s3Key = `submissions/${data.assignmentId}/${Date.now()}.pdf`;
 
-    // Upload the PDF to S3 and also store the extracted text
     await this.s3Handler.uploadPDFWithText(data.fileBuffer, s3Key);
 
-    // Once uploaded, store the S3 path in the database using the assignmentId
     const submission = await prisma.submission.create({
       data: {
         assignmentId: data.assignmentId,
         submissionFile: s3Key,
-        status: 'PENDING', // Status to indicate it's awaiting further processing
+        status: 'PENDING',
       },
     });
 

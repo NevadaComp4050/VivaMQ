@@ -101,11 +101,10 @@ export default class SubmissionService {
             throw new Error('Both studentId and submissionId must be provided');
           }
 
-          // Attempt to update the submission
           const updatedSubmission = await prisma.submission.update({
             where: {
               id: submissionId,
-              deletedAt: null, // Ensure the submission is not soft-deleted
+              deletedAt: null,
             },
             data: { studentCode: studentId },
           });

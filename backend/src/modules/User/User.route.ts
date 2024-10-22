@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import UserController from './user.controller';
+import UserController from './User.controller';
 import { verifyAuthToken } from '@/middlewares/auth';
 import { CreateUserDto } from '@/dto/user.dto';
 import RequestValidator from '@/middlewares/request-validator';

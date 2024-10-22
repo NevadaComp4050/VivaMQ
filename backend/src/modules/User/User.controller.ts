@@ -2,7 +2,7 @@ import { type NextFunction, type Request, type Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { HttpStatusCode } from 'axios';
 import { type User } from '@prisma/client';
-import UserService from './user.service';
+import UserService from './User.service';
 
 export default class UserController {
   private readonly userService = new UserService();
@@ -31,7 +31,7 @@ export default class UserController {
       const token = jwt.sign(
         { sub: user.id, email: user.email },
         process.env.JWT_SECRET ?? 'your_secret',
-        { expiresIn: '1h' }
+        { expiresIn: '1days' }
       );
 
       return res.json({ token });

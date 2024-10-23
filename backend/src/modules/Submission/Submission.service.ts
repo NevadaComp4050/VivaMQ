@@ -1,8 +1,8 @@
-import { Prisma, type Submission } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import S3PDFHandler from '@/utils/s3-util';
 import { submitSubmission } from '@/services/viva-service';
-import { SubmissionResponseDto } from '@/dto/submission.dto';
+import { type SubmissionResponseDto } from '@/dto/submission.dto';
 
 export default class SubmissionService {
   private readonly s3Handler: S3PDFHandler;

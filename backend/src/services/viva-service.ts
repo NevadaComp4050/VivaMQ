@@ -100,13 +100,6 @@ async function handleAIResponse(msg: amqp.Message | null) {
     uuid,
   }: { type: string; data: any; uuid: string } = response;
 
-  // Check if the UUID matches a previously sent message
-  if (!sentUUIDs.has(uuid)) {
-    console.warn(`Received message with unknown UUID: ${uuid}`);
-    if (channel) channel.ack(msg);
-    return;
-  }
-
   if (channel) channel.ack(msg);
 
   try {

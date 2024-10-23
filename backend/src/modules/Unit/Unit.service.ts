@@ -215,16 +215,36 @@ export default class UnitService {
     return count;
   }
 
-  public async createAssignment(
-    unitId: string,
-    data: Omit<Assignment, 'id' | 'unitId'>
-  ) {
-    return await prisma.assignment.create({
+  public async createAssignment(unitId: string, data: Assignment) {
+    const createdAssignment = await prisma.assignment.create({
       data: {
-        ...data,
-        unit: { connect: { id: unitId } },
+        name: data.name,
+        specs: data.specs,
+        settings: data.settings,
+        unit: {
+          connect: {
+            id: unitId,
+          },
+        },
+      },
+      include: {
+        submissions: {
+          where: { deletedAt: null },
+        },
       },
     });
+
+    const submissionStatuses = createdAssignment.submissions.reduce<
+      Record<string, number>
+    >((acc, submission) => {
+      acc[submission.status] = (acc[submission.status] || 0) + 1;
+      return acc;
+    }, {});
+
+    return {
+      ...createdAssignment,
+      submissionStatuses,
+    };
   }
 
   public async getAssignments(unitId: string, limit: number, offset: number) {

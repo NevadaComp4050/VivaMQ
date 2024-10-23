@@ -31,6 +31,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  Label as RechartsLabel,
 } from "recharts";
 import {
   ChartContainer,
@@ -305,7 +306,7 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
                           fill={COLORS[index % COLORS.length]}
                         />
                       ))}
-                      <Label
+                      <RechartsLabel
                         content={({ viewBox }) => {
                           if (viewBox && "cx" in viewBox && "cy" in viewBox) {
                             return (
@@ -375,7 +376,7 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
                           fill={COLORS[index % COLORS.length]}
                         />
                       ))}
-                      <Label
+                      <RechartsLabel
                         content={({ viewBox }) => {
                           if (viewBox && "cx" in viewBox && "cy" in viewBox) {
                             return (

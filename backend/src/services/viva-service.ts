@@ -28,6 +28,10 @@ export async function setupQueue() {
 
       // Start consuming messages from AItoBE queue
       await channel.consume(AI_TO_BE_QUEUE, handleAIResponse, { noAck: false });
+
+      console.log('Sending on queue:', BE_TO_AI_QUEUE);
+      console.log('Listening on queue:', AI_TO_BE_QUEUE);
+
       console.log('RabbitMQ connected and queues set up.');
     }
   } catch (error) {

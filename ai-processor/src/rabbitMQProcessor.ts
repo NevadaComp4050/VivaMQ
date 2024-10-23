@@ -8,6 +8,7 @@ import { optimizePromptAndConfig } from "./handlers/promptEngineeringAndAIModelC
 import { createRubric } from "./handlers/rubricCreationAndConversion";
 import dotenv from "dotenv";
 import openAIClient from "./config/openAIClient";
+
 dotenv.config();
 
 export async function processMessage(message: Message): Promise<any> {
@@ -51,16 +52,13 @@ export async function processMessage(message: Message): Promise<any> {
         );
         break;
       case "createRubric":
-        response = await createRubric(
-          openAIClient,
-          {
-          assessmentTask:message.data.assessmentTask,
-          criteria:message.data.criteria,
-          keywords:message.data.keywords,
-          learningObjectives:message.data.learningObjectives,
-          existingGuide:message.data.existingGuide
-          }
-        );
+        response = await createRubric(openAIClient, {
+          assessmentTask: message.data.assessmentTask,
+          criteria: message.data.criteria,
+          keywords: message.data.keywords,
+          learningObjectives: message.data.learningObjectives,
+          existingGuide: message.data.existingGuide,
+        });
         break;
       default:
         throw new Error(`Unknown message type: ${message.type}`);
@@ -68,7 +66,11 @@ export async function processMessage(message: Message): Promise<any> {
     return { type: message.type, data: response, uuid: message.uuid };
   } catch (error) {
     console.error("Error processing message:", error);
-    return { type: "error", data: error, uuid: message.uuid };
+    return {
+      type: "error",
+      data: error || "Unknown error",
+      uuid: message.uuid,
+    };
   }
 }
 
@@ -76,17 +78,21 @@ export async function startMessageProcessor() {
   try {
     const rabbitMQUrl = process.env.RABBITMQ_URL;
 
-if (!rabbitMQUrl) {
-  throw new Error("RABBITMQ_URL environment variable is not set");
-}
+    if (!rabbitMQUrl) {
+      throw new Error("RABBITMQ_URL environment variable is not set");
+    }
     console.log("Connecting to RabbitMQ at:", rabbitMQUrl);
     const connection = await amqp.connect(rabbitMQUrl);
     console.log("Connected to RabbitMQ successfully");
 
     const channel = await connection.createChannel();
 
-    const receiveQueue = `${process.env.NODE_ENV ?? 'development'}_${process.env.uniqueID ?? 'defaultID'}_BEtoAI`;
-    const sendQueue = `${process.env.NODE_ENV ?? 'development'}_${process.env.uniqueID ?? 'defaultID'}_AItoBE`;
+    const receiveQueue = `${process.env.NODE_ENV ?? "development"}_${
+      process.env.uniqueID ?? "defaultID"
+    }_BEtoAI`;
+    const sendQueue = `${process.env.NODE_ENV ?? "development"}_${
+      process.env.uniqueID ?? "defaultID"
+    }_AItoBE`;
 
     await channel.assertQueue(receiveQueue, { durable: true });
     await channel.assertQueue(sendQueue, { durable: true });
@@ -104,18 +110,18 @@ if (!rabbitMQUrl) {
         try {
           const response = await processMessage(message);
           const sendMsg = Buffer.from(JSON.stringify(response));
-          channel.sendToQueue(sendQueue, sendMsg);
+          channel.sendToQueue(sendQueue, sendMsg, { persistent: true });
           console.log("Sent response:", sendMsg.toString());
         } catch (error) {
           console.error("Error processing message:", content, error);
           const errorMsg = Buffer.from(
             JSON.stringify({
               type: "error",
-              data: error,
+              data: error || "Unknown error",
               uuid: message.uuid,
             })
           );
-          channel.sendToQueue(sendQueue, errorMsg);
+          channel.sendToQueue(sendQueue, errorMsg, { persistent: true });
         }
 
         channel.ack(msg);

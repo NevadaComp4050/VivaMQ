@@ -90,7 +90,6 @@ export const generateRubricPrompt = (
   Generate a rubric with MQ's Grade Descriptors (F, P, C, D, HD) for each criterion.
   `;
 
-
 export const generateDocumentSummaryPrompt = (document: string) => `
 Summarize the following document and generate a detailed report:
 
@@ -113,9 +112,9 @@ Provide a detailed assessment of the document's quality, including structure, gr
 `;
 
 export const generateOptimizedPromptSuggestionPrompt = (
-    originalPrompt: string,
-    configParams: Record<string, unknown>
-  ) => `
+  originalPrompt: string,
+  configParams: Record<string, unknown>
+) => `
   Optimize the following prompt and suggest configuration parameters for AI tools:
   
   Original Prompt:
@@ -126,4 +125,3 @@ export const generateOptimizedPromptSuggestionPrompt = (
   
   Provide an optimized version of the prompt and suggest any changes to the configuration parameters.
   `;
-  

@@ -100,6 +100,7 @@ model VivaQuestion {
   status       String
   deletedAt    DateTime?
   submission   Submission @relation(fields: [submissionId], references: [id])
+  category     String?
 }
 
 model UnitAccess {

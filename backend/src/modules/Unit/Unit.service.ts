@@ -329,7 +329,7 @@ export default class UnitService {
   }
 
   public async createAssignment(unitId: string, data: Assignment) {
-    return await prisma.assignment.create({
+    const createdAssignment = await prisma.assignment.create({
       data: {
         name: data.name,
         specs: data.specs,
@@ -340,7 +340,24 @@ export default class UnitService {
           },
         },
       },
+      include: {
+        submissions: {
+          where: { deletedAt: null },
+        },
+      },
     });
+
+    const submissionStatuses = createdAssignment.submissions.reduce<
+      Record<string, number>
+    >((acc, submission) => {
+      acc[submission.status] = (acc[submission.status] || 0) + 1;
+      return acc;
+    }, {});
+
+    return {
+      ...createdAssignment,
+      submissionStatuses,
+    };
   }
 
   public async getAssignments(unitId: string, limit: number, offset: number) {

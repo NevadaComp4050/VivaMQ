@@ -113,6 +113,9 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
           `/units/${params.unitId}/assignments`,
           newAssignment
         );
+
+        
+
         setUnit((prevUnit) => {
           if (prevUnit) {
             return {

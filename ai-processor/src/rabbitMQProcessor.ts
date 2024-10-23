@@ -85,8 +85,8 @@ if (!rabbitMQUrl) {
 
     const channel = await connection.createChannel();
 
-    const receiveQueue = "BEtoAI";
-    const sendQueue = "AItoBE";
+    const receiveQueue = `${process.env.NODE_ENV ?? 'development'}_${process.env.uniqueID ?? 'defaultID'}_BEtoAI`;
+    const sendQueue = `${process.env.NODE_ENV ?? 'development'}_${process.env.uniqueID ?? 'defaultID'}_AItoBE`;
 
     await channel.assertQueue(receiveQueue, { durable: true });
     await channel.assertQueue(sendQueue, { durable: true });

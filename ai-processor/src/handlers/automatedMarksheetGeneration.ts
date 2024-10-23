@@ -26,6 +26,9 @@ async function generateAutomatedMarksheet(
   }
 ): Promise<typeof Marksheet> {
   try {
+
+    console.log
+
     const prompt = generateAutomatedMarkingSheetPrompt(
       document,
       rubric,

@@ -1,9 +1,9 @@
 // src/services/email.service.ts
 
+import path from 'path';
+import fs from 'fs/promises';
 import { Resend } from 'resend';
 import { resendConfig } from '../config/resend.config';
-import fs from 'fs/promises';
-import path from 'path';
 
 // Import/Create the interfaces
 interface CreateEmailResponseSuccess {
@@ -23,8 +23,8 @@ interface CreateEmailResponse {
 
 class EmailService {
   private readonly resend: Resend;
-  private templates: { [key: string]: string } = {};
-  private loadingTemplates: Promise<void>;
+  private templates: Record<string, string> = {};
+  private readonly loadingTemplates: Promise<void>;
 
   constructor() {
     this.resend = new Resend(resendConfig.apiKey);
@@ -48,7 +48,7 @@ class EmailService {
 
   private replaceVariables(
     template: string,
-    variables: { [key: string]: string }
+    variables: Record<string, string>
   ): string {
     return template.replace(/\{\{(\w+)\}\}/g, (_, key) => variables[key] || '');
   }
@@ -57,7 +57,7 @@ class EmailService {
     to: string,
     subject: string,
     templateName: string,
-    variables: { [key: string]: string }
+    variables: Record<string, string>
   ): Promise<CreateEmailResponse> {
     await this.loadingTemplates; // Ensure templates are loaded
 
@@ -86,7 +86,7 @@ class EmailService {
     to: string,
     name: string
   ): Promise<CreateEmailResponse> {
-    return this.sendTransactionalEmail(
+    return await this.sendTransactionalEmail(
       to,
       'Welcome to Our Platform',
       'signup-template.html',
@@ -98,7 +98,7 @@ class EmailService {
     to: string,
     resetLink: string
   ): Promise<CreateEmailResponse> {
-    return this.sendTransactionalEmail(
+    return await this.sendTransactionalEmail(
       to,
       'Password Reset Request',
       'password-reset-template.html',
@@ -111,7 +111,7 @@ class EmailService {
     name: string,
     inviteLink: string
   ): Promise<CreateEmailResponse> {
-    return this.sendTransactionalEmail(
+    return await this.sendTransactionalEmail(
       to,
       'Invitation to Join Teaching Team',
       'invite-teaching-team-template.html',
@@ -123,7 +123,7 @@ class EmailService {
     to: string,
     name: string
   ): Promise<CreateEmailResponse> {
-    return this.sendTransactionalEmail(
+    return await this.sendTransactionalEmail(
       to,
       'Update on Your Teaching Team Status',
       'removed-teaching-team-template.html',

@@ -34,7 +34,7 @@ export default class SubmissionController extends Api {
       void this.submissionService.generateVivaQuestions(submissionId);
 
       res.status(HttpStatusCode.Accepted).send({
-        message: 'Viva questions are being generated. Please check back later.',
+        message: 'Your request to generate viva questions has been accepted.',
       });
     } catch (e) {
       next(e);

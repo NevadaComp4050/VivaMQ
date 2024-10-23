@@ -16,20 +16,20 @@ export default class RubricController extends Api {
   ) => {
     try {
       const createdById = req.user?.id;
-      const { name, assignmentId, rubricFile } = req.body;
+      const { title, assignmentId, rubricData } = req.body;
 
-      if (!createdById || !name || !assignmentId || !rubricFile) {
+      if (!createdById || !title || !assignmentId || !rubricData) {
         return res.status(HttpStatusCode.BadRequest).json({
-          message: 'Name, assignment ID, and rubric file are required.',
+          message: 'Title, assignment ID, and rubric data are required.',
           data: null,
         });
       }
 
       const newRubric = await this.rubricService.createRubric({
-        name,
+        title,
         assignmentId,
         createdById,
-        rubricFile,
+        rubricData,
       });
 
       this.send(res, newRubric, HttpStatusCode.Created, 'createRubric');
@@ -60,27 +60,53 @@ export default class RubricController extends Api {
     }
   };
 
-  public linkRubricToAssignment = async (
+  public getRubricById = async (
     req: Request,
     res: CustomResponse<Rubric | null>,
     next: NextFunction
   ) => {
     try {
-      const { rubricId, assignmentId } = req.body;
+      const { id } = req.params;
+      const rubric = await this.rubricService.getRubricById(id);
 
-      if (!rubricId || !assignmentId) {
-        return res.status(HttpStatusCode.BadRequest).json({
-          message: 'Rubric ID and Assignment ID are required.',
+      if (!rubric) {
+        return res.status(HttpStatusCode.NotFound).json({
+          message: 'Rubric not found',
           data: null,
         });
       }
 
-      const linkedRubric = await this.rubricService.linkRubricToAssignment(
-        rubricId,
-        assignmentId
-      );
+      this.send(res, rubric, HttpStatusCode.Ok, 'gotRubric');
+    } catch (e) {
+      console.error(e);
+      res
+        .status(HttpStatusCode.InternalServerError)
+        .json({ message: 'An error occurred', data: null });
+    }
+  };
 
-      this.send(res, linkedRubric, HttpStatusCode.Ok, 'linkRubricToAssignment');
+  public updateRubric = async (
+    req: Request,
+    res: CustomResponse<Rubric | null>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const { title, rubricData } = req.body;
+
+      const updatedRubric = await this.rubricService.updateRubric(id, {
+        title,
+        rubricData,
+      });
+
+      if (!updatedRubric) {
+        return res.status(HttpStatusCode.NotFound).json({
+          message: 'Rubric not found',
+          data: null,
+        });
+      }
+
+      this.send(res, updatedRubric, HttpStatusCode.Ok, 'updatedRubric');
     } catch (e) {
       console.error(e);
       res
@@ -98,6 +124,14 @@ export default class RubricController extends Api {
       const { id } = req.params;
 
       const deletedRubric = await this.rubricService.deleteRubric(id);
+      
+      if (!deletedRubric) {
+        return res.status(HttpStatusCode.NotFound).json({
+          message: 'Rubric not found',
+          data: null,
+        });
+      }
+
       this.send(res, deletedRubric, HttpStatusCode.Ok, 'deletedRubric');
     } catch (e) {
       console.error(e);

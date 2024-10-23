@@ -3,17 +3,17 @@ import prisma from '@/lib/prisma';
 
 export default class RubricService {
   public async createRubric(data: {
-    name: string;
+    title: string;
     assignmentId: string;
     createdById: string;
-    rubricFile: string;
+    rubricData: any;
   }): Promise<Rubric> {
     return await prisma.rubric.create({
       data: {
-        name: data.name,
+        title: data.title,
         assignmentId: data.assignmentId,
         createdById: data.createdById,
-        rubricFile: data.rubricFile,
+        rubricData: data.rubricData,
       },
     });
   }
@@ -26,19 +26,28 @@ export default class RubricService {
     });
   }
 
-  public async linkRubricToAssignment(
-    rubricId: string,
-    assignmentId: string
-  ): Promise<Rubric> {
-    return await prisma.rubric.update({
-      where: { id: rubricId },
-      data: { assignmentId },
+  public async getRubricById(id: string): Promise<Rubric | null> {
+    return await prisma.rubric.findUnique({
+      where: { id, deletedAt: null },
     });
   }
 
-  public async deleteRubric(rubricId: string): Promise<Rubric | null> {
+  public async updateRubric(
+    id: string,
+    data: { title?: string; rubricData?: any }
+  ): Promise<Rubric | null> {
     return await prisma.rubric.update({
-      where: { id: rubricId },
+      where: { id, deletedAt: null },
+      data: {
+        title: data.title,
+        rubricData: data.rubricData,
+      },
+    });
+  }
+
+  public async deleteRubric(id: string): Promise<Rubric | null> {
+    return await prisma.rubric.update({
+      where: { id, deletedAt: null },
       data: { deletedAt: new Date() },
     });
   }

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import RubricController from './rubric.controller';
-import { CreateRubricDto, LinkRubricToAssignmentDto } from '@/dto/rubric.dto';
+import { CreateRubricDto, UpdateRubricDto } from '@/dto/rubric.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
 
@@ -27,15 +27,22 @@ rubrics.post(
 rubrics.get('/', verifyAuthToken, controller.getRubrics);
 
 /**
- * POST /rubrics/link-to-assignment
- * @summary Link a rubric to an assignment
+ * GET /rubrics/{id}
+ * @summary Get a rubric by ID
  * @tags Rubric
  */
-rubrics.post(
-  '/link-to-assignment',
+rubrics.get('/:id', verifyAuthToken, controller.getRubricById);
+
+/**
+ * PUT /rubrics/{id}
+ * @summary Update a rubric
+ * @tags Rubric
+ */
+rubrics.put(
+  '/:id',
   verifyAuthToken,
-  RequestValidator.validate(LinkRubricToAssignmentDto),
-  controller.linkRubricToAssignment
+  RequestValidator.validate(UpdateRubricDto),
+  controller.updateRubric
 );
 
 /**

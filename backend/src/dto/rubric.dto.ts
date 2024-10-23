@@ -1,84 +1,84 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsObject,
-  IsOptional,
-  IsUUID,
-  ValidateNested,
-  IsNumber,
-} from 'class-validator';
+import { IsUUID, IsOptional, IsString, IsArray, ArrayNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
-class DescriptorDto {
-  @IsString()
-  @IsNotEmpty()
-  F: string;
-
-  @IsString()
-  @IsNotEmpty()
-  P: string;
-
-  @IsString()
-  @IsNotEmpty()
-  C: string;
-
-  @IsString()
-  @IsNotEmpty()
-  D: string;
-
-  @IsString()
-  @IsNotEmpty()
-  HD: string;
-}
-
-class CriterionDto {
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @IsObject()
-  @ValidateNested()
-  @Type(() => DescriptorDto)
-  descriptors: DescriptorDto;
-
-  @IsNumber()
-  @IsNotEmpty()
-  marks: number;
-}
-
 export class CreateRubricDto {
+  @IsUUID()
+  @IsOptional()
+  id?: string; // Optional, will generate if not provided
+
   @IsString()
-  @IsNotEmpty()
   title: string;
 
   @IsUUID()
-  @IsNotEmpty()
   assignmentId: string;
 
-  @IsObject()
+  @IsString()
+  assessmentTask: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  criteria: string[];
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  keywords: string[];
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  learningObjectives: string[];
+
+  @IsString()
+  existingGuide: string;
+}
+
+export class UpdateRubricDto {
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => RubricDataDto)
+  rubricData?: RubricDataDto;
+}
+
+class RubricDataDto {
+  @IsArray()
+  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => CriterionDto)
   criteria: CriterionDto[];
 }
 
-export class UpdateRubricDto {
+class CriterionDto {
   @IsString()
-  @IsOptional()
-  title?: string;
+  name: string;
 
-  @IsObject()
+  @IsString()
+  marks: string;
+
   @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => CriterionDto)
-  criteria?: CriterionDto[];
+  @ValidateNested()
+  @Type(() => DescriptorDto)
+  descriptors?: DescriptorDto;
 }
 
-export class LinkRubricToAssignmentDto {
+class DescriptorDto {
   @IsString()
-  @IsNotEmpty()
-  rubricId: string;
+  F: string;
 
   @IsString()
-  @IsNotEmpty()
-  assignmentId: string;
+  P: string;
+
+  @IsString()
+  C: string;
+
+  @IsString()
+  D: string;
+
+  @IsString()
+  HD: string;
 }

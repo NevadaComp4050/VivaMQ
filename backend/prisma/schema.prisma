@@ -121,10 +121,17 @@ model Rubric {
   title        String
   createdById  String
   assignmentId String
-  rubricData   Json       @db.Json
+  rubricData   Json?      @db.Json
+  status       RubricStatus @default(PENDING)
   deletedAt    DateTime?
   assignment   Assignment @relation(fields: [assignmentId], references: [id])
   createdBy    User       @relation(fields: [createdById], references: [id])
+}
+
+enum RubricStatus {
+  PENDING
+  COMPLETED
+  ERROR
 }
 
 enum Role {

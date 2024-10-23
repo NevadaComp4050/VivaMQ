@@ -200,6 +200,29 @@ export default function AssignmentManagementPage({
     [params.assignmentId, session]
   );
 
+  // generate viva questions  for the assignment
+  const generateVivaQuestions = async () => {
+    if (!session?.user?.accessToken) return;
+
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      await apiClient.post(
+        `/assignments/${params.assignmentId}/generateVivaQuestions`
+      );
+      toast({
+        title: "Success",
+        description: "Viva questions generated successfully",
+      });
+    } catch (error) {
+      console.error("Error generating viva questions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate viva questions. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "application/pdf": [".pdf"] },
@@ -231,7 +254,10 @@ export default function AssignmentManagementPage({
         }
       }
 
-      const mappedSubmissions = await response.json() as Record<string, string>;
+      const mappedSubmissions = (await response.json()) as Record<
+        string,
+        string
+      >;
 
       // Normalize file names to handle case sensitivity and whitespace
       const normalizedMappings: Record<string, string> = {};
@@ -507,7 +533,16 @@ export default function AssignmentManagementPage({
 
   return (
     <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-6">Assignment: {assignment.name}</h1>
+      <div>
+        <h1 className="text-3xl font-bold mb-6">
+          Assignment: {assignment.name}
+        </h1>
+        <div className="flex items-center justify-between mb-4">
+          <Button variant="outline" onClick={generateVivaQuestions}>
+            Generate Viva Questions
+          </Button>
+        </div>
+      </div>
 
       <Tabs
         defaultValue={activeStep === 0 ? "view" : "upload"}
@@ -515,7 +550,9 @@ export default function AssignmentManagementPage({
       >
         <TabsList>
           <TabsTrigger value="view">View Submissions</TabsTrigger>
-          <TabsTrigger value="upload" disabled={!assignment.writeable}>Upload New Submissions</TabsTrigger>
+          <TabsTrigger value="upload" disabled={!assignment.writeable}>
+            Upload New Submissions
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="view">
           <Card>

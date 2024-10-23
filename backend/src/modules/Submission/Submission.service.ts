@@ -2,6 +2,7 @@ import { Prisma, type Submission } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import S3PDFHandler from '@/utils/s3-util';
 import { submitSubmission } from '@/services/viva-service';
+import { SubmissionResponseDto } from '@/dto/submission.dto';
 
 export default class SubmissionService {
   private readonly s3Handler: S3PDFHandler;
@@ -10,23 +11,59 @@ export default class SubmissionService {
     this.s3Handler = new S3PDFHandler();
   }
 
-  public async getSubmissionById(id: string): Promise<Submission | null> {
+  public async getSubmissionById(
+    id: string
+  ): Promise<SubmissionResponseDto | null> {
     try {
       const submission = await prisma.submission.findFirst({
         where: {
           id,
-          deletedAt: null, // Ensure the submission is not soft-deleted
+          deletedAt: null,
         },
         include: {
+          assignment: {
+            select: {
+              name: true,
+            },
+          },
           vivaQuestions: {
             where: {
-              deletedAt: null, // Ensure only active viva questions are fetched
+              deletedAt: null,
+            },
+            select: {
+              id: true,
+              question: true,
+              status: true,
             },
           },
         },
       });
 
-      return submission;
+      if (!submission) {
+        return null;
+      }
+
+      const submissionResponse: SubmissionResponseDto = {
+        id: submission.id,
+        assignmentId: submission.assignmentId,
+        assignmentName: submission.assignment.name,
+        studentId: submission.studentId || undefined,
+        submissionFile: submission.submissionFile,
+        status: submission.status,
+        vivaStatus: submission.vivaStatus,
+        studentCode: submission.studentCode || undefined,
+        createdAt: submission.createdAt,
+        qualityAssessment: submission.qualityAssessment || undefined,
+        summary: submission.summary || undefined,
+        vivaRequestDate: submission.vivaRequestDate || undefined,
+        vivaQuestions: submission.vivaQuestions.map((q) => ({
+          id: q.id,
+          question: q.question,
+          status: q.status,
+        })),
+      };
+
+      return submissionResponse;
     } catch (error) {
       console.error('Error in getSubmissionById:', error);
       return null;

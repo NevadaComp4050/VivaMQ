@@ -1,12 +1,15 @@
 // src/services/rubric.service.ts
 
-import { Prisma, Rubric } from '@prisma/client';
-import prisma from '@/lib/prisma';
-import vivamqService from '@/services/viva-service';
-import { CreateRubricDto, UpdateRubricDto } from '@/dto/rubric.dto';
+import fs from 'fs';
+import { Buffer } from 'buffer';
+import { Prisma, type Rubric } from '@prisma/client';
 import pdfkit from 'pdfkit';
 import ExcelJS from 'exceljs';
 import { v4 as uuidv4 } from 'uuid';
+import { instanceToPlain } from 'class-transformer';
+import prisma from '@/lib/prisma';
+import vivamqService from '@/services/viva-service';
+import { type CreateRubricDto, type UpdateRubricDto } from '@/dto/rubric.dto';
 
 export default class RubricService {
   // Create Rubric - sends message to AI via RabbitMQ
@@ -16,11 +19,11 @@ export default class RubricService {
     // Create initial Rubric entry with status PENDING
     const rubric = await prisma.rubric.create({
       data: {
-        id: data.id || uuidv4(), // Ensure the client can provide a UUID or generate one here
+        id: data.id ?? uuidv4(), // Ensure the client can provide a UUID or generate one here
         title: data.title,
         assignmentId: data.assignmentId,
         createdById: data.createdById,
-        rubricData: null, // To be updated by AI response
+        rubricData: Prisma.JsonNull, // To be updated by AI response
         status: 'PENDING',
       },
     });
@@ -39,7 +42,7 @@ export default class RubricService {
     };
 
     // Send message to AI service via RabbitMQ
-    vivamqService.submitCreateRubric(message);
+    void vivamqService.submitCreateRubric(message);
 
     return rubric;
   }
@@ -62,24 +65,29 @@ export default class RubricService {
     id: string,
     data: UpdateRubricDto
   ): Promise<Rubric | null> {
-    return await prisma.rubric
-      .update({
+    try {
+      // Transform rubricData DTO to a plain object
+      const plainRubricData = data.rubricData
+        ? instanceToPlain(data.rubricData)
+        : undefined;
+
+      return await prisma.rubric.update({
         where: { id },
         data: {
           title: data.title,
-          rubricData: data.rubricData,
+          rubricData: plainRubricData, // Use the plain object here
           // Optionally handle updating status if needed
         },
-      })
-      .catch((e) => {
-        if (
-          e instanceof Prisma.PrismaClientKnownRequestError &&
-          e.code === 'P2025'
-        ) {
-          return null;
-        }
-        throw e;
       });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        return null;
+      }
+      throw e;
+    }
   }
 
   public async deleteRubric(id: string): Promise<Rubric | null> {
@@ -113,13 +121,16 @@ export default class RubricService {
       throw new Error('Rubric data is not available yet');
     }
 
+    // eslint-disable-next-line new-cap
     const doc = new pdfkit();
     const chunks: any[] = [];
-    let result: Buffer;
 
     doc.on('data', (chunk) => chunks.push(chunk));
     doc.on('end', () => {
-      result = Buffer.concat(chunks);
+      const result = Buffer.concat(chunks);
+      // Handle the result here, e.g., save to file, send as response, etc.
+      // Example: save to file
+      fs.writeFileSync('output.pdf', new Uint8Array(result));
     });
 
     // Construct PDF content
@@ -127,7 +138,14 @@ export default class RubricService {
     doc.moveDown();
 
     // Add criteria table
-    for (const criterion of rubric.rubricData.criteria) {
+    const rubricData = rubric.rubricData as {
+      criteria: Array<{
+        name: string;
+        marks: number;
+        descriptors: Record<string, string>;
+      }>;
+    };
+    for (const criterion of rubricData.criteria) {
       doc.fontSize(14).text(`Criterion: ${criterion.name}`);
       doc.fontSize(12).text(`Marks: ${criterion.marks}`);
       doc.fontSize(12).text('Descriptors:');
@@ -137,6 +155,7 @@ export default class RubricService {
       doc.moveDown();
     }
 
+    // Finalize the PDF and end the stream
     doc.end();
 
     // Wait for PDF to be generated
@@ -144,7 +163,7 @@ export default class RubricService {
       doc.on('finish', resolve);
     });
 
-    return result;
+    return Buffer.concat(chunks);
   }
 
   // Export Rubric as XLS
@@ -176,7 +195,14 @@ export default class RubricService {
     ];
 
     // Add rows
-    for (const criterion of rubric.rubricData.criteria) {
+    const rubricData = rubric.rubricData as {
+      criteria: Array<{
+        name: string;
+        marks: number;
+        descriptors: Record<string, string>;
+      }>;
+    };
+    for (const criterion of rubricData.criteria) {
       worksheet.addRow({
         criterion: criterion.name,
         F: criterion.descriptors.F,
@@ -190,7 +216,7 @@ export default class RubricService {
 
     // Generate XLS buffer
     const buffer = await workbook.xlsx.writeBuffer();
-    
-    return buffer;
+
+    return Buffer.from(buffer);
   }
 }

@@ -244,7 +244,6 @@ async function sendToQueue(message: object, queue: string) {
 
 // Function to submit a createRubric request
 export async function submitCreateRubric(message: CreateRubricMessage) {
-  const rubricId = message.uuid; // Assuming rubric.id is used as uuid
   await sendToAIService(message);
 }
 

@@ -16,7 +16,6 @@ export class CreateRubricDto {
   @IsString()
   title: string;
 
-  @IsUUID()
   @IsOptional()
   assignmentId: string | undefined;
 

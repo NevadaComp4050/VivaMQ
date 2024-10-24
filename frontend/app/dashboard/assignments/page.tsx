@@ -21,15 +21,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 
 interface Assignment {
   id: string;
   name: string;
+  specs: string;
+  settings: string;
   unitId: string;
-  dueDate: string;
-  submissions: number;
+  deletedAt: string | null;
+  description: string | null;
 }
 
 interface Unit {
@@ -42,6 +45,8 @@ export default function AssignmentsPage() {
   const [units, setUnits] = useState<Unit[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -51,17 +56,23 @@ export default function AssignmentsPage() {
       const apiClient = createApiClient(session.user.accessToken);
 
       try {
-        const unitsResponse = await apiClient.get("/units");
-        const unitsData = unitsResponse.data;
-        setUnits(unitsData);
+        setLoading(true);
+        const [assignmentsResponse, unitsResponse] = await Promise.all([
+          apiClient.get("/assignments"),
+          apiClient.get("/units")
+        ]);
 
-        const assignmentsPromises = unitsData.map((unit: Unit) =>
-          apiClient.get(`/units/${unit.id}/assignments`).then((res) => res.data)
-        );
-        const allAssignments = await Promise.all(assignmentsPromises);
-        setAssignments(allAssignments.flat());
+        setAssignments(assignmentsResponse.data.data);
+
+        console.log(unitsResponse.data.data);
+        setUnits(unitsResponse.data.data);
+
+        setError(null);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setError("Failed to load assignments. Please try again later.");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -83,6 +94,12 @@ export default function AssignmentsPage() {
           <CardTitle>Assignments</CardTitle>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <div className="flex space-x-2 mb-4">
             <div className="relative flex-grow">
               <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -112,38 +129,42 @@ export default function AssignmentsPage() {
               </SelectContent>
             </Select>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Assignment Name</TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Submissions</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAssignments.map((assignment) => (
-                <TableRow key={assignment.id}>
-                  <TableCell>{assignment.name}</TableCell>
-                  <TableCell>
-                    {units.find((u) => u.id === assignment.unitId)?.name}
-                  </TableCell>
-                  <TableCell>{assignment.dueDate}</TableCell>
-                  <TableCell>{assignment.submissions}</TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link
-                        href={`/dashboard/units/${assignment.unitId}/assignments/${assignment.id}`}
-                      >
-                        Manage
-                      </Link>
-                    </Button>
-                  </TableCell>
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Assignment Name</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead>Settings</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredAssignments.map((assignment) => (
+                  <TableRow key={assignment.id}>
+                    <TableCell>{assignment.name}</TableCell>
+                    <TableCell>
+                      {units.find((u) => u.id === assignment.unitId)?.name}
+                    </TableCell>
+                    <TableCell>{assignment.settings}</TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link
+                          href={`/dashboard/units/${assignment.unitId}/assignments/${assignment.id}`}
+                        >
+                          Manage
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -7,24 +7,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
 import { Input } from "~/components/ui/input"
 import { Textarea } from "~/components/ui/textarea"
 import { Label } from "~/components/ui/label"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
 import createApiClient from "~/lib/api-client"
 import { useSession } from "next-auth/react"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "~/components/ui/breadcrumb"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle, Loader2, Plus, Trash2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert"
-import { useForm, SubmitHandler } from "react-hook-form"
+import { useForm, SubmitHandler, useFieldArray } from "react-hook-form"
 
 type FormData = {
   title: string
   assessmentTask: string
-  criteria: string
-  keywords: string
-  learningObjectives: string
+  criteria: { value: string }[]
+  keywords: { value: string }[]
+  learningObjectives: { value: string }[]
   existingGuide: string
 }
 
 export default function CreateRubricPage() {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>()
+  const { register, control, handleSubmit, formState: { errors } } = useForm<FormData>({
+    defaultValues: {
+      criteria: [{ value: '' }],
+      keywords: [{ value: '' }],
+      learningObjectives: [{ value: '' }],
+    }
+  })
+  const { fields: criteriaFields, append: appendCriteria, remove: removeCriteria } = useFieldArray({ control, name: "criteria" })
+  const { fields: keywordsFields, append: appendKeywords, remove: removeKeywords } = useFieldArray({ control, name: "keywords" })
+  const { fields: learningObjectivesFields, append: appendLearningObjectives, remove: removeLearningObjectives } = useFieldArray({ control, name: "learningObjectives" })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -39,9 +50,9 @@ export default function CreateRubricPage() {
     try {
       const response = await apiClient.post("rubrics/", {
         ...data,
-        criteria: data.criteria.split(",").map((c) => c.trim()),
-        keywords: data.keywords.split(",").map((k) => k.trim()),
-        learningObjectives: data.learningObjectives.split(",").map((lo) => lo.trim()),
+        criteria: data.criteria.map(c => c.value),
+        keywords: data.keywords.map(k => k.value),
+        learningObjectives: data.learningObjectives.map(lo => lo.value),
       })
       router.push(`/dashboard/rubrics/${response.data.id}`)
     } catch (error) {
@@ -51,6 +62,61 @@ export default function CreateRubricPage() {
       setLoading(false)
     }
   }
+
+  const renderDynamicTable = (
+    fields: { id: string; value: string }[],
+    append: () => void,
+    remove: (index: number) => void,
+    name: "criteria" | "keywords" | "learningObjectives"
+  ) => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>{name.charAt(0).toUpperCase() + name.slice(1)}</TableHead>
+          <TableHead className="w-[100px]">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {fields.map((field, index) => (
+          <TableRow key={field.id}>
+            <TableCell>
+              <Input
+                {...register(`${name}.${index}.value` as const, { required: `${name} is required` })}
+                placeholder={`Enter ${name}`}
+              />
+              {errors[name]?.[index]?.value && (
+                <p className="text-red-500 text-sm mt-1">{errors[name]?.[index]?.value?.message}</p>
+              )}
+            </TableCell>
+            <TableCell>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                disabled={fields.length === 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+      <TableRow>
+        <TableCell colSpan={2}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-2"
+            onClick={() => append()}
+          >
+            <Plus className="h-4 w-4 mr-2" /> Add {name}
+          </Button>
+        </TableCell>
+      </TableRow>
+    </Table>
+  )
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -82,7 +148,7 @@ export default function CreateRubricPage() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
               <Label htmlFor="title">Title</Label>
               <Input
@@ -100,28 +166,16 @@ export default function CreateRubricPage() {
               {errors.assessmentTask && <p className="text-red-500 text-sm mt-1">{errors.assessmentTask.message}</p>}
             </div>
             <div>
-              <Label htmlFor="criteria">Criteria (comma-separated)</Label>
-              <Input
-                id="criteria"
-                {...register("criteria", { required: "Criteria are required" })}
-              />
-              {errors.criteria && <p className="text-red-500 text-sm mt-1">{errors.criteria.message}</p>}
+              <Label>Criteria</Label>
+              {renderDynamicTable(criteriaFields, () => appendCriteria({ value: '' }), removeCriteria, "criteria")}
             </div>
             <div>
-              <Label htmlFor="keywords">Keywords (comma-separated)</Label>
-              <Input
-                id="keywords"
-                {...register("keywords", { required: "Keywords are required" })}
-              />
-              {errors.keywords && <p className="text-red-500 text-sm mt-1">{errors.keywords.message}</p>}
+              <Label>Keywords</Label>
+              {renderDynamicTable(keywordsFields, () => appendKeywords({ value: '' }), removeKeywords, "keywords")}
             </div>
             <div>
-              <Label htmlFor="learningObjectives">Learning Objectives (comma-separated)</Label>
-              <Input
-                id="learningObjectives"
-                {...register("learningObjectives", { required: "Learning objectives are required" })}
-              />
-              {errors.learningObjectives && <p className="text-red-500 text-sm mt-1">{errors.learningObjectives.message}</p>}
+              <Label>Learning Objectives</Label>
+              {renderDynamicTable(learningObjectivesFields, () => appendLearningObjectives({ value: '' }), removeLearningObjectives, "learningObjectives")}
             </div>
             <div>
               <Label htmlFor="existingGuide">Existing Guide (optional)</Label>

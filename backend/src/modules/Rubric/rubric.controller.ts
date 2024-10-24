@@ -1,12 +1,12 @@
-import { NextFunction, Request, Response } from 'express';
-import { Rubric } from '@prisma/client';
+import { type NextFunction, type Request, type Response } from 'express';
+import { type Rubric } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
-import RubricService from './rubric.service';
-import { CustomResponse } from '@/types/common.type';
-import { ExtendedRequest } from '@/types/express';
-import Api from '@/lib/api';
-import { CreateRubricDto, UpdateRubricDto } from '@/dto/rubric.dto';
 import { v4 as uuidv4 } from 'uuid';
+import RubricService from './rubric.service';
+import { type CustomResponse } from '@/types/common.type';
+import { type ExtendedRequest } from '@/types/express';
+import Api from '@/lib/api';
+import { type CreateRubricDto, type UpdateRubricDto } from '@/dto/rubric.dto';
 
 export default class RubricController extends Api {
   private readonly rubricService = new RubricService();

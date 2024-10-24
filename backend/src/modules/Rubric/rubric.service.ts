@@ -11,6 +11,7 @@ import prisma from '@/lib/prisma';
 import vivamqService from '@/services/viva-service';
 import { type CreateRubricDto, type UpdateRubricDto } from '@/dto/rubric.dto';
 
+import { type CreateRubricMessage } from '@/types/message';
 export default class RubricService {
   // Create Rubric - sends message to AI via RabbitMQ
   public async createRubric(
@@ -21,7 +22,7 @@ export default class RubricService {
       data: {
         id: data.id ?? uuidv4(), // Ensure the client can provide a UUID or generate one here
         title: data.title,
-        assignmentId: data.assignmentId,
+        assignmentId: data.assignmentId ?? '',
         createdById: data.createdById,
         rubricData: Prisma.JsonNull, // To be updated by AI response
         status: 'PENDING',
@@ -29,7 +30,7 @@ export default class RubricService {
     });
 
     // Prepare message for AI service
-    const message = {
+    const message: CreateRubricMessage = {
       type: 'createRubric',
       data: {
         assessmentTask: data.assessmentTask,
@@ -37,6 +38,9 @@ export default class RubricService {
         keywords: data.keywords,
         learningObjectives: data.learningObjectives,
         existingGuide: data.existingGuide,
+        title: data.title,
+        createdById: data.createdById,
+        assignmentId: data.assignmentId ?? '',
       },
       uuid: rubric.id, // Use Rubric ID for correlation
     };

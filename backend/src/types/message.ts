@@ -9,6 +9,9 @@ export interface Message {
 export interface CreateRubricMessage extends Message {
   type: 'createRubric';
   data: {
+    title: string;
+    createdById: string;
+    assignmentId: string;
     assessmentTask: string;
     criteria: string[];
     keywords: string[];

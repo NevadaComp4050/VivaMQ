@@ -52,7 +52,6 @@ rubrics.put(
  */
 rubrics.delete('/:id', verifyAuthToken, controller.deleteRubric);
 
-
 rubrics.get('/:id/export/xls', verifyAuthToken, controller.exportRubricXLS);
 
 rubrics.get('/:id/export/pdf', verifyAuthToken, controller.exportRubricPDF);

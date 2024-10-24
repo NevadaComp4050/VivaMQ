@@ -1,4 +1,11 @@
-import { IsUUID, IsOptional, IsString, IsArray, ArrayNotEmpty, ValidateNested } from 'class-validator';
+import {
+  IsUUID,
+  IsOptional,
+  IsString,
+  IsArray,
+  ArrayNotEmpty,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateRubricDto {
@@ -10,7 +17,8 @@ export class CreateRubricDto {
   title: string;
 
   @IsUUID()
-  assignmentId: string;
+  @IsOptional()
+  assignmentId: string | undefined;
 
   @IsString()
   assessmentTask: string;

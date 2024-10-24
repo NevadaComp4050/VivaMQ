@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import RubricController from './rubric.controller';
+import RubricController from './Rubric.controller';
 import { CreateRubricDto, UpdateRubricDto } from '@/dto/rubric.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';

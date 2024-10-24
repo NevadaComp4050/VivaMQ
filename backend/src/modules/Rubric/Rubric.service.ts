@@ -8,7 +8,7 @@ import ExcelJS from 'exceljs';
 import { v4 as uuidv4 } from 'uuid';
 import { instanceToPlain } from 'class-transformer';
 import prisma from '@/lib/prisma';
-import vivamqService from '@/services/viva-service';
+import vivaService from '@/services/viva-service';
 import { type CreateRubricDto, type UpdateRubricDto } from '@/dto/rubric.dto';
 
 import { type CreateRubricMessage } from '@/types/message';
@@ -20,7 +20,6 @@ export default class RubricService {
 
     const rubric = await prisma.rubric.create({
       data: {
-        id: uuidv4(), 
         title: data.title,
         assignmentId: data.assignmentId ?? null, // Allow assignmentId to be null
         createdById: data.createdById,
@@ -33,6 +32,7 @@ export default class RubricService {
     const message: CreateRubricMessage = {
       type: 'createRubric',
       data: {
+        id: rubric.id,
         assessmentTask: data.assessmentTask,
         criteria: data.criteria,
         keywords: data.keywords,
@@ -46,7 +46,7 @@ export default class RubricService {
     };
   
     // Send message to AI service via RabbitMQ
-    void vivamqService.submitCreateRubric(message);
+    await vivaService.submitRubricCreation(message);
   
     return rubric;
   }

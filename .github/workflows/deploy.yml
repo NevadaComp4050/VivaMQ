@@ -62,7 +62,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Deploy to DigitalOcean Droplet
+      - name: Copy repository to remote server
+        env:
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key
+          chmod 600 private_key
+          scp -o StrictHostKeyChecking=no -i private_key -r . $DROPLET_USER@$DROPLET_IP:~/vivamq
+
       - name: Deploy to DigitalOcean Droplet
         env:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
@@ -72,17 +81,12 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key $DROPLET_USER@$DROPLET_IP << 'EOF'
-            if [ -d "vivamq" ]; then
-              cd vivamq
-              if command -v docker compose &> /dev/null; then
-                docker compose pull
-                docker compose up -d
-              else
-                echo "docker-compose could not be found"
-                exit 1
-              fi
+            cd vivamq
+            if command -v docker compose &> /dev/null; then
+              docker compose pull
+              docker compose up -d
             else
-              echo "Directory vivamq/docker-compose does not exist"
+              echo "docker-compose could not be found"
               exit 1
             fi
           EOF

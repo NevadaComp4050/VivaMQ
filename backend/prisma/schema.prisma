@@ -117,15 +117,16 @@ model UnitAccess {
 }
 
 model Rubric {
-  id           String     @id @default(uuid())
+  createdAt    DateTime     @default(now())
+  id           String       @id @default(uuid())
   title        String
   createdById  String
   assignmentId String
-  rubricData   Json?      @db.Json
+  rubricData   Json?        @db.Json
   status       RubricStatus @default(PENDING)
   deletedAt    DateTime?
-  assignment   Assignment @relation(fields: [assignmentId], references: [id])
-  createdBy    User       @relation(fields: [createdById], references: [id])
+  assignment   Assignment   @relation(fields: [assignmentId], references: [id])
+  createdBy    User         @relation(fields: [createdById], references: [id])
 }
 
 enum RubricStatus {

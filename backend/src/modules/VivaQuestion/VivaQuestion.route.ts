@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { Submission, VivaQuestion } from '@prisma/client';
-import Controller from './VivaQuestion.controller';
+import VivaQuestionController from './VivaQuestion.controller';
 import { CreateVivaQuestionDto } from '@/dto/vivaQuestion.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
 
 const vivaQuestions: Router = Router();
-const controller = new Controller();
+const controller = new VivaQuestionController();
 
 // Define CreateVivaQuestionBody
 // Comments after property do render

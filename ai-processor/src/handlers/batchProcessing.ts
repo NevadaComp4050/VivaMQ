@@ -1,4 +1,4 @@
-import fs from 'fs';
+/*import fs from 'fs';
 import { OpenAI } from 'openai';
 import path from 'path';
 import * as dotenv from 'dotenv';
@@ -9,11 +9,11 @@ const client = new OpenAI({
 });
 
 // Function to extract text from a PDF
-async function extractTextFromPDF(filePath: string): Promise<string> {
+/*async function extractTextFromPDF(filePath: string): Promise<string> {
   const dataBuffer = fs.readFileSync(filePath);
   const pdfData = await pdfParse(dataBuffer);
   return pdfData.text;
-}
+}*/
 
 // Function to prepare a new input.jsonl file with the extracted text 
 async function prepareJsonlFile(pdfPaths: string[], inputJsonlFile: string, customPrompt: string | null) {
@@ -163,4 +163,4 @@ if (debug) {
       console.error('Failed to process Batch Job', error);
     }
   })();
-}
+}*/

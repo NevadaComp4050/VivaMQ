@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import users from './User/user.route';
+import users from './User/User.route';
 import units from './Unit/Unit.route';
 import tutors from './Tutor/Tutor.route';
 import students from './Student/Student.route';

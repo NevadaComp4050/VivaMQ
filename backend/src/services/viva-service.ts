@@ -148,7 +148,7 @@ async function handleVivaQuestions(data: any, uuid: string) {
             id: vivaId,
             submission: { connect: { id: uuid } },
             question: question.question_text as Prisma.InputJsonValue,
-            category: question.question_category as Prisma.InputJsonValue,
+            category: String(question.question_category),
             status: 'GENERATED',
           };
 

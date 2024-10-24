@@ -40,7 +40,7 @@ class App {
 
     this.express.use(
       cors({
-        origin: 'http://3.107.222.31',
+        origin: '*',
         credentials: true,
       })
     );

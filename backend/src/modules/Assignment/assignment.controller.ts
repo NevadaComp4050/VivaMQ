@@ -1,7 +1,7 @@
 import { type NextFunction } from 'express';
 import { type Assignment, type Submission } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
-import AssignmentService from './assignment.service';
+import AssignmentService from './Assignment.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
 import { type ExtendedRequest } from '@/types/express';

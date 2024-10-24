@@ -2,7 +2,7 @@ import { type NextFunction, type Request, type Response } from 'express';
 import { type Rubric } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import RubricService from './rubric.service';
+import RubricService from './Rubric.service';
 import { type CustomResponse } from '@/types/common.type';
 import { type ExtendedRequest } from '@/types/express';
 import Api from '@/lib/api';
@@ -37,7 +37,7 @@ export default class RubricController extends Api {
       } = req.body as CreateRubricDto;
 
       const rubric = await this.rubricService.createRubric({
-        id: id ?? uuidv4(), // Generate UUID if not provided
+        id: id ?? uuidv4(),
         title,
         assignmentId,
         createdById,

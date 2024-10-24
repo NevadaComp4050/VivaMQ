@@ -40,7 +40,7 @@ export function Sidebar() {
                   : "translate-x-0 opacity-100"
               )}
             >
-              MQ Viva
+              VivaMQ
             </h1>
           </Link>
         </Button>

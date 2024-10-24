@@ -10,7 +10,7 @@ export default auth((req) => {
   }
 
   if (req.auth && isAuthPage) {
-    return Response.redirect(new URL('/dashboard', req.url))
+    return Response.redirect(new URL('/dashboard/units', req.url))
   }
 })
 

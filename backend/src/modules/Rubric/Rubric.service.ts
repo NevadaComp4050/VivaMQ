@@ -20,7 +20,7 @@ export default class RubricService {
 
     const rubric = await prisma.rubric.create({
       data: {
-        id: data.id ?? uuidv4(), 
+        id: uuidv4(), 
         title: data.title,
         assignmentId: data.assignmentId ?? null, // Allow assignmentId to be null
         createdById: data.createdById,

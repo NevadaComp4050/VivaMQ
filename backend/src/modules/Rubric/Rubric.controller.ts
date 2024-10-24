@@ -37,7 +37,6 @@ export default class RubricController extends Api {
       } = req.body as CreateRubricDto;
 
       const rubric = await this.rubricService.createRubric({
-        id: id ?? uuidv4(),
         title,
         assignmentId,
         createdById,

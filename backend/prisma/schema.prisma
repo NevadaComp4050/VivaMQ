@@ -87,10 +87,10 @@ model Submission {
   qualityAssessment String?
   summary           String?
   vivaRequestDate   DateTime?      @default(now())
+  createdAt         DateTime       @default(now())
   assignment        Assignment     @relation(fields: [assignmentId], references: [id])
   student           Student?       @relation(fields: [studentId], references: [id])
   vivaQuestions     VivaQuestion[]
-  createdAt         DateTime       @default(now())
 }
 
 model VivaQuestion {
@@ -99,8 +99,8 @@ model VivaQuestion {
   question     Json       @db.Json
   status       String
   deletedAt    DateTime?
-  submission   Submission @relation(fields: [submissionId], references: [id])
   category     String?
+  submission   Submission @relation(fields: [submissionId], references: [id])
 }
 
 model UnitAccess {
@@ -117,14 +117,14 @@ model UnitAccess {
 }
 
 model Rubric {
-  createdAt    DateTime     @default(now())
   id           String       @id @default(uuid())
-  title        String
   createdById  String
   assignmentId String?
-  rubricData   Json?        @db.Json
-  status       RubricStatus @default(PENDING)
   deletedAt    DateTime?
+  rubricData   Json?        @db.Json
+  title        String
+  status       RubricStatus @default(PENDING)
+  createdAt    DateTime     @default(now())
   assignment   Assignment?  @relation(fields: [assignmentId], references: [id])
   createdBy    User         @relation(fields: [createdById], references: [id])
 }

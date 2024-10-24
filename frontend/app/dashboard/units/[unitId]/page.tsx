@@ -34,6 +34,7 @@ import {
   Label as RechartsLabel,
 } from "recharts";
 import {
+  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -168,9 +169,13 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
     value: assignment.submissions.length,
   }));
 
-  const chartConfig = {
-    colors: COLORS,
-  };
+  const chartConfig: ChartConfig = {
+  theme: COLORS.reduce((acc, color) => {
+    acc[color] = { light: color, dark: color };
+    return acc;
+  }, {} as Record<string, { light: string; dark: string }>)
+};
+
 
   return (
     <div className="p-8">

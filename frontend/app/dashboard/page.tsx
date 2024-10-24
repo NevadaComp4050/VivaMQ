@@ -151,43 +151,17 @@ function PendingTasks({ tasks }: { tasks: Task[] }) {
 
 function UpcomingVivas({ vivas }: { vivas: Viva[] }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Upcoming Vivas</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>Assignment</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Time</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {vivas.map((viva) => (
-              <TableRow key={viva.id}>
-                <TableCell>{viva.student}</TableCell>
-                <TableCell>{viva.assignment}</TableCell>
-                <TableCell>{viva.date}</TableCell>
-                <TableCell>{viva.time}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+   <></>
   );
 }
 
 export default function Dashboard() {
 
   const stats: Stats = {
-    totalUnits: 8,
-    activeAssignments: 12,
-    pendingVivas: 24,
-    activeUsers: 15,
+    totalUnits: 6,
+    activeAssignments: 9,
+    pendingVivas: 42,
+    activeUsers: 0,
   };
 
   const recentActivities: Activity[] = [

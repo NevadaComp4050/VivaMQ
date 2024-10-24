@@ -87,30 +87,61 @@ export async function submitSubmission(submissionID: string) {
   }
 }
 
-// New function to handle rubric submissions
 export async function submitRubricCreation(
   createRubricMessage: CreateRubricMessage
 ) {
   try {
+    const {
+      assignmentId,
+      title,
+      createdById,
+      assessmentTask,
+      criteria,
+      keywords,
+      learningObjectives,
+      existingGuide,
+    } = createRubricMessage.data;
+
+    // Prepare the rubricData JSON string
     const rubricData = JSON.stringify({
-      assessmentTask: createRubricMessage.data.assessmentTask,
-      criteria: createRubricMessage.data.criteria,
-      keywords: createRubricMessage.data.keywords,
-      learningObjectives: createRubricMessage.data.learningObjectives,
-      existingGuide: createRubricMessage.data.existingGuide,
+      assessmentTask,
+      criteria,
+      keywords,
+      learningObjectives,
+      existingGuide,
     });
 
-    // Create an initial Rubric entry in the database with status PENDING
+    // Define the data object for Rubric creation
+    const rubricDataObject: any = {
+      id: uuidv4(),
+      title,
+      createdById,
+      rubricData,
+      status: RubricStatus.PENDING,
+    };
+
+    // Add assignmentId only if it is not null
+    if (assignmentId) {
+      // Check if the assignment exists
+      const assignmentExists = await prismaClient.assignment.findUnique({
+        where: { id: assignmentId },
+      });
+
+      if (!assignmentExists) {
+        console.error(`Invalid assignmentId: ${assignmentId}`);
+        throw new Error(`Assignment with ID ${assignmentId} does not exist.`);
+      }
+
+      // Include assignmentId in the data object
+      rubricDataObject.assignmentId = assignmentId;
+    }
+
+    // Create the Rubric
     const rubric = await prismaClient.rubric.create({
-      data: {
-        id: uuidv4(),
-        title: createRubricMessage.data.title,
-        assignmentId: createRubricMessage.data.assignmentId,
-        createdById: createRubricMessage.data.createdById,
-        rubricData,
-        status: RubricStatus.PENDING,
-      },
+      data: rubricDataObject,
     });
+
+    console.log('Rubric created successfully:', rubric);
 
     // Prepare the message for the AI service
     const message: Message = {
@@ -119,19 +150,17 @@ export async function submitRubricCreation(
       uuid: rubric.id,
     };
 
-    // Store the UUID of the sent message
-    sentUUIDs.add(rubric.id);
-
-    // Send message to AI service
     await sendToAIService(message);
   } catch (error) {
-    console.error('Error submitting rubric creation:', error);
+    console.error('Error creating rubric:', error);
 
-    // Update Rubric status to ERROR
-    await prismaClient.rubric.update({
-      where: { id: createRubricMessage.uuid },
-      data: { status: RubricStatus.ERROR },
-    });
+    // Set the status to ERROR if creation fails
+    if (createRubricMessage?.uuid) {
+      await prismaClient.rubric.update({
+        where: { id: createRubricMessage.uuid },
+        data: { status: RubricStatus.ERROR },
+      });
+    }
   }
 }
 

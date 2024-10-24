@@ -1,4 +1,4 @@
-/*import fs from 'fs';
+import fs from 'fs';
 import { OpenAI } from 'openai';
 import path from 'path';
 import * as dotenv from 'dotenv';
@@ -163,4 +163,8 @@ if (debug) {
       console.error('Failed to process Batch Job', error);
     }
   })();
-}*/
+}
+
+function extractTextFromPDF(pdfPath: string) {
+  throw new Error('Function not implemented.');
+}

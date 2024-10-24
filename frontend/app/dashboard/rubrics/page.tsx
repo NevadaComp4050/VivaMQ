@@ -15,8 +15,19 @@ import { useRouter } from "next/navigation"
 import createApiClient from "~/lib/api-client"
 import { useSession } from "next-auth/react"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "~/components/ui/breadcrumb"
-import { AlertCircle, Loader2, RefreshCw } from "lucide-react"
+import { AlertCircle, Loader2, RefreshCw, Trash2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog"
 
 type Rubric = {
   id: string
@@ -31,6 +42,7 @@ export default function ListRubricsPage() {
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState(Date.now())
   const [canManualRefresh, setCanManualRefresh] = useState(false)
+  const [deletingRubric, setDeletingRubric] = useState<string | null>(null)
   const router = useRouter()
   const { data: session } = useSession()
 
@@ -76,6 +88,22 @@ export default function ListRubricsPage() {
 
   const handleCreateRubric = () => {
     router.push("/dashboard/rubrics/create")
+  }
+
+  const handleDeleteRubric = async (id: string) => {
+    if (!session?.user?.accessToken) return
+
+    setDeletingRubric(id)
+    const apiClient = createApiClient(session.user.accessToken)
+    try {
+      await apiClient.delete(`rubrics/${id}`)
+      setRubrics(rubrics.filter(rubric => rubric.id !== id))
+    } catch (error) {
+      console.error("Failed to delete rubric:", error)
+      setError("Failed to delete rubric. Please try again later.")
+    } finally {
+      setDeletingRubric(null)
+    }
   }
 
   return (
@@ -136,12 +164,42 @@ export default function ListRubricsPage() {
                     <TableCell>{rubric.status}</TableCell>
                     <TableCell>{new Date(rubric.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        onClick={() => router.push(`/dashboard/rubrics/${rubric.id}`)}
-                      >
-                        View
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => router.push(`/dashboard/rubrics/${rubric.id}`)}
+                        >
+                          View
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="icon">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the rubric
+                                "{rubric.title}" and remove it from our servers.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteRubric(rubric.id)}
+                                disabled={deletingRubric === rubric.id}
+                              >
+                                {deletingRubric === rubric.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                ) : null}
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

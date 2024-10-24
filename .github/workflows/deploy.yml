@@ -76,7 +76,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key $DROPLET_USER@$DROPLET_IP << 'EOF'
-            cd /path/to/your/vivamq/docker-compose
+            cd vivamq/docker-compose
             docker-compose pull
             docker-compose up -d
           EOF

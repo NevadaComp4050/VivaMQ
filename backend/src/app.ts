@@ -14,6 +14,7 @@ import routes from '@/modules/index';
 import prismaClient from '@/lib/prisma';
 import { configurePassport } from '@/middlewares/passport-config';
 
+
 class App {
   public express: express.Application;
 

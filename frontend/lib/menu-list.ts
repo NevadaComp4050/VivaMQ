@@ -67,13 +67,13 @@ export function getMenuList(pathname: string): Group[] {
           icon: BookLock,
           submenus: [],
         },
-        // {
-        //   href: "/dashboard/rubrics",
-        //   label: "Rubrics",
-        //   active: pathname === "/dashboard/rubrics",
-        //   icon: BookOpenText,
-        //   submenus: [],
-        // },
+        {
+          href: "/dashboard/rubrics",
+          label: "Rubrics",
+          active: pathname === "/dashboard/rubrics",
+          icon: BookOpenText,
+          submenus: [],
+        },
       ],
     },
     /* {

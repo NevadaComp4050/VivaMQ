@@ -14,7 +14,6 @@ import routes from '@/modules/index';
 import prismaClient from '@/lib/prisma';
 import { configurePassport } from '@/middlewares/passport-config';
 
-
 class App {
   public express: express.Application;
 
@@ -38,6 +37,13 @@ class App {
 
     configurePassport();
     this.express.use(passport.initialize());
+
+    this.express.use(
+      cors({
+        origin: 'http://3.107.222.31',
+        credentials: true,
+      })
+    );
   }
 
   private disableSettings(): void {

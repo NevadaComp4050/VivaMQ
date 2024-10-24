@@ -78,7 +78,7 @@ export default function ViewRubricPage({
       const response = await apiClient.get(`rubrics/${params.rubricId}`);
       setRubric(response.data.data);
       if (response.data.data.status === "PENDING") {
-        setTimeout(fetchRubric, 5000); // Poll every 5 seconds if status is PENDING
+        setTimeout(fetchRubric, 30000); // Poll every 30 seconds if status is PENDING
       } else {
         setLoading(false);
       }
@@ -134,7 +134,7 @@ export default function ViewRubricPage({
     const apiClient = createApiClient(session.user.accessToken);
     try {
       await apiClient.put(`rubrics/${params.rubricId}`, rubric);
-      // Show success message or update UI as needed
+    
     } catch (error) {
       console.error("Failed to save rubric:", error);
       setError("Failed to save changes. Please try again.");

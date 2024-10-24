@@ -1,12 +1,11 @@
-import { type NextFunction, type Request, type Response } from 'express';
-import { type Rubric } from '@prisma/client';
+import { NextFunction, Request, Response } from 'express';
+import { Rubric } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
-import { v4 as uuidv4 } from 'uuid';
 import RubricService from './Rubric.service';
-import { type CustomResponse } from '@/types/common.type';
-import { type ExtendedRequest } from '@/types/express';
+import { CustomResponse } from '@/types/common.type';
+import { ExtendedRequest } from '@/types/express';
 import Api from '@/lib/api';
-import { type CreateRubricDto, type UpdateRubricDto } from '@/dto/rubric.dto';
+import { CreateRubricDto, UpdateRubricDto } from '@/dto/rubric.dto';
 
 export default class RubricController extends Api {
   private readonly rubricService = new RubricService();
@@ -25,6 +24,8 @@ export default class RubricController extends Api {
         });
       }
 
+      const createDto = req.body as CreateRubricDto;
+
       const {
         id,
         title,
@@ -34,7 +35,7 @@ export default class RubricController extends Api {
         keywords,
         learningObjectives,
         existingGuide,
-      } = req.body as CreateRubricDto;
+      } = createDto;
 
       const rubric = await this.rubricService.createRubric({
         title,
@@ -106,18 +107,18 @@ export default class RubricController extends Api {
   };
 
   public updateRubric = async (
-    req: Request,
+    req: ExtendedRequest,
     res: CustomResponse<Rubric | null>,
     next: NextFunction
   ) => {
     try {
       const { id } = req.params;
-      const { title, rubricData } = req.body as UpdateRubricDto;
+      const updateDto = req.body as UpdateRubricDto;
 
-      const updatedRubric = await this.rubricService.updateRubric(id, {
-        title,
-        rubricData,
-      });
+      const updatedRubric = await this.rubricService.updateRubric(
+        id,
+        updateDto
+      );
 
       if (!updatedRubric) {
         return res.status(HttpStatusCode.NotFound).json({

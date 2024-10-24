@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function NotFound() {
   const [starCount, setStarCount] = useState(100);
@@ -79,13 +80,15 @@ export default function NotFound() {
       </p>
 
       {/* Return Home Button */}
-      <Button
-        variant="outline"
-        size="lg"
-        className="text-white border-white hover:bg-white hover:text-gray-900"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" /> Return to Earth
-      </Button>
+      <Link href="/" passHref>
+        <Button
+          variant="outline"
+          size="lg"
+          className="text-white border-white hover:bg-white hover:text-gray-900"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> Return to Earth
+        </Button>
+      </Link>
     </div>
   );
 }

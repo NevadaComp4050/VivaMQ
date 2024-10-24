@@ -9,6 +9,7 @@ export interface Message {
 export interface CreateRubricMessage extends Message {
   type: 'createRubric';
   data: {
+    id: string;
     title: string;
     createdById: string;
     assignmentId: string;

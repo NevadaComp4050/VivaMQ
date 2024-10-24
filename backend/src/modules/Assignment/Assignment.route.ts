@@ -134,4 +134,7 @@ assignments.post(
   controller.generateVivaQuestions
 );
 
+// get all assignments
+assignments.get('/', verifyAuthToken, controller.getAll);
+
 export default assignments;

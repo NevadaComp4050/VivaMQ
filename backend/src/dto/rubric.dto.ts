@@ -5,11 +5,11 @@ import {
   IsArray,
   ArrayNotEmpty,
   ValidateNested,
+  IsNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateRubricDto {
-  @IsUUID()
   @IsOptional()
   id?: string; // Optional, will generate if not provided
 
@@ -17,7 +17,8 @@ export class CreateRubricDto {
   title: string;
 
   @IsOptional()
-  assignmentId: string | undefined;
+  @IsString()
+  assignmentId?: string;
 
   @IsString()
   assessmentTask: string;
@@ -53,6 +54,9 @@ export class UpdateRubricDto {
 }
 
 class RubricDataDto {
+  @IsString()
+  title: string;
+
   @IsArray()
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
@@ -64,8 +68,9 @@ class CriterionDto {
   @IsString()
   name: string;
 
-  @IsString()
-  marks: string;
+  @IsNumber()
+  @Type(() => Number)
+  marks: number;
 
   @IsOptional()
   @ValidateNested()

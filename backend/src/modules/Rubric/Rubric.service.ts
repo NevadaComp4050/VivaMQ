@@ -2,25 +2,22 @@
 
 import fs from 'fs';
 import { Buffer } from 'buffer';
-import { Prisma, type Rubric } from '@prisma/client';
+import { Prisma, RubricStatus, type Rubric } from '@prisma/client';
 import pdfkit from 'pdfkit';
 import ExcelJS from 'exceljs';
 import { v4 as uuidv4 } from 'uuid';
 import { instanceToPlain } from 'class-transformer';
 import prisma from '@/lib/prisma';
-import vivamqService from '@/services/viva-service';
+import vivaService from '@/services/viva-service';
 import { type CreateRubricDto, type UpdateRubricDto } from '@/dto/rubric.dto';
 
 import { type CreateRubricMessage } from '@/types/message';
 export default class RubricService {
-
   public async createRubric(
     data: CreateRubricDto & { createdById: string }
   ): Promise<Rubric> {
-
     const rubric = await prisma.rubric.create({
       data: {
-        id: data.id ?? uuidv4(), 
         title: data.title,
         assignmentId: data.assignmentId ?? null, // Allow assignmentId to be null
         createdById: data.createdById,
@@ -28,11 +25,12 @@ export default class RubricService {
         status: 'PENDING',
       },
     });
-  
+
     // Prepare message for AI service
     const message: CreateRubricMessage = {
       type: 'createRubric',
       data: {
+        id: rubric.id,
         assessmentTask: data.assessmentTask,
         criteria: data.criteria,
         keywords: data.keywords,
@@ -44,10 +42,10 @@ export default class RubricService {
       },
       uuid: rubric.id, // Use Rubric ID for correlation
     };
-  
+
     // Send message to AI service via RabbitMQ
-    void vivamqService.submitCreateRubric(message);
-  
+    await vivaService.submitRubricCreation(message);
+
     return rubric;
   }
 
@@ -69,29 +67,33 @@ export default class RubricService {
     id: string,
     data: UpdateRubricDto
   ): Promise<Rubric | null> {
-    try {
-      // Transform rubricData DTO to a plain object
-      const plainRubricData = data.rubricData
-        ? instanceToPlain(data.rubricData)
-        : undefined;
+    // Fetch existing rubric
+    const existingRubric = await prisma.rubric.findUnique({ where: { id } });
 
-      return await prisma.rubric.update({
-        where: { id },
-        data: {
-          title: data.title,
-          rubricData: plainRubricData, // Use the plain object here
-          // Optionally handle updating status if needed
-        },
-      });
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
-        return null;
-      }
-      throw e;
+    if (!existingRubric || existingRubric.deletedAt) {
+      return null;
     }
+
+    // Prepare the update data
+    const updateData: any = {};
+
+    if (data.title !== undefined) {
+      updateData.title = data.title;
+    }
+
+    if (data.rubricData !== undefined) {
+      updateData.rubricData = data.rubricData; // Assign as object
+    }
+
+    // Optionally update status
+    updateData.status = RubricStatus.COMPLETED;
+
+    const updatedRubric = await prisma.rubric.update({
+      where: { id },
+      data: updateData,
+    });
+
+    return updatedRubric;
   }
 
   public async deleteRubric(id: string): Promise<Rubric | null> {

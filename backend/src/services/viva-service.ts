@@ -1,10 +1,11 @@
+// viva-service.ts
 import amqp from 'amqplib';
 import { v4 as uuidv4 } from 'uuid';
-import { type Prisma, PrismaClient, RubricStatus } from '@prisma/client';
+import { Prisma, RubricStatus } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { fetchSubmissionText } from '@/utils/fetch-submission-text';
 
-import { type Message, type CreateRubricMessage } from '@/types/message';
+import { Message, CreateRubricMessage } from '@/types/message';
 
 const RABBITMQ_URL_DEFAULT = 'amqp://user:password@rabbitmq:5672';
 const RABBITMQ_URL = process.env.RABBITMQ_URL ?? RABBITMQ_URL_DEFAULT;
@@ -13,9 +14,8 @@ const AI_TO_BE_QUEUE = `${process.env.NODE_ENV ?? 'development'}_${process.env.u
 
 let connection: amqp.Connection | null = null;
 let channel: amqp.Channel | null = null;
-const sentUUIDs = new Set<string>();
 
-const prismaClient = new PrismaClient();
+const sentUUIDs = new Set<string>();
 
 // Set up the RabbitMQ connection and channels
 export async function setupQueue() {
@@ -47,7 +47,7 @@ export async function submitSubmission(submissionID: string) {
 
   try {
     // Fetch submission data
-    const submission = await prismaClient.submission.findUnique({
+    const submission = await prisma.submission.findUnique({
       where: { id: submissionID },
     });
     if (!submission)
@@ -60,7 +60,7 @@ export async function submitSubmission(submissionID: string) {
     }
 
     // Update vivaStatus to INPROGRESS
-    await prismaClient.submission.update({
+    await prisma.submission.update({
       where: { id: submissionID },
       data: { vivaStatus: 'INPROGRESS' },
     });
@@ -80,7 +80,7 @@ export async function submitSubmission(submissionID: string) {
     console.error('Error processing submission:', error);
 
     // Update vivaStatus to ERROR
-    await prismaClient.submission.update({
+    await prisma.submission.update({
       where: { id: submissionID },
       data: { vivaStatus: 'ERROR' },
     });
@@ -91,72 +91,14 @@ export async function submitRubricCreation(
   createRubricMessage: CreateRubricMessage
 ) {
   try {
-    const {
-      assignmentId,
-      title,
-      createdById,
-      assessmentTask,
-      criteria,
-      keywords,
-      learningObjectives,
-      existingGuide,
-    } = createRubricMessage.data;
-
-    // Prepare the rubricData JSON string
-    const rubricData = JSON.stringify({
-      assessmentTask,
-      criteria,
-      keywords,
-      learningObjectives,
-      existingGuide,
-    });
-
-    // Define the data object for Rubric creation
-    const rubricDataObject: any = {
-      id: uuidv4(),
-      title,
-      createdById,
-      rubricData,
-      status: RubricStatus.PENDING,
-    };
-
-    // Add assignmentId only if it is not null
-    if (assignmentId) {
-      // Check if the assignment exists
-      const assignmentExists = await prismaClient.assignment.findUnique({
-        where: { id: assignmentId },
-      });
-
-      if (!assignmentExists) {
-        console.error(`Invalid assignmentId: ${assignmentId}`);
-        throw new Error(`Assignment with ID ${assignmentId} does not exist.`);
-      }
-
-      // Include assignmentId in the data object
-      rubricDataObject.assignmentId = assignmentId;
-    }
-
-    // Create the Rubric
-    const rubric = await prismaClient.rubric.create({
-      data: rubricDataObject,
-    });
-
-    console.log('Rubric created successfully:', rubric);
-
-    // Prepare the message for the AI service
-    const message: Message = {
-      type: 'createRubric',
-      data: createRubricMessage.data,
-      uuid: rubric.id,
-    };
-
-    await sendToAIService(message);
+    // Directly send the message to AI service without creating a new rubric
+    await sendToAIService(createRubricMessage);
   } catch (error) {
-    console.error('Error creating rubric:', error);
+    console.error('Error submitting rubric creation to AI service:', error);
 
-    // Set the status to ERROR if creation fails
+    // Set the status to ERROR if submission fails
     if (createRubricMessage?.uuid) {
-      await prismaClient.rubric.update({
+      await prisma.rubric.update({
         where: { id: createRubricMessage.uuid },
         data: { status: RubricStatus.ERROR },
       });
@@ -201,12 +143,12 @@ async function handleAIResponse(msg: amqp.Message | null) {
       console.error('Error from AI service:', data);
 
       // Update vivaStatus to ERROR or Rubric status to ERROR based on context
-      await prismaClient.submission.update({
+      await prisma.submission.update({
         where: { id: uuid },
         data: { vivaStatus: 'ERROR' },
       });
 
-      await prismaClient.rubric.updateMany({
+      await prisma.rubric.updateMany({
         where: { id: uuid },
         data: { status: RubricStatus.ERROR },
       });
@@ -217,12 +159,12 @@ async function handleAIResponse(msg: amqp.Message | null) {
     console.error('Failed to parse nested data as JSON:', error);
 
     // Update vivaStatus to ERROR or Rubric status to ERROR based on context
-    await prismaClient.submission.update({
+    await prisma.submission.update({
       where: { id: uuid },
       data: { vivaStatus: 'ERROR' },
     });
 
-    await prismaClient.rubric.updateMany({
+    await prisma.rubric.updateMany({
       where: { id: uuid },
       data: { status: RubricStatus.ERROR },
     });
@@ -276,7 +218,7 @@ async function handleCreateRubric(data: any, uuid: string) {
   console.log('Handling createRubric response:', data);
   try {
     // Update the Rubric in the database with the generated data
-    const updatedRubric = await prismaClient.rubric.update({
+    const updatedRubric = await prisma.rubric.update({
       where: { id: uuid },
       data: {
         rubricData: data,
@@ -289,7 +231,7 @@ async function handleCreateRubric(data: any, uuid: string) {
     console.error('Error handling createRubric response:', error);
 
     // Update Rubric status to ERROR
-    await prismaClient.rubric.update({
+    await prisma.rubric.update({
       where: { id: uuid },
       data: { status: RubricStatus.ERROR },
     });
@@ -297,13 +239,8 @@ async function handleCreateRubric(data: any, uuid: string) {
 }
 
 // Send message to AI service queue
-async function sendToAIService(message: Message) {
+async function sendToAIService(message: Message | CreateRubricMessage) {
   await sendToQueue(message, BE_TO_AI_QUEUE);
-}
-
-// Function to submit a createRubric request
-export async function submitCreateRubric(message: CreateRubricMessage) {
-  await submitRubricCreation(message);
 }
 
 // Helper function to send messages to a specified queue
@@ -322,5 +259,5 @@ setupQueue().catch((error) => {
 
 export default {
   submitSubmission,
-  submitCreateRubric,
+  submitRubricCreation,
 };

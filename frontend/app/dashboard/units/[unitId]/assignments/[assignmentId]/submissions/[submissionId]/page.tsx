@@ -47,9 +47,9 @@ interface Submission {
 
 export default function SingleSubmissionReviewPage({
   params,
-}: {
+}: Readonly<{
   params: { unitId: string; assignmentId: string; submissionId: string };
-}) {
+}>) {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

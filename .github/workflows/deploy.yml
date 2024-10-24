@@ -58,15 +58,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository (optional, in case you need access to the latest code)
+      # Step 1: Checkout the repository (access to the latest code)
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      # Step 2: Install SSH client
-      - name: Install SSH client
-        run: sudo apt-get update && sudo apt-get install -y ssh
-
-      # Step 3: Deploy to DigitalOcean Droplet
+      # Step 2: Deploy to DigitalOcean Droplet
       - name: Deploy to DigitalOcean Droplet
         env:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
@@ -76,7 +72,17 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key $DROPLET_USER@$DROPLET_IP << 'EOF'
-            cd vivamq/docker-compose
-            docker-compose pull
-            docker-compose up -d
+            if [ -d "vivamq/docker-compose" ]; then
+              cd vivamq/docker-compose
+              if command -v docker-compose &> /dev/null; then
+                docker compose pull
+                docker compose up -d
+              else
+                echo "docker-compose could not be found"
+                exit 1
+              fi
+            else
+              echo "Directory vivamq/docker-compose does not exist"
+              exit 1
+            fi
           EOF

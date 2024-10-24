@@ -54,7 +54,7 @@ export default function CreateRubricPage() {
         keywords: data.keywords.map(k => k.value),
         learningObjectives: data.learningObjectives.map(lo => lo.value),
       })
-      router.push(`/dashboard/rubrics/${response.data.id}`)
+      router.push(`/dashboard/rubrics/${response.data.data.id}`)
     } catch (error) {
       console.error("Failed to create rubric:", error)
       setError("Failed to create rubric. Please try again.")

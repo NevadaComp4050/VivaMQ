@@ -73,7 +73,7 @@ jobs:
           chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key $DROPLET_USER@$DROPLET_IP << 'EOF'
             if [ -d "vivamq" ]; then
-              cd vivamq/docker-compose
+              cd vivamq
               if command -v docker compose &> /dev/null; then
                 docker compose pull
                 docker compose up -d

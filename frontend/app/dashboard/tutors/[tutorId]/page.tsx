@@ -52,7 +52,7 @@ export default function EditTutorPage({
 
   const fetchTutor = async () => {
     try {
-      const response = await fetch(`/api/tutors/${params.tutorId}`);
+      const response = await fetch(`/backend/tutors/${params.tutorId}`);
       if (response.ok) {
         const data: Tutor = await response.json();
         setTutor(data);
@@ -71,7 +71,7 @@ export default function EditTutorPage({
 
   const fetchUnits = async () => {
     try {
-      const response = await fetch('/api/units');
+      const response = await fetch('/backend/units');
       if (response.ok) {
         const data: Unit[] = await response.json();
         setUnits(data.map(unit => ({ ...unit, assigned: false }))); // Ensure all units have the 'assigned' property
@@ -103,7 +103,7 @@ export default function EditTutorPage({
 
   const handleSave = async () => {
     try {
-      const response = await fetch(`/api/tutors/${tutor.id}`, {
+      const response = await fetch(`/backend/tutors/${tutor.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,7 +131,7 @@ export default function EditTutorPage({
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`/api/tutors/${tutor.id}`, {
+      const response = await fetch(`/backend/tutors/${tutor.id}`, {
         method: 'DELETE',
       });
       if (response.ok) {

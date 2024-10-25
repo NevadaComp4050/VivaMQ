@@ -238,7 +238,7 @@ export default function AssignmentManagementPage({
     formData.append("file", file);
 
     try {
-      const response = await fetch("/api/process-csv", {
+      const response = await fetch("/backend/process-csv", {
         method: "POST",
         body: formData,
       });

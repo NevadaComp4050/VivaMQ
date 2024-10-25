@@ -9,6 +9,7 @@ const createApiClient = (accessToken: string | undefined) => {
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
+    config.headers['Access-Control-Allow-Origin'] = '*';
     return config;
   });
 

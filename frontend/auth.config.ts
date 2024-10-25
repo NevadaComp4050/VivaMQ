@@ -11,7 +11,7 @@ export const authConfig = {
       const isOnRegisterPage = nextUrl.pathname.startsWith("/register")
 
       if (isOnSignInPage || isOnRegisterPage) {
-        if (isLoggedIn) return Response.redirect(new URL("/dashboard", nextUrl))
+        if (isLoggedIn) return Response.redirect(new URL("/dashboard/units", nextUrl))
         return true
       }
 

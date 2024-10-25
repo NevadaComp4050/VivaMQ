@@ -66,11 +66,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download deployment package
-        uses: actions/download-artifact@v3
-        with:
-          name: deploy
-          path: .
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          mkdir ../build
+          cp -TR . ../build
+          tar -cvf deploy.tar ../build/
 
       - name: Copy deploy.tar to remote server
         env:
@@ -80,7 +81,7 @@ jobs:
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
-          scp -o StrictHostKeyChecking=no -i private_key deploy.tar $DROPLET_USER@$DROPLET_IP:~/vivamq/
+          scp -o StrictHostKeyChecking=no -i private_key deploy.tar $DROPLET_USER@$DROPLET_IP:~/
 
       - name: Deploy to DigitalOcean Droplet
         env:
@@ -91,7 +92,6 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key $DROPLET_USER@$DROPLET_IP << 'EOF'
-            cd vivamq
             tar -xvf deploy.tar
             cd build
             if command -v docker compose &> /dev/null; then

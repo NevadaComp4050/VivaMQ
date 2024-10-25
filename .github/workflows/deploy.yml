@@ -1,4 +1,4 @@
-name: Build and Deploy vivamq to DigitalOcean
+name: Build and Deploy to DigitalOcean
 
 on:
   push:
@@ -6,96 +6,44 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the latest code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      # Step 2: Setup SSH for connecting to the DigitalOcean Droplet
+      - name: Setup SSH for DigitalOcean
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.DROPLET_IP }} >> ~/.ssh/known_hosts
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
+      # Step 3: Log in to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Build and push vivamq-backend
-        uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          push: true
-          tags: megapz/vivamq-backend:latest
-
-      - name: Build and push vivamq-ai-processor
-        uses: docker/build-push-action@v6
-        with:
-          context: ./ai-processor
-          push: true
-          tags: megapz/vivamq-ai-processor:latest
-
-      - name: Build and push vivamq-frontend
-        uses: docker/build-push-action@v6
-        with:
-          context: ./frontend
-          push: true
-          tags: megapz/vivamq-frontend:latest
-
-      - name: Prepare deployment package
+      # Step 4: Build and push Docker images using Compose
+      - name: Build and push Docker images
         run: |
-          mkdir ../build
-          cp -TR . ../build
-          tar -cvf deploy.tar ../build/
-
-      - name: Upload deployment package
-        uses: actions/upload-artifact@v3
-        with:
-          name: deploy
-          path: deploy.tar
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          mkdir ../build
-          cp -TR . ../build
-          tar -cvf deploy.tar ../build/
-
-      - name: Copy deploy.tar to remote server
-        env:
-          DROPLET_IP: ${{ secrets.DROPLET_IP }}
-          DROPLET_USER: ${{ secrets.DROPLET_USER }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          echo "$SSH_PRIVATE_KEY" > private_key
-          chmod 600 private_key
-          scp -o StrictHostKeyChecking=no -i private_key deploy.tar $DROPLET_USER@$DROPLET_IP:~/
-
+          docker-compose build
+          docker-compose push
+      
+      # Step 5: Deploy the updated container images to the DigitalOcean Droplet
       - name: Deploy to DigitalOcean Droplet
         env:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          echo "$SSH_PRIVATE_KEY" > private_key
-          chmod 600 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key $DROPLET_USER@$DROPLET_IP << 'EOF'
-            tar -xvf deploy.tar
-            cd build
-            docker compose pull
-            docker compose up -d
-            docker compose ps
-          fi
+          ssh $DROPLET_USER@$DROPLET_IP << 'EOF'
+            docker-compose pull
+            docker-compose up -d --remove-orphans
+            docker system prune -f
           EOF

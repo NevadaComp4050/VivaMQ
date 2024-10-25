@@ -2,6 +2,7 @@ import NextAuth, { User } from "next-auth";
 import { authConfig } from "./auth.config";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
+import https from "https";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
@@ -56,6 +57,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 });
 
 const getUser = async (email: string, password: string) => {
+
+const axiosInstance = axios.create({
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false,  // Disable SSL certificate verification
+      }),
+    });
+
   try {
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_API_URL}/user/login`,

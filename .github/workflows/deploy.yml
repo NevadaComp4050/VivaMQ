@@ -92,16 +92,10 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key $DROPLET_USER@$DROPLET_IP << 'EOF'
-            curl -fsSL https://get.docker.com -o install-docker.sh
-            cat install-docker.sh
-            sh install-docker.sh --dry-run
-            sudo sh install-docker.sh
             tar -xvf deploy.tar
             cd build
-            if command -v docker compose &> /dev/null; then
-              docker compose pull
-              docker compose up -d
-            else
-              echo "docker compose not found"
+            docker compose pull
+            docker compose up -d
+            docker compose ps
             fi
           EOF

@@ -91,6 +91,8 @@ jobs:
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
+          sudo apt-get update
+          sudo apt-get install -y docker-compose-plugin
           ssh -o StrictHostKeyChecking=no -i private_key $DROPLET_USER@$DROPLET_IP << 'EOF'
             tar -xvf deploy.tar
             cd build
@@ -98,9 +100,6 @@ jobs:
               docker compose pull
               docker compose up -d
             else
-              sudo apt-get update
-              sudo apt-get install -y docker-compose-plugin
-              docker compose pull
-              docker compose up -d
+              echo "docker compose not found"
             fi
           EOF

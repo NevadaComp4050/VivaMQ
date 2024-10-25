@@ -98,7 +98,9 @@ jobs:
               docker compose pull
               docker compose up -d
             else
-              echo "docker-compose could not be found"
-              exit 1
+              sudo apt-get update
+              sudo apt-get install -y docker-compose-plugin
+              docker compose pull
+              docker compose up -d
             fi
           EOF

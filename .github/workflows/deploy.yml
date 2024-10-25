@@ -10,26 +10,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Set up QEMU for multi-platform builds (if needed)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # Step 3: Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Step 4: Login to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      # Step 5: Build and push Backend Image
       - name: Build and push vivamq-backend
         uses: docker/build-push-action@v6
         with:
@@ -37,7 +32,6 @@ jobs:
           push: true
           tags: megapz/vivamq-backend:latest
 
-      # Step 6: Build and push AI Processor Image
       - name: Build and push vivamq-ai-processor
         uses: docker/build-push-action@v6
         with:
@@ -45,7 +39,6 @@ jobs:
           push: true
           tags: megapz/vivamq-ai-processor:latest
 
-      # Step 7: Build and push Frontend Image
       - name: Build and push vivamq-frontend
         uses: docker/build-push-action@v6
         with:
@@ -53,16 +46,33 @@ jobs:
           push: true
           tags: megapz/vivamq-frontend:latest
 
+      - name: Prepare deployment package
+        run: |
+          mkdir ../build
+          cp -TR . ../build
+          tar -cvf deploy.tar ../build/
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v3
+        with:
+          name: deploy
+          path: deploy.tar
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository (access to the latest code)
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Copy repository to remote server
+      - name: Download deployment package
+        uses: actions/download-artifact@v3
+        with:
+          name: deploy
+          path: .
+
+      - name: Copy deploy.tar to remote server
         env:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
@@ -70,7 +80,7 @@ jobs:
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
-          scp -o StrictHostKeyChecking=no -i private_key -r . $DROPLET_USER@$DROPLET_IP:~/vivamq
+          scp -o StrictHostKeyChecking=no -i private_key deploy.tar $DROPLET_USER@$DROPLET_IP:~/vivamq/
 
       - name: Deploy to DigitalOcean Droplet
         env:
@@ -82,6 +92,8 @@ jobs:
           chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key $DROPLET_USER@$DROPLET_IP << 'EOF'
             cd vivamq
+            tar -xvf deploy.tar
+            cd build
             if command -v docker compose &> /dev/null; then
               docker compose pull
               docker compose up -d

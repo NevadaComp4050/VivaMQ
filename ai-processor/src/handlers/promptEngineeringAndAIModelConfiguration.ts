@@ -3,6 +3,7 @@ import { OpenAI } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import dotenv from "dotenv";
 import { generateOptimizedPromptSuggestionPrompt } from "../utilities/promptGenerators";
+import { LogError } from '../logger';
 
 dotenv.config();
 
@@ -12,7 +13,10 @@ const OptimizedPrompt = z.object({
   configuration_params: z.record(z.unknown()),
 });
 
-async function optimizePromptAndConfig(
+class optimizePrompt {
+
+  @LogError()
+async  optimizePromptAndConfig(
   openAIClient: OpenAI,
   {
     originalPrompt,
@@ -44,5 +48,6 @@ async function optimizePromptAndConfig(
     throw error;
   }
 }
+}
 
-export { optimizePromptAndConfig };
+export { optimizePrompt };

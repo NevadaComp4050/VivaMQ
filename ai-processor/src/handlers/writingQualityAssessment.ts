@@ -3,6 +3,7 @@ import { OpenAI } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import dotenv from "dotenv";
 import { generateAssessmentQualityPrompt } from "../utilities/promptGenerators";
+import { LogError } from '../logger';
 
 dotenv.config();
 
@@ -15,7 +16,10 @@ const QualityAssessment = z.object({
   recommendations: z.array(z.string()),
 });
 
-async function assessWritingQuality(
+class assessWritingQuality {
+
+  @LogError()
+async  assessWritingQuality(
   openAIClient: OpenAI,
   {
     document,
@@ -46,6 +50,7 @@ async function assessWritingQuality(
     console.error("Error:", error);
     throw error;
   }
+}
 }
 
 export { assessWritingQuality };

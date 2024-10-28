@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import { startMessageProcessor } from "./rabbitMQProcessor";
+import { messageProcessor } from "./rabbitMQProcessor";
 
 dotenv.config();
 
@@ -14,5 +14,6 @@ app.get("/", (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
-  startMessageProcessor();
+  const messageProcess = new messageProcessor();
+  messageProcess.startMessageProcessor();
 });

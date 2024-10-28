@@ -1,10 +1,11 @@
-import { generateAutomatedMarksheet } from "../handlers/automatedMarksheetGeneration";
+import { MarksheetGenerator } from "../handlers/automatedMarksheetGeneration";
 import { OpenAI } from "openai";
 
 jest.mock("openai");
 
 describe("generateAutomatedMarksheet", () => {
   let mockOpenAIClient: jest.Mocked<OpenAI>;
+  const automatedMarksheet = new MarksheetGenerator();
 
   beforeEach(() => {
     mockOpenAIClient = {
@@ -40,7 +41,7 @@ describe("generateAutomatedMarksheet", () => {
     const rubric = "Test rubric.";
     const learningOutcomes = "Test learning outcomes.";
 
-    const result = await generateAutomatedMarksheet(mockOpenAIClient, {
+    const result = await automatedMarksheet.generateAutomatedMarksheet(mockOpenAIClient, {
       document,
       rubric,
       learningOutcomes,
@@ -70,7 +71,7 @@ describe("generateAutomatedMarksheet", () => {
     const learningOutcomes = "Test learning outcomes.";
 
     await expect(
-      generateAutomatedMarksheet(mockOpenAIClient, {
+      automatedMarksheet.generateAutomatedMarksheet(mockOpenAIClient, {
         document,
         rubric,
         learningOutcomes,
@@ -98,7 +99,7 @@ describe("generateAutomatedMarksheet", () => {
     const learningOutcomes = "Test learning outcomes";
 
     await expect(
-      generateAutomatedMarksheet(mockOpenAIClient, {
+      automatedMarksheet.generateAutomatedMarksheet(mockOpenAIClient, {
         document,
         rubric,
         learningOutcomes,

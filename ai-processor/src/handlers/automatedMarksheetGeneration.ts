@@ -3,6 +3,7 @@ import { OpenAI } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import dotenv from "dotenv";
 import { generateAutomatedMarkingSheetPrompt } from "../utilities/promptGenerators";
+import { LogError } from '../logger';
 
 dotenv.config();
 
@@ -13,7 +14,10 @@ const Marksheet = z.object({
   overall_feedback: z.string(),
 });
 
-async function generateAutomatedMarksheet(
+class MarksheetGenerator {
+
+  @LogError()
+async generateAutomatedMarksheet(
   openAIClient: OpenAI,
   {
     document,
@@ -26,9 +30,6 @@ async function generateAutomatedMarksheet(
   }
 ): Promise<typeof Marksheet> {
   try {
-
-    console.log
-
     const prompt = generateAutomatedMarkingSheetPrompt(
       document,
       rubric,
@@ -51,5 +52,6 @@ async function generateAutomatedMarksheet(
     throw error;
   }
 }
+}
 
-export { generateAutomatedMarksheet };
+export { MarksheetGenerator };

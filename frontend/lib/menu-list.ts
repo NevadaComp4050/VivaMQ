@@ -67,6 +67,13 @@ export function getMenuList(pathname: string): Group[] {
           icon: BookOpenText,
           submenus: [],
         },
+        {
+          href: "/dashboard/units/create",
+          label: "Create Unit",
+          active: pathname === "/dashboard/units/create",
+          icon: SquarePen,
+          submenus: [],
+        },
       ],
     },
     /* {

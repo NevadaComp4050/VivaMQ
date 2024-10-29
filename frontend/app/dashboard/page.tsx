@@ -69,7 +69,7 @@ async function getDashboard() {
   }
 }
 
-export default async function UnitsPage() {
+export default async function DashbaordPage() {
   let sessions: Session[] = [];
   let error: string | null = null;
   let name: string | null = null;

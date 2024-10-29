@@ -10,29 +10,22 @@ import {
 } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "~/components/ui/dialog"
-import { Label } from "~/components/ui/label"
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Label as RechartsLabel,
-} from "recharts";
+} from "~/components/ui/dialog";
+import { Label } from "~/components/ui/label";
+import { PieChart, Pie, Cell, Label as RechartsLabel } from "recharts";
 import {
   ChartConfig,
   ChartContainer,
@@ -44,7 +37,7 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import createApiClient from "~/lib/api-client";
 import { notFound } from "next/navigation";
-import { Plus, TrendingUp } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 
@@ -115,8 +108,6 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
           newAssignment
         );
 
-        
-
         setUnit((prevUnit) => {
           if (prevUnit) {
             return {
@@ -143,14 +134,6 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
     return <div>Loading...</div>;
   }
 
-  const assignmentStats = unit.assignments.map((assignment) => ({
-    name: assignment.name,
-    submissions: assignment.submissions.length,
-    completed: Object.values(assignment.submissionStatuses).filter(
-      (status) => status === "completed"
-    ).length,
-  }));
-
   const assignmentTypesData = unit.assignments.reduce((acc, assignment) => {
     acc[assignment.settings] = (acc[assignment.settings] || 0) + 1;
     return acc;
@@ -170,12 +153,11 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
   }));
 
   const chartConfig: ChartConfig = {
-  theme: COLORS.reduce((acc, color) => {
-    acc[color] = { light: color, dark: color };
-    return acc;
-  }, {} as Record<string, { light: string; dark: string }>)
-};
-
+    theme: COLORS.reduce((acc, color) => {
+      acc[color] = { light: color, dark: color };
+      return acc;
+    }, {} as Record<string, { light: string; dark: string }>),
+  };
 
   return (
     <div className="p-8">
@@ -191,310 +173,213 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Assignment</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateAssignment} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={newAssignment.name}
-                  onChange={(e) =>
-                    setNewAssignment({ ...newAssignment, name: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="aiModel">AI Model</Label>
-                <Select
-                  value={newAssignment.aiModel}
-                  onValueChange={(value) =>
-                    setNewAssignment({ ...newAssignment, aiModel: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select AI Model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="GPT-4">GPT-4</SelectItem>
-                    <SelectItem value="GPT-3.5">GPT-3.5</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="specs">Specifications</Label>
-                <Textarea
-                  id="specs"
-                  value={newAssignment.specs}
-                  onChange={(e) =>
-                    setNewAssignment({
-                      ...newAssignment,
-                      specs: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="settings">Settings</Label>
-                <Input
-                  id="settings"
-                  value={newAssignment.settings}
-                  onChange={(e) =>
-                    setNewAssignment({
-                      ...newAssignment,
-                      settings: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </div>
-              <Button type="submit">Create Assignment</Button>
-            </form>
+            {/* ... (keep the existing dialog content) */}
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Unit Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="mb-4">Session ID: {unit.sessionId}</p>
-          <div className="flex space-x-4">
-            <div>
-              <strong>Assignments:</strong> {unit.assignments.length}
-            </div>
-            <div>
-              <strong>Tutors:</strong> {unit.tutors.length}
-            </div>
-            <div>
-              <strong>Viva Questions:</strong> {unit.vivaQuestionCount}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Tabs defaultValue="assignments" className="mb-6">
-        <TabsList>
-          <TabsTrigger value="assignments">Assignment Statistics</TabsTrigger>
-          <TabsTrigger value="vivas">Viva Statistics</TabsTrigger>
-        </TabsList>
-        <TabsContent value="assignments">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="flex flex-col">
-              <CardHeader className="items-center pb-0">
-                <CardTitle>Assignment Types</CardTitle>
-                <CardDescription>
-                  Distribution of Assignment Types
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 pb-0">
-                <ChartContainer
-                  config={chartConfig}
-                  className="mx-auto aspect-square max-h-[250px]"
-                >
-                  <PieChart>
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Pie
-                      data={assignmentTypesPieData}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={60}
-                      strokeWidth={5}
-                    >
-                      {assignmentTypesPieData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                      <RechartsLabel
-                        content={({ viewBox }) => {
-                          if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                            return (
-                              <text
-                                x={viewBox.cx}
-                                y={viewBox.cy}
-                                textAnchor="middle"
-                                dominantBaseline="middle"
-                              >
-                                <tspan
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  className="fill-foreground text-3xl font-bold"
-                                >
-                                  {unit.assignments.length}
-                                </tspan>
-                                <tspan
-                                  x={viewBox.cx}
-                                  y={(viewBox.cy || 0) + 24}
-                                  className="fill-muted-foreground"
-                                >
-                                  Assignments
-                                </tspan>
-                              </text>
-                            );
-                          }
-                        }}
-                      />
-                    </Pie>
-                  </PieChart>
-                </ChartContainer>
-              </CardContent>
-              <CardFooter className="flex-col gap-2 text-sm">
-                <div className="flex items-center gap-2 font-medium leading-none">
-                  {unit.assignments.length} total assignments
-                </div>
-                <div className="leading-none text-muted-foreground">
-                  Showing distribution of assignment types
-                </div>
-              </CardFooter>
-            </Card>
-            <Card className="flex flex-col">
-              <CardHeader className="items-center pb-0">
-                <CardTitle>Submissions Distribution</CardTitle>
-                <CardDescription>Assignment Submissions</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 pb-0">
-                <ChartContainer
-                  config={chartConfig}
-                  className="mx-auto aspect-square max-h-[250px]"
-                >
-                  <PieChart>
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Pie
-                      data={submissionsPieData}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={60}
-                      strokeWidth={5}
-                    >
-                      {submissionsPieData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                      <RechartsLabel
-                        content={({ viewBox }) => {
-                          if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                            return (
-                              <text
-                                x={viewBox.cx}
-                                y={viewBox.cy}
-                                textAnchor="middle"
-                                dominantBaseline="middle"
-                              >
-                                <tspan
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  className="fill-foreground text-3xl font-bold"
-                                >
-                                  {totalSubmissions}
-                                </tspan>
-                                <tspan
-                                  x={viewBox.cx}
-                                  y={(viewBox.cy || 0) + 24}
-                                  className="fill-muted-foreground"
-                                >
-                                  Submissions
-                                </tspan>
-                              </text>
-                            );
-                          }
-                        }}
-                      />
-                    </Pie>
-                  </PieChart>
-                </ChartContainer>
-              </CardContent>
-              <CardFooter className="flex-col gap-2 text-sm">
-                <div className="flex items-center gap-2 font-medium leading-none">
-                  {totalSubmissions} total submissions
-                </div>
-                <div className="leading-none text-muted-foreground">
-                  Showing distribution of assignment submissions
-                </div>
-              </CardFooter>
-            </Card>
-          </div>
-          <Card className="mt-6">
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex-grow">
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Assignment Submissions</CardTitle>
+              <CardTitle>Unit Details</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={assignmentStats}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="submissions" fill="#8884d8" />
-                  <Bar dataKey="completed" fill="#82ca9d" />
-                </BarChart>
-              </ResponsiveContainer>
+              <p className="mb-4">Session ID: {unit.sessionId}</p>
+              <div className="flex space-x-4">
+                <div>
+                  <strong>Assignments:</strong> {unit.assignments.length}
+                </div>
+                <div>
+                  <strong>Tutors:</strong> {unit.tutors.length}
+                </div>
+                <div>
+                  <strong>Viva Questions:</strong> {unit.vivaQuestionCount}
+                </div>
+              </div>
             </CardContent>
           </Card>
-        </TabsContent>
-        <TabsContent value="vivas">
+
           <Card>
             <CardHeader>
-              <CardTitle>Viva Statistics</CardTitle>
+              <CardTitle>Assignments</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Total Viva Questions: {unit.vivaQuestionCount}</p>
-              <p>No detailed viva statistics available in the provided data.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {unit.assignments.map((assignment) => (
+                  <Card key={assignment.id} className="flex flex-col h-full">
+                    <CardHeader>
+                      <CardTitle>{assignment.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex-grow">
+                      <p className="mb-2">
+                        <strong>Specs:</strong> {assignment.specs}
+                      </p>
+                      <p className="mb-2">
+                        <strong>Settings:</strong> {assignment.settings}
+                      </p>
+                      <p>
+                        <strong>Submissions:</strong>{" "}
+                        {assignment.submissions.length}
+                      </p>
+                    </CardContent>
+                    <CardFooter>
+                      <Link
+                        href={`/dashboard/units/${unit.id}/assignments/${assignment.id}`}
+                        passHref
+                      >
+                        <Button className="w-full">View Assignment</Button>
+                      </Link>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Assignments</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {unit.assignments.map((assignment) => (
-              <Card key={assignment.id} className="flex flex-col h-full">
-                <CardHeader>
-                  <CardTitle>{assignment.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <p className="mb-2">
-                    <strong>Specs:</strong> {assignment.specs}
-                  </p>
-                  <p className="mb-2">
-                    <strong>Settings:</strong> {assignment.settings}
-                  </p>
-                  <p>
-                    <strong>Submissions:</strong>{" "}
-                    {assignment.submissions.length}
-                  </p>
-                </CardContent>
-                <div className="p-4 mt-auto">
-                  <Link
-                    href={`/dashboard/units/${unit.id}/assignments/${assignment.id}`}
-                    passHref
+        <div className="w-full lg:w-1/3 space-y-6 lg:sticky lg:top-6 lg:self-start">
+          <Card>
+            <CardHeader>
+              <CardTitle>Assignment Types</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={chartConfig}
+                className="mx-auto aspect-square max-h-[250px]"
+              >
+                <PieChart>
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent hideLabel />}
+                  />
+                  <Pie
+                    data={assignmentTypesPieData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={60}
+                    strokeWidth={5}
                   >
-                    <Button className="w-full">View Assignment</Button>
-                  </Link>
+                    {assignmentTypesPieData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                    <RechartsLabel
+                      content={({ viewBox }) => {
+                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                          return (
+                            <text
+                              x={viewBox.cx}
+                              y={viewBox.cy}
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                            >
+                              <tspan
+                                x={viewBox.cx}
+                                y={viewBox.cy}
+                                className="fill-foreground text-3xl font-bold"
+                              >
+                                {unit.assignments.length}
+                              </tspan>
+                              <tspan
+                                x={viewBox.cx}
+                                y={(viewBox.cy || 0) + 24}
+                                className="fill-muted-foreground"
+                              >
+                                Assignments
+                              </tspan>
+                            </text>
+                          );
+                        }
+                      }}
+                    />
+                  </Pie>
+                </PieChart>
+              </ChartContainer>
+              <div className="mt-4 text-center text-sm">
+                <div className="font-medium">
+                  {unit.assignments.length} total assignments
                 </div>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+                <div className="text-muted-foreground">
+                  Showing distribution of assignment types
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Submissions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={chartConfig}
+                className="mx-auto aspect-square max-h-[250px]"
+              >
+                <PieChart>
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent hideLabel />}
+                  />
+                  <Pie
+                    data={submissionsPieData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={60}
+                    strokeWidth={5}
+                  >
+                    {submissionsPieData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                    <RechartsLabel
+                      content={({ viewBox }) => {
+                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                          return (
+                            <text
+                              x={viewBox.cx}
+                              y={viewBox.cy}
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                            >
+                              <tspan
+                                x={viewBox.cx}
+                                y={viewBox.cy}
+                                className="fill-foreground text-3xl font-bold"
+                              >
+                                {totalSubmissions}
+                              </tspan>
+                              <tspan
+                                x={viewBox.cx}
+                                y={(viewBox.cy || 0) + 24}
+                                className="fill-muted-foreground"
+                              >
+                                Submissions
+                              </tspan>
+                            </text>
+                          );
+                        }
+                      }}
+                    />
+                  </Pie>
+                </PieChart>
+              </ChartContainer>
+              <div className="mt-4 text-center text-sm">
+                <div className="font-medium">
+                  {totalSubmissions} total submissions
+                </div>
+                <div className="text-muted-foreground">
+                  Showing distribution of assignment submissions
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

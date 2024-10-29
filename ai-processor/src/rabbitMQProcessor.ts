@@ -25,11 +25,14 @@ export async function processMessage(message: Message): Promise<any> {
         });
         break;
       case "writingQuality":
-        const result = await generateSummaryAndReport(openAIClient, {
-      submission: message.data.submission,
-    });
+        response = await assessWritingQuality(
+          openAIClient,
 
-        break;
+          {
+            document: message.data.document,
+            criteria: message.data.criteria,
+          }
+        );
       case "summaryAndReport":
         response = await generateSummaryAndReport(
           openAIClient, {

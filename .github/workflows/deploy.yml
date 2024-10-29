@@ -45,7 +45,7 @@ jobs:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
         run: |
-          scp -o StrictHostKeyChecking=no repo.zip $DROPLET_USER@$DROPLET_IP:/home/droplet_user/deployment
+          scp -o StrictHostKeyChecking=no repo.zip $DROPLET_USER@$DROPLET_IP:~/
 
       # Step 7: Deploy the updated container images to the DigitalOcean Droplet
       - name: Deploy to DigitalOcean Droplet
@@ -54,8 +54,8 @@ jobs:
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
         run: |
           ssh $DROPLET_USER@$DROPLET_IP << 'EOF'
-            unzip /home/droplet_user/deployment/repo.zip -d /home/droplet_user/deployment
-            cd /home/droplet_user/deployment
+            unzip ~/repo.zip -d ~/
+            cd ~
             docker compose pull
             docker compose up -d --remove-orphans
             docker system prune -f

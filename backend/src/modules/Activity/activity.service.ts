@@ -39,19 +39,19 @@ export default class ActivityService {
             COALESCE(a."latestVivaUpdate", '1970-01-01'::timestamp),
             COALESCE(a."latestSubmissionUpload", '1970-01-01'::timestamp),
             COALESCE(a."createdAt", '1970-01-01'::timestamp)
-          ) = COALESCE(a."latestVivaUpdate", '1970-01-01'::timestamp) THEN 'Viva questions generated'
+          ) = COALESCE(a."latestVivaUpdate", '1970-01-01'::timestamp) THEN 'Viva Questions Generated'
           WHEN GREATEST(
             COALESCE(a."modifiedAt", '1970-01-01'::timestamp),
             COALESCE(a."latestVivaUpdate", '1970-01-01'::timestamp),
             COALESCE(a."latestSubmissionUpload", '1970-01-01'::timestamp),
             COALESCE(a."createdAt", '1970-01-01'::timestamp)
-          ) = COALESCE(a."latestSubmissionUpload", '1970-01-01'::timestamp) THEN 'Submissions uploaded'
+          ) = COALESCE(a."latestSubmissionUpload", '1970-01-01'::timestamp) THEN 'Submissions Iploaded'
           WHEN GREATEST(
             COALESCE(a."modifiedAt", '1970-01-01'::timestamp),
             COALESCE(a."latestVivaUpdate", '1970-01-01'::timestamp),
             COALESCE(a."latestSubmissionUpload", '1970-01-01'::timestamp),
             COALESCE(a."createdAt", '1970-01-01'::timestamp)
-          ) = COALESCE(a."createdAt", '1970-01-01'::timestamp) THEN 'Created'
+          ) = COALESCE(a."createdAt", '1970-01-01'::timestamp) THEN 'Was Created'
           ELSE 'Unknown'
         END AS reason
       FROM "Assignment" a
@@ -79,17 +79,17 @@ export default class ActivityService {
             COALESCE(r."modifiedAt", '1970-01-01'::timestamp),
             COALESCE(r."dataModifiedAt", '1970-01-01'::timestamp),
             COALESCE(r."createdAt", '1970-01-01'::timestamp)
-          ) = COALESCE(r."modifiedAt", '1970-01-01'::timestamp) THEN 'Modified'
+          ) = COALESCE(r."modifiedAt", '1970-01-01'::timestamp) THEN 'Changes Made'
           WHEN GREATEST(
             COALESCE(r."modifiedAt", '1970-01-01'::timestamp),
             COALESCE(r."dataModifiedAt", '1970-01-01'::timestamp),
             COALESCE(r."createdAt", '1970-01-01'::timestamp)
-          ) = COALESCE(r."dataModifiedAt", '1970-01-01'::timestamp) THEN 'Data modified'
+          ) = COALESCE(r."dataModifiedAt", '1970-01-01'::timestamp) THEN 'Content Changed'
           WHEN GREATEST(
             COALESCE(r."modifiedAt", '1970-01-01'::timestamp),
             COALESCE(r."dataModifiedAt", '1970-01-01'::timestamp),
             COALESCE(r."createdAt", '1970-01-01'::timestamp)
-          ) = COALESCE(r."createdAt", '1970-01-01'::timestamp) THEN 'Created'
+          ) = COALESCE(r."createdAt", '1970-01-01'::timestamp) THEN 'Was Created'
           ELSE 'Unknown'
         END AS reason
       FROM "Rubric" r

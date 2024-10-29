@@ -7,7 +7,7 @@ const s3Handler = new S3PDFHandler();
 async function fetchSubmissionTextFromS3(submissionFile: string) {
   try {
     const submissionText = await s3Handler.fetchText(submissionFile);
-    console.log('Submission text:', submissionText);
+    // console.log('Submission text:', submissionText);
     return submissionText;
   } catch (error) {
     console.error(`Error fetching text for file ${submissionFile}:`, error);

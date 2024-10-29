@@ -2,7 +2,7 @@ import { Prisma, type Assignment } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
 import S3PDFHandler from '@/utils/s3-util';
-import { submitSubmission } from '@/services/viva-service';
+import { submitSubmission } from '@/services/viva-service/viva-service';
 
 export default class AssignmentService {
   private readonly s3Handler = new S3PDFHandler();

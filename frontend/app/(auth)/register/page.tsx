@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "~/components/ui/select"
 import { Button } from "~/components/ui/button"
-import api from "~/lib/api"
+import createApiClient from "~/lib/api-client"
 
 export default function Register() {
   const router = useRouter()
@@ -35,6 +35,10 @@ export default function Register() {
     e.preventDefault()
     setIsLoading(true)
     setError("")
+
+    console.log("name", name)
+
+    const api = createApiClient("")
 
     try {
       await api.post("/user/register", {

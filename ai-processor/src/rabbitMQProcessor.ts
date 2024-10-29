@@ -8,7 +8,6 @@ import { optimizePromptAndConfig } from "./handlers/promptEngineeringAndAIModelC
 import { createRubric } from "./handlers/rubricCreationAndConversion";
 import dotenv from "dotenv";
 import openAIClient from "./config/openAIClient";
-import submissions from '../../backend/src/modules/Submission/Submission.route';
 
 dotenv.config();
 

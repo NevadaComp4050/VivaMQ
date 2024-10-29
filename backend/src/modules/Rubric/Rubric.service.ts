@@ -8,7 +8,7 @@ import ExcelJS from 'exceljs';
 import { v4 as uuidv4 } from 'uuid';
 import { instanceToPlain } from 'class-transformer';
 import prisma from '@/lib/prisma';
-import vivaService from '@/services/viva-service/viva-service';
+import vivaService from '@/services/generative-service/generative-service';
 import { type CreateRubricDto, type UpdateRubricDto } from '@/dto/rubric.dto';
 
 import { type CreateRubricMessage } from '@/types/message';

@@ -44,7 +44,7 @@ export default class RubricService {
     };
 
     // Send message to AI service via RabbitMQ
-    await vivaService.submitRubricCreation(message);
+    await vivaService.requestRubricCreation(message);
 
     return rubric;
   }

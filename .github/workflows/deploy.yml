@@ -1,14 +1,11 @@
 name: Build and Deploy to DigitalOcean
-
 on:
   push:
     branches:
       - main
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       # Step 1: Checkout the latest code
       - name: Checkout code
@@ -37,14 +34,28 @@ jobs:
         run: |
           docker compose build
           docker compose push
-      
-      # Step 5: Deploy the updated container images to the DigitalOcean Droplet
+
+      # Step 5: Zip the repository
+      - name: Zip repository
+        run: zip -r repo.zip .
+
+      # Step 6: Copy the zipped repository to the remote system
+      - name: Copy zipped repository to remote
+        env:
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+        run: |
+          scp -o StrictHostKeyChecking=no repo.zip $DROPLET_USER@$DROPLET_IP:/home/droplet_user/deployment
+
+      # Step 7: Deploy the updated container images to the DigitalOcean Droplet
       - name: Deploy to DigitalOcean Droplet
         env:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
         run: |
           ssh $DROPLET_USER@$DROPLET_IP << 'EOF'
+            unzip /home/droplet_user/deployment/repo.zip -d /home/droplet_user/deployment
+            cd /home/droplet_user/deployment
             docker compose pull
             docker compose up -d --remove-orphans
             docker system prune -f

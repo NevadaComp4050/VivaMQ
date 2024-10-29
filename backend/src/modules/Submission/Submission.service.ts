@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import S3PDFHandler from '@/utils/s3-util';
-import { submitSubmission } from '@/services/generative-service/generative-service';
+import { submitSubmission } from '@/services/ai-service/ai-service';
 import { type SubmissionResponseDto } from '@/dto/submission.dto';
 
 export default class SubmissionService {

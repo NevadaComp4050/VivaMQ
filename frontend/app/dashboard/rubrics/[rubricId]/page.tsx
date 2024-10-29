@@ -216,7 +216,12 @@ export default function ViewRubricPage({
           <AlertCircle className="h-12 w-12 text-destructive mb-4" />
           <h2 className="text-lg font-semibold mb-2">Error Loading Rubric</h2>
           <p className="text-sm text-muted-foreground mb-4">{error}</p>
-          <Button onClick={fetchRubric}>
+          <Button
+            onClick={
+              // refresh the page
+              router.refresh
+            }
+          >
             <RefreshCw className="mr-2 h-4 w-4" />
             Try Again
           </Button>
@@ -270,106 +275,86 @@ export default function ViewRubricPage({
     }
 
     return (
-      <>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Criterion</TableHead>
-              <TableHead>F</TableHead>
-              <TableHead>P</TableHead>
-              <TableHead>C</TableHead>
-              <TableHead>D</TableHead>
-              <TableHead>HD</TableHead>
-              <TableHead>Marks</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rubric.rubricData.criteria.map((criterion, index) => (
-              <TableRow key={index}>
-                <TableCell>
+      <div className="space-y-8">
+        {rubric.rubricData.criteria.map((criterion, index) => (
+          <Card key={index} className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor={`criterion-${index}`}
+                    className="text-sm font-medium"
+                  >
+                    Criterion
+                  </label>
                   <Textarea
+                    id={`criterion-${index}`}
                     value={criterion.name}
                     onChange={(e) =>
                       handleCriterionChange(index, "name", e.target.value)
                     }
-                    className="min-h-[100px]"
+                    className="mt-1 h-24"
                   />
-                </TableCell>
-                <TableCell>
-                  <Textarea
-                    value={criterion.descriptors.F}
-                    onChange={(e) =>
-                      handleCriterionChange(index, "F", e.target.value)
-                    }
-                    className="min-h-[100px]"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Textarea
-                    value={criterion.descriptors.P}
-                    onChange={(e) =>
-                      handleCriterionChange(index, "P", e.target.value)
-                    }
-                    className="min-h-[100px]"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Textarea
-                    value={criterion.descriptors.C}
-                    onChange={(e) =>
-                      handleCriterionChange(index, "C", e.target.value)
-                    }
-                    className="min-h-[100px]"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Textarea
-                    value={criterion.descriptors.D}
-                    onChange={(e) =>
-                      handleCriterionChange(index, "D", e.target.value)
-                    }
-                    className="min-h-[100px]"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Textarea
-                    value={criterion.descriptors.HD}
-                    onChange={(e) =>
-                      handleCriterionChange(index, "HD", e.target.value)
-                    }
-                    className="min-h-[100px]"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Input
-                    type="number"
-                    value={criterion.marks}
-                    onChange={(e) =>
-                      handleCriterionChange(
-                        index,
-                        "marks",
-                        parseInt(e.target.value)
-                      )
-                    }
-                    className="w-16"
-                  />
-                </TableCell>
-                <TableCell>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div>
+                    <label
+                      htmlFor={`marks-${index}`}
+                      className="text-sm font-medium"
+                    >
+                      Marks
+                    </label>
+                    <Input
+                      id={`marks-${index}`}
+                      type="number"
+                      value={criterion.marks}
+                      onChange={(e) =>
+                        handleCriterionChange(
+                          index,
+                          "marks",
+                          parseInt(e.target.value)
+                        )
+                      }
+                      className="mt-1 w-24"
+                    />
+                  </div>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={() => handleRemoveCriterion(index)}
                     disabled={rubric?.rubricData?.criteria.length === 1}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove
                   </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <div className="mt-4 flex justify-between">
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {Object.entries(criterion.descriptors).map(
+                  ([grade, descriptor]) => (
+                    <div key={grade}>
+                      <label
+                        htmlFor={`${grade}-${index}`}
+                        className="text-sm font-medium"
+                      >
+                        {grade}
+                      </label>
+                      <Textarea
+                        id={`${grade}-${index}`}
+                        value={descriptor}
+                        onChange={(e) =>
+                          handleCriterionChange(index, grade, e.target.value)
+                        }
+                        className="mt-1 h-32"
+                      />
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          </Card>
+        ))}
+        <div className="flex justify-between">
           <Button onClick={handleAddCriterion}>
             <Plus className="mr-2 h-4 w-4" />
             Add Criterion
@@ -384,7 +369,7 @@ export default function ViewRubricPage({
             )}
           </Button>
         </div>
-      </>
+      </div>
     );
   };
 
@@ -410,7 +395,7 @@ export default function ViewRubricPage({
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>{rubric?.title ?? "Loading Rubric..."}</CardTitle>
-            <CardDescription>
+            <CardDescription className="mb-2 mt-2">
               {rubric?.status === "PENDING"
                 ? "Generating rubric..."
                 : "View and edit rubric details"}
@@ -431,7 +416,7 @@ export default function ViewRubricPage({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onSelect={() => handleExport("pdf")}>
+                <DropdownMenuItem disabled onSelect={() => handleExport("pdf")}>
                   Export as PDF
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => handleExport("xls")}>

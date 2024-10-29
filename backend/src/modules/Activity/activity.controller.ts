@@ -8,15 +8,13 @@ import Api from '@/lib/api';
 export default class ActivityController extends Api {
   private readonly activityService = new ActivityService();
 
-  // Get recent activities with pagination
   public getRecentActivities = async (
     req: ExtendedRequest,
     res: CustomResponse<any>,
     next: NextFunction
   ) => {
     try {
-      const limit = parseInt(req.query.limit as string) || 10;
-      const page = parseInt(req.query.page as string) || 1;
+      const { limit = 10, page = 1 } = req.body;
 
       const userId = req.user?.id;
       if (!userId) {

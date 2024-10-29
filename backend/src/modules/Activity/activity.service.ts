@@ -16,7 +16,6 @@ export default class ActivityService {
       offset
     );
 
-    // Don't try to understand this
     const recentActivities = await prisma.$queryRaw<any[]>`
       SELECT
         'assignment' AS type,
@@ -98,7 +97,7 @@ export default class ActivityService {
         AND r."createdById" = ${userId}::text
 
       ORDER BY "latestDate" DESC
-      LIMIT ${limit} OFFSET ${offset};
+      LIMIT ${limit} OFFSET ${offset}
     `;
 
     console.log(recentActivities);

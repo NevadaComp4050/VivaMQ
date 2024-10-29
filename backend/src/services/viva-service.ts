@@ -1,11 +1,11 @@
 // viva-service.ts
 import amqp from 'amqplib';
 import { v4 as uuidv4 } from 'uuid';
-import { Prisma, RubricStatus } from '@prisma/client';
+import { type Prisma, RubricStatus } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { fetchSubmissionText } from '@/utils/fetch-submission-text';
 
-import { Message, CreateRubricMessage } from '@/types/message';
+import { type Message, type CreateRubricMessage } from '@/types/message';
 
 const RABBITMQ_URL_DEFAULT = 'amqp://user:password@rabbitmq:5672';
 const RABBITMQ_URL = process.env.RABBITMQ_URL ?? RABBITMQ_URL_DEFAULT;
@@ -171,6 +171,7 @@ async function handleAIResponse(msg: amqp.Message | null) {
   }
 }
 
+// Handle viva question creation and update assignment
 async function handleVivaQuestions(data: any, uuid: string) {
   if (Array.isArray(data?.questions) && data.questions.length > 0) {
     try {
@@ -193,10 +194,19 @@ async function handleVivaQuestions(data: any, uuid: string) {
       }
 
       // Update vivaStatus to COMPLETED after all questions are created
-      await prisma.submission.update({
+      const submission = await prisma.submission.update({
         where: { id: uuid },
         data: { vivaStatus: 'COMPLETED' },
+        include: { assignment: true },
       });
+
+      // Update the latestVivaUpdate field of the related assignment
+      if (submission.assignment) {
+        await prisma.assignment.update({
+          where: { id: submission.assignment.id },
+          data: { latestVivaUpdate: new Date() },
+        });
+      }
     } catch (error) {
       console.error('Error saving viva question:', error);
 
@@ -223,8 +233,18 @@ async function handleCreateRubric(data: any, uuid: string) {
       data: {
         rubricData: data,
         status: RubricStatus.COMPLETED,
+        // dataModifiedAt will be auto-updated by Prisma
       },
+      include: { assignment: true },
     });
+
+    // Update the related assignment (this will trigger the automatic update of dataModifiedAt)
+    if (updatedRubric.assignment) {
+      await prisma.assignment.update({
+        where: { id: updatedRubric.assignment.id },
+        data: { description: updatedRubric.title }, // Example change to trigger dataModifiedAt update
+      });
+    }
 
     console.log('Rubric updated with AI-generated data:', updatedRubric);
   } catch (error) {

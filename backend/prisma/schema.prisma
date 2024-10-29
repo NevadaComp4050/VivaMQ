@@ -63,16 +63,21 @@ model Student {
 }
 
 model Assignment {
-  id          String       @id @default(uuid())
-  name        String
-  specs       String
-  settings    String
-  unitId      String
-  deletedAt   DateTime?
-  description String?
-  unit        Unit         @relation(fields: [unitId], references: [id])
-  rubrics     Rubric[]
-  submissions Submission[]
+  id                     String       @id @default(uuid())
+  name                   String
+  specs                  String
+  settings               String
+  unitId                 String
+  deletedAt              DateTime?
+  description            String?
+  unit                   Unit         @relation(fields: [unitId], references: [id])
+  rubrics                Rubric[]
+  submissions            Submission[]
+  latestVivaUpdate       DateTime?
+  latestSubmissionUpload DateTime?
+  modifiedAt             DateTime?    @updatedAt
+  createdAt              DateTime     @default(now())
+  createdDate            DateTime     @default(now())
 }
 
 model Submission {
@@ -95,6 +100,7 @@ model Submission {
 
 model VivaQuestion {
   id           String     @id @default(uuid())
+  createdAt    DateTime   @default(now())
   submissionId String
   question     Json       @db.Json
   status       String
@@ -117,16 +123,18 @@ model UnitAccess {
 }
 
 model Rubric {
-  id           String       @id @default(uuid())
-  createdById  String
-  assignmentId String?
-  deletedAt    DateTime?
-  rubricData   Json?        @db.Json
-  title        String
-  status       RubricStatus @default(PENDING)
-  createdAt    DateTime     @default(now())
-  assignment   Assignment?  @relation(fields: [assignmentId], references: [id])
-  createdBy    User         @relation(fields: [createdById], references: [id])
+  id             String       @id @default(uuid())
+  createdById    String
+  assignmentId   String?
+  deletedAt      DateTime?
+  rubricData     Json?        @db.Json
+  title          String
+  status         RubricStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
+  assignment     Assignment?  @relation(fields: [assignmentId], references: [id])
+  createdBy      User         @relation(fields: [createdById], references: [id])
+  modifiedAt     DateTime?    @updatedAt
+  dataModifiedAt DateTime?    @updatedAt
 }
 
 enum RubricStatus {

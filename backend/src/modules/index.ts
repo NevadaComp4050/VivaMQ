@@ -7,6 +7,7 @@ import students from './Student/Student.route';
 import assignments from './Assignment/Assignment.route';
 import submissions from './Submission/Submission.route';
 import vivaQuestions from './VivaQuestion/VivaQuestion.route';
+import activity from './Activity/activity.route';
 
 import misc from './misc.route';
 import rubrics from './Rubric/Rubric.route';
@@ -22,5 +23,6 @@ router.use('/submissions', submissions);
 router.use('/viva-questions', vivaQuestions);
 router.use('/rubrics', rubrics);
 router.use('/misc', misc);
+router.use('/activity', activity);
 
 export default router;

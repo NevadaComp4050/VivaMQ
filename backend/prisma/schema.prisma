@@ -81,21 +81,34 @@ model Assignment {
 }
 
 model Submission {
-  id                String         @id @default(uuid())
-  assignmentId      String
-  studentId         String?
-  submissionFile    String
-  status            String
-  vivaStatus        VIVASTATUS     @default(NOTSTARTED)
-  studentCode       String?
-  deletedAt         DateTime?
-  qualityAssessment String?
-  summary           String?
-  vivaRequestDate   DateTime?      @default(now())
-  createdAt         DateTime       @default(now())
-  assignment        Assignment     @relation(fields: [assignmentId], references: [id])
-  student           Student?       @relation(fields: [studentId], references: [id])
-  vivaQuestions     VivaQuestion[]
+  id                  String             @id @default(uuid())
+  assignmentId        String
+  studentId           String?
+  submissionFile      String
+  status              String
+  vivaStatus          VIVASTATUS         @default(NOTSTARTED)
+  studentCode         String?
+  deletedAt           DateTime?
+  qualityAssessment   String?
+  summary             String?
+  vivaRequestDate     DateTime?          @default(now())
+  createdAt           DateTime           @default(now())
+  assignment          Assignment         @relation(fields: [assignmentId], references: [id])
+  student             Student?           @relation(fields: [studentId], references: [id])
+  vivaQuestions       VivaQuestion[]
+  submissionSummary   SubmissionSummary?
+  submissionSummaryId String?
+}
+
+model SubmissionSummary {
+  id           String     @id @default(uuid())
+  createdAt    DateTime   @default(now())
+  submissionId String     @unique
+  data         Json       @db.Json
+  status       String
+  deletedAt    DateTime?
+  category     String?
+  submission   Submission @relation(references: [id], fields: [submissionId])
 }
 
 model VivaQuestion {

@@ -123,7 +123,7 @@ assignments.get(
 );
 
 /**
- * POST /assignments/{assignmentId}/generateViva
+ * POST /assignments/{assignmentId}/generateVivaQuestions
  * @summary Trigger viva generation for a particular assignment
  * @tags Viva
  * @param {string} assignmentId.path.required - ID of the assignment
@@ -133,6 +133,15 @@ assignments.post(
   '/:id/generateVivaQuestions',
   controller.generateVivaQuestions
 );
+
+/**
+ * POST /assignments/{assignmentId}/generateSummaries
+ * @summary Trigger summary generation for a particular assignment
+ * @tags Summary
+ * @param {string} assignmentId.path.required - ID of the assignment
+ * @return {object} 200 - JSON object indicating success or failure
+ */
+assignments.post('/:id/generateSummaries', controller.generateSummaries);
 
 // get all assignments
 assignments.get('/', verifyAuthToken, controller.getAll);

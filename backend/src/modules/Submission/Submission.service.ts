@@ -1,7 +1,10 @@
 import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import S3PDFHandler from '@/utils/s3-util';
-import { submitSubmission } from '@/services/ai-service/ai-service';
+import {
+  requestVivaGeneration,
+  requestSummaryAndQualityGeneration,
+} from '@/services/ai-service/ai-service';
 import { type SubmissionResponseDto } from '@/dto/submission.dto';
 
 export default class SubmissionService {
@@ -47,15 +50,15 @@ export default class SubmissionService {
         id: submission.id,
         assignmentId: submission.assignmentId,
         assignmentName: submission.assignment.name,
-        studentId: submission.studentId || undefined,
+        studentId: submission.studentId ?? undefined,
         submissionFile: submission.submissionFile,
         status: submission.status,
         vivaStatus: submission.vivaStatus,
-        studentCode: submission.studentCode || undefined,
+        studentCode: submission.studentCode ?? undefined,
         createdAt: submission.createdAt,
-        qualityAssessment: submission.qualityAssessment || undefined,
-        summary: submission.summary || undefined,
-        vivaRequestDate: submission.vivaRequestDate || undefined,
+        qualityAssessment: submission.qualityAssessment ?? undefined,
+        summary: submission.summary ?? undefined,
+        vivaRequestDate: submission.vivaRequestDate ?? undefined,
         vivaQuestions: submission.vivaQuestions.map((q) => ({
           id: q.id,
           question: q.question,
@@ -81,7 +84,21 @@ export default class SubmissionService {
   }
 
   public async generateVivaQuestions(submissionId: string) {
-    await submitSubmission(submissionId);
+    await requestVivaGeneration(submissionId);
+  }
+
+  public async getSummary(submissionId: string) {
+    const summary = await prisma.submissionSummary.findFirst({
+      where: {
+        submissionId,
+        deletedAt: null,
+      },
+    });
+    return summary;
+  }
+
+  public async generateSummary(submissionId: string) {
+    await requestSummaryAndQualityGeneration(submissionId);
   }
 
   public async delete(id: string) {

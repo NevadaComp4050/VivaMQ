@@ -90,11 +90,11 @@ export const generateRubricPrompt = (
   Generate a rubric with MQ's Grade Descriptors (F, P, C, D, HD) for each criterion.
   `;
 
-export const generateDocumentSummaryPrompt = (document: string) => `
+export const generateDocumentSummaryPrompt = (submission: string) => `
 Summarize the following document and generate a detailed report:
 
 Document:
-${document}
+${submission}
 
 Provide a concise summary followed by a detailed report on the submission.
 `;

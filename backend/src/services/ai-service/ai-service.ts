@@ -4,7 +4,11 @@ import { dispatchMessage } from './dispatcher';
 import { BE_TO_AI_QUEUE } from './config';
 import prisma from '@/lib/prisma';
 import { fetchSubmissionText } from '@/utils/fetch-submission-text';
-import { type Message, type CreateRubricMessage } from '@/types/message';
+import {
+  type Message,
+  type CreateRubricMessage,
+  type CreateVivaQuestionsMessage,
+} from '@/types/message';
 
 const sentUUIDs = new Set<string>();
 
@@ -14,7 +18,7 @@ setupQueue(dispatchMessage).catch((error) => {
 });
 
 // Function to process the submission using RabbitMQ
-export async function submitSubmission(submissionID: string) {
+export async function requestVivaGeneration(submissionID: string) {
   console.log('Processing submission:', submissionID);
 
   try {
@@ -37,9 +41,13 @@ export async function submitSubmission(submissionID: string) {
       data: { vivaStatus: 'INPROGRESS' },
     });
 
-    const message: Message = {
+    // Create a CreateVivaQuestionsMessage
+    const message: CreateVivaQuestionsMessage = {
       type: 'vivaQuestions',
-      data: { submission: submissionFileLookupResult.text, customPrompt: null },
+      data: {
+        submission: submissionFileLookupResult.text,
+        customPrompt: null,
+      },
       uuid: submissionID,
     };
 
@@ -60,7 +68,7 @@ export async function submitSubmission(submissionID: string) {
 }
 
 // Function to submit rubric creation to the AI service
-export async function submitRubricCreation(
+export async function requestRubricCreation(
   createRubricMessage: CreateRubricMessage
 ) {
   try {
@@ -79,8 +87,43 @@ export async function submitRubricCreation(
   }
 }
 
+// Function to process the submission using RabbitMQ
+export async function requestSummaryAndQualityGeneration(submissionID: string) {
+  console.log('Processing submission for summary:', submissionID);
+
+  try {
+    // Fetch submission data
+    const submission = await prisma.submission.findUnique({
+      where: { id: submissionID },
+    });
+    if (!submission)
+      throw new Error(`Submission with ID ${submissionID} not found`);
+
+    // Fetch submission text
+    const submissionFileLookupResult = await fetchSubmissionText(submissionID);
+    if (!submissionFileLookupResult?.text) {
+      throw new Error(`No text found for submission ${submissionID}`);
+    }
+
+    const message: Message = {
+      type: 'summaryAndReport',
+      data: { submission: submissionFileLookupResult.text, customPrompt: null },
+      uuid: submissionID,
+    };
+
+    // Store the UUID of the sent message
+    sentUUIDs.add(submissionID);
+
+    // Send message to AI service
+    await sendToQueue(message, BE_TO_AI_QUEUE);
+  } catch (error) {
+    console.error('Error processing summary submission:', error);
+  }
+}
+
 // Export the service functions
 export default {
-  submitSubmission,
-  submitRubricCreation,
+  requestVivaGeneration,
+  requestRubricCreation,
+  requestSummaryAndQualityGeneration,
 };

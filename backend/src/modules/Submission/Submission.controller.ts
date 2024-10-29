@@ -41,6 +41,39 @@ export default class SubmissionController extends Api {
     }
   };
 
+  public getSummary = async (
+    req: Request,
+    res: CustomResponse<any>,
+    next: NextFunction
+  ) => {
+    try {
+      const { submissionId } = req.params;
+      const vivaQuestions =
+        await this.submissionService.getSummary(submissionId);
+      this.send(res, vivaQuestions, HttpStatusCode.Ok, 'getSummary');
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  public generateSummary = async (
+    req: Request,
+    res: CustomResponse<void>,
+    next: NextFunction
+  ) => {
+    try {
+      const { submissionId } = req.params;
+
+      void this.submissionService.generateSummary(submissionId);
+
+      res.status(HttpStatusCode.Accepted).send({
+        message: 'Your request to generate a summery has been accepted.',
+      });
+    } catch (e) {
+      next(e);
+    }
+  };
+
   public exportVivaQuestions = async (
     req: Request,
     res: CustomResponse<void>,

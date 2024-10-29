@@ -8,11 +8,13 @@ import { optimizePromptAndConfig } from "./handlers/promptEngineeringAndAIModelC
 import { createRubric } from "./handlers/rubricCreationAndConversion";
 import dotenv from "dotenv";
 import openAIClient from "./config/openAIClient";
+import submissions from '../../backend/src/modules/Submission/Submission.route';
 
 dotenv.config();
 
 export async function processMessage(message: Message): Promise<any> {
   try {
+
     let response;
     switch (message.type) {
       case "vivaQuestions":
@@ -23,20 +25,19 @@ export async function processMessage(message: Message): Promise<any> {
         });
         break;
       case "writingQuality":
-        response = await assessWritingQuality(
-          openAIClient,
+        const result = await generateSummaryAndReport(openAIClient, {
+      submission: message.data.submission,
+    });
 
-          {
-            document: message.data.document,
-            criteria: message.data.criteria,
-          }
-        );
         break;
       case "summaryAndReport":
         response = await generateSummaryAndReport(
-          openAIClient,
-          message.data.document
+          openAIClient, {
+            submission: message.data.submission,
+          }
+          
         );
+
         break;
       case "automatedMarksheet":
         response = await generateAutomatedMarksheet(openAIClient, {
@@ -63,6 +64,7 @@ export async function processMessage(message: Message): Promise<any> {
       default:
         throw new Error(`Unknown message type: ${message.type}`);
     }
+    console.log("Returning data:", response);
     return { type: message.type, data: response, uuid: message.uuid };
   } catch (error) {
     console.error("Error processing message:", error);

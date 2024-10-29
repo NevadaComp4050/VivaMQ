@@ -2,7 +2,10 @@ import { Prisma, type Assignment } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import LogMessage from '@/decorators/log-message.decorator';
 import S3PDFHandler from '@/utils/s3-util';
-import { submitSubmission } from '@/services/ai-service/ai-service';
+import {
+  requestVivaGeneration,
+  requestSummaryAndQualityGeneration,
+} from '@/services/ai-service/ai-service';
 
 export default class AssignmentService {
   private readonly s3Handler = new S3PDFHandler();
@@ -269,12 +272,31 @@ export default class AssignmentService {
     });
 
     for (const submission of submissions) {
-      await submitSubmission(submission.id);
+      await requestVivaGeneration(submission.id);
     }
 
     return {
       message:
         'Viva generation process started for submissions of count: ' +
+        String(submissions.length),
+    };
+  }
+
+  public async generateSummaries(assignmentId: string) {
+    const submissions = await prisma.submission.findMany({
+      where: {
+        assignmentId,
+        deletedAt: null,
+      },
+    });
+
+    for (const submission of submissions) {
+      await requestSummaryAndQualityGeneration(submission.id);
+    }
+
+    return {
+      message:
+        'Summary generation process started for submissions of count: ' +
         String(submissions.length),
     };
   }

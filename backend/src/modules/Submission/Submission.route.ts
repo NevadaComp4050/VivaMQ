@@ -28,6 +28,19 @@ submissions.get(
 );
 
 /**
+ * GET /api/submissions/{submissionId}/summary
+ * @summary Get summary for a specific submission
+ * @tags Summary
+ * @param {string} submissionId.path.required - Submission ID
+ * @return {Summary} 200 - Summary of the submission
+ */
+submissions.get(
+  '/:submissionId/summary',
+  verifyAuthToken,
+  controller.getSummary
+);
+
+/**
  * POST /api/submissions/{submissionId}/generate-viva-questions
  * @summary Trigger generation of viva questions for a specific submission
  * @tags VivaQuestion
@@ -38,6 +51,19 @@ submissions.post(
   '/:submissionId/generate-viva-questions',
   verifyAuthToken,
   controller.generateVivaQuestions
+);
+
+/**
+ * POST /api/submissions/{submissionId}/generate-summary
+ * @summary Trigger generation of summary for a specific submission
+ * @tags VivaQuestion
+ * @param {string} submissionId.path.required - Submission ID
+ * @return {string} 202 - Summary generation initiated
+ */
+submissions.post(
+  '/:submissionId/generate-summary',
+  verifyAuthToken,
+  controller.generateSummary
 );
 
 /**

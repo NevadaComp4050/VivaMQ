@@ -1,5 +1,19 @@
-export async function handleSummaryAndReport(data: any, uuid: string) {
-  const { document } = data;
+import { PrismaClient } from '@prisma/client';
 
-  console.log('Summary and Report Response:', document);
+const prisma = new PrismaClient();
+
+export async function handleSummaryAndReport(data: any, uuid: string) {
+  try {
+    const newSummary = await prisma.submissionSummary.create({
+      data: {
+        submissionId: uuid,
+        data,
+        status: 'COMPLETED',
+      },
+    });
+
+    console.log('New Submission Summary created:', newSummary);
+  } catch (error) {
+    console.error('Error creating Submission Summary:', error);
+  }
 }

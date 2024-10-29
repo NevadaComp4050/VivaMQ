@@ -1,5 +1,3 @@
-// src/types/message.ts
-
 export interface Message {
   type: string;
   data: any;
@@ -24,4 +22,16 @@ export interface CreateRubricMessage extends Message {
 export interface CreateRubricResponse extends Message {
   type: 'createRubric';
   data: any; // Define more specific type based on Rubric structure
+}
+export interface CreateVivaQuestionsMessage extends Message {
+  type: 'vivaQuestions';
+  data: {
+    submission: string;
+    customPrompt: string | null;
+  };
+}
+
+export interface CreateVivaQuestionsResponse extends Message {
+  type: 'vivaQuestions';
+  data: any;
 }

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import Controller from './assignment.controller';
+import Controller from './Assignment.controller';
 import { verifyAuthToken } from '@/middlewares/auth';
 import {
   VerifyAssignmentReadWriteAccess,
@@ -133,8 +133,5 @@ assignments.post(
   '/:id/generateVivaQuestions',
   controller.generateVivaQuestions
 );
-
-// get all assignments
-assignments.get('/', verifyAuthToken, controller.getAll);
 
 export default assignments;

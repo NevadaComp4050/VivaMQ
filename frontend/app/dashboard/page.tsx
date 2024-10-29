@@ -53,12 +53,33 @@ async function getUnits(): Promise<Session[]> {
   }
 }
 
+async function getDashboard() {
+  const session = await auth();
+  if (!session?.user?.accessToken) {
+    throw new Error("Not authenticated");
+  }
+
+  try {
+    const { data } = await api.get("/user/me");
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+    throw new Error("Failed to fetch dashboard data");
+  }
+}
+
 export default async function UnitsPage() {
   let sessions: Session[] = [];
   let error: string | null = null;
+  let name: string | null = null;
 
   try {
     sessions = await getUnits();
+
+    // log the response from getDashboard
+    const dashboard = await getDashboard();
+    name = dashboard.name;
   } catch (e) {
     error = e instanceof Error ? e.message : "An unknown error occurred";
   }
@@ -68,7 +89,10 @@ export default async function UnitsPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6">
+        Welcome
+        {name ? `, ${name}` : ""}!
+      </h1>
       <Card>
         <CardHeader>
           <CardTitle>My Units</CardTitle>
@@ -77,7 +101,11 @@ export default async function UnitsPage() {
           {error ? (
             <p className="text-red-500">{error}</p>
           ) : (
-            <Accordion type="multiple" defaultValue={sessions.map(session => session.id)} className="w-full">
+            <Accordion
+              type="multiple"
+              defaultValue={sessions.map((session) => session.id)}
+              className="w-full"
+            >
               {sessions.length > 0 &&
                 sessions.map((session) => (
                   <AccordionItem key={session.id} value={session.id}>

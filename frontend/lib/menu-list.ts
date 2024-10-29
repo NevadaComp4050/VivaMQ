@@ -47,13 +47,6 @@ export function getMenuList(pathname: string): Group[] {
       groupLabel: "Manage",
       menus: [
         {
-          href: "/dashboard/units",
-          label: "Units",
-          active: pathname.startsWith("/dashboard/units"),
-          icon: SquarePen,
-          submenus: [],
-        },
-        {
           href: "/dashboard/assignments",
           label: "All Assignments",
           active: pathname === "/dashboard/assignments",

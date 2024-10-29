@@ -14,14 +14,14 @@ const SummaryAndReport = z.object({
 
 async function generateSummaryAndReport(
 openAIClient: OpenAI, {
-  submission
+  document
 }: {
-  submission: string;
+  document: string;
 }): Promise<typeof SummaryAndReport> {
   try {
 
    
-    const prompt = generateDocumentSummaryPrompt(submission);
+    const prompt = generateDocumentSummaryPrompt(document);
     const response = await openAIClient.chat.completions.create({
       model: "gpt-4o-2024-08-06",
       messages: [{ role: "user", content: prompt }],

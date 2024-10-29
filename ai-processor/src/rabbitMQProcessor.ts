@@ -35,7 +35,7 @@ export async function processMessage(message: Message): Promise<any> {
       case "summaryAndReport":
         response = await generateSummaryAndReport(
           openAIClient, {
-            submission: message.data.submission,
+            document: message.data.submission,
           }
           
         );

@@ -1,7 +1,4 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
 import {
   Table,
   TableBody,
@@ -9,273 +6,153 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
+} from "~/components/ui/table"
+import Link from "next/link"
+import api from "~/lib/api"
+import { auth } from "~/auth"
 import {
-  BookOpenIcon,
-  FileTextIcon,
-  UsersIcon,
-  CalendarIcon,
-  AlertCircleIcon,
-} from "lucide-react";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "~/components/ui/accordion"
+import { Button } from "~/components/ui/button"
 
-interface Stats {
-  totalUnits: number;
-  activeAssignments: number;
-  pendingVivas: number;
-  activeUsers: number;
+type Unit = {
+  id: string
+  name: string
+  sessionId: string
+  ownerId: string
+  accessType: string
 }
 
-interface Activity {
-  id: number;
-  type: string;
-  action: string;
-  name: string;
-  date: string;
+type Session = {
+  id: string
+  displayName: string
+  year: number
+  term: string
+  units: Unit[]
 }
 
-interface Viva {
-  id: number;
-  student: string;
-  assignment: string;
-  date: string;
-  time: string;
+async function getUnits(): Promise<Session[]> {
+  const session = await auth()
+  if (!session?.user?.accessToken) {
+    throw new Error("Not authenticated")
+  }
+
+  try {
+    const { data } = await api.get("/units/by-session")
+    console.log(data.data)
+    return data.data
+  } catch (error) {
+    console.error("Error fetching units:", error)
+    throw new Error("Failed to fetch units")
+  }
 }
 
-interface Task {
-  id: number;
-  task: string;
-  dueDate: string;
+async function getDashboard() {
+  const session = await auth()
+  if (!session?.user?.accessToken) {
+    throw new Error("Not authenticated")
+  }
+
+  try {
+    const { data } = await api.get("/user/me")
+    return data
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error)
+    throw new Error("Failed to fetch dashboard data")
+  }
 }
 
-function StatCards({ stats }: { stats: Stats }) {
-  return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Units</CardTitle>
-          <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.totalUnits}</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Active Assignments
-          </CardTitle>
-          <FileTextIcon className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.activeAssignments}</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Pending Vivas</CardTitle>
-          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.pendingVivas}</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-          <UsersIcon className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.activeUsers}</div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+export default async function DashboardPage() {
+  let sessions: Session[] = []
+  let error: string | null = null
+  let name: string | null = null
 
-function RecentActivities({ activities }: { activities: Activity[] }) {
-  return (
-    <Card className="col-span-2">
-      <CardHeader>
-        <CardTitle>Recent Activities</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Type</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {activities.map((activity) => (
-              <TableRow key={activity.id}>
-                <TableCell className="capitalize">{activity.type}</TableCell>
-                <TableCell className="capitalize">{activity.action}</TableCell>
-                <TableCell>{activity.name}</TableCell>
-                <TableCell>{activity.date}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
-}
+  try {
+    sessions = await getUnits()
+    const dashboard = await getDashboard()
+    name = dashboard.name
+  } catch (e) {
+    error = e instanceof Error ? e.message : "An unknown error occurred"
+  }
 
-function PendingTasks({ tasks }: { tasks: Task[] }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Pending Tasks</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-4">
-          {tasks.map((task) => (
-            <li key={task.id} className="flex items-start space-x-2">
-              <AlertCircleIcon className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium">{task.task}</p>
-                <p className="text-xs text-muted-foreground">
-                  Due: {task.dueDate}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
-  );
-}
-
-function UpcomingVivas({ vivas }: { vivas: Viva[] }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Upcoming Vivas</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>Assignment</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Time</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {vivas.map((viva) => (
-              <TableRow key={viva.id}>
-                <TableCell>{viva.student}</TableCell>
-                <TableCell>{viva.assignment}</TableCell>
-                <TableCell>{viva.date}</TableCell>
-                <TableCell>{viva.time}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
-}
-
-export default function Dashboard() {
-
-  const stats: Stats = {
-    totalUnits: 8,
-    activeAssignments: 12,
-    pendingVivas: 24,
-    activeUsers: 15,
-  };
-
-  const recentActivities: Activity[] = [
-    {
-      id: 1,
-      type: "unit",
-      action: "created",
-      name: "Advanced Machine Learning",
-      date: "2023-05-15",
-    },
-    {
-      id: 2,
-      type: "assignment",
-      action: "updated",
-      name: "Database Normalization",
-      date: "2023-05-14",
-    },
-    {
-      id: 3,
-      type: "viva",
-      action: "completed",
-      name: "John Doe - Software Engineering",
-      date: "2023-05-13",
-    },
-    {
-      id: 4,
-      type: "user",
-      action: "added",
-      name: "new_tutor@example.com",
-      date: "2023-05-12",
-    },
-  ];
-
-  const upcomingVivas: Viva[] = [
-    {
-      id: 1,
-      student: "Alice Johnson",
-      assignment: "Data Structures",
-      date: "2023-05-20",
-      time: "10:00 AM",
-    },
-    {
-      id: 2,
-      student: "Bob Smith",
-      assignment: "Web Development",
-      date: "2023-05-21",
-      time: "2:00 PM",
-    },
-    {
-      id: 3,
-      student: "Charlie Brown",
-      assignment: "Artificial Intelligence",
-      date: "2023-05-22",
-      time: "11:00 AM",
-    },
-  ];
-
-  const pendingTasks: Task[] = [
-    {
-      id: 1,
-      task: "Review generated questions for Database Systems",
-      dueDate: "2023-05-18",
-    },
-    {
-      id: 2,
-      task: "Approve viva schedule for Software Engineering",
-      dueDate: "2023-05-19",
-    },
-    {
-      id: 3,
-      task: "Upload student submissions for Machine Learning",
-      dueDate: "2023-05-20",
-    },
-  ];
-
+  const defaultExpandedValue = sessions.length > 0 ? sessions[0].id : ""
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Hello {"user.name"}</h1>
-
-      <StatCards stats={stats} />
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        <RecentActivities activities={recentActivities} />
-        <PendingTasks tasks={pendingTasks} />
-      </div>
-
-      <UpcomingVivas vivas={upcomingVivas} />
+      <h1 className="text-3xl font-bold mb-6">
+        Welcome
+        {name ? `, ${name}` : ""}!
+      </h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>My Units</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {error ? (
+            <p className="text-red-500">{error}</p>
+          ) : (
+            <Accordion
+              type="multiple"
+              defaultValue={sessions.map((session) => session.id)}
+              className="w-full"
+            >
+              {sessions.length > 0 &&
+                sessions.map((session) => (
+                  <AccordionItem key={session.id} value={session.id}>
+                    <AccordionTrigger>{session.displayName}</AccordionTrigger>
+                    <AccordionContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-1/3">Unit Name</TableHead>
+                            <TableHead className="w-1/3">Access Type</TableHead>
+                            <TableHead className="w-1/3">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {session.units && session.units.length > 0 ? (
+                            session.units.map((unit: Unit) => (
+                              <TableRow key={unit.id}>
+                                <TableCell className="w-1/3">
+                                  <div className="truncate" title={unit.name}>
+                                    {unit.name}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="w-1/3">
+                                  <div className="truncate" title={unit.accessType}>
+                                    {unit.accessType}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="w-1/3">
+                                  <div className="flex space-x-2">
+                                    <Link href={`/dashboard/units/${unit.id}`}>
+                                      <Button variant="default">
+                                        View Unit
+                                      </Button>
+                                    </Link>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={3} className="text-center">
+                                No units available for this session.
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+            </Accordion>
+          )}
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }

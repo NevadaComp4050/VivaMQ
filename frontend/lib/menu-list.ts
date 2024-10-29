@@ -47,13 +47,6 @@ export function getMenuList(pathname: string): Group[] {
       groupLabel: "Manage",
       menus: [
         {
-          href: "/dashboard/units",
-          label: "Units",
-          active: pathname.startsWith("/dashboard/units"),
-          icon: SquarePen,
-          submenus: [],
-        },
-        {
           href: "/dashboard/assignments",
           label: "All Assignments",
           active: pathname === "/dashboard/assignments",
@@ -72,6 +65,13 @@ export function getMenuList(pathname: string): Group[] {
           label: "Rubrics",
           active: pathname === "/dashboard/rubrics",
           icon: BookOpenText,
+          submenus: [],
+        },
+        {
+          href: "/dashboard/units/create",
+          label: "Create Unit",
+          active: pathname === "/dashboard/units/create",
+          icon: SquarePen,
           submenus: [],
         },
       ],

@@ -54,6 +54,7 @@ jobs:
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
         run: |
           ssh $DROPLET_USER@$DROPLET_IP << 'EOF'
+            chmod 600 ~/repo.zip
             unzip ~/repo.zip -d ~/
             cd ~
             docker compose pull

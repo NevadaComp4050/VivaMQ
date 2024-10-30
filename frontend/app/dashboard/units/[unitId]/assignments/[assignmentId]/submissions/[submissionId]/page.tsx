@@ -23,6 +23,7 @@ import {
   Plus,
   Edit,
   RotateCw,
+  ArrowLeft,
 } from "lucide-react";
 import { useToast } from "~/components/ui/use-toast";
 import createApiClient from "~/lib/api-client";
@@ -35,6 +36,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "~/components/ui/dialog";
+import { motion } from 'framer-motion'
 
 interface VivaQuestion {
   id: string;
@@ -258,198 +260,182 @@ export default function SingleSubmissionReviewPage({
     return <div className="p-8 text-center">No submission found</div>;
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">
-        Review Student: {submission.studentCode}
-      </h1>
+    <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-4xl font-bold mb-2">Review Submission</h1>
+        <p className="text-xl text-muted-foreground">Student: {submission.studentCode || 'N/A'}</p>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Submission Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div>
-                <Label>Student ID</Label>
-                <div>{submission.studentCode || "N/A"}</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>Submission Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Student ID</Label>
+                  <div className="text-lg">{submission.studentCode || 'N/A'}</div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <div className="text-lg">{submission.status}</div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Viva Status</Label>
+                  <div className="text-lg">{submission.vivaStatus}</div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Submission File</Label>
+                  <div className="text-lg">{submission.submissionFile}</div>
+                </div>
               </div>
-              <div>
-                <Label>Status</Label>
-                <div>{submission.status}</div>
-              </div>
-              <div>
-                <Label>Viva Status</Label>
-                <div>{submission.vivaStatus}</div>
-              </div>
-              <div>
-                <Label>Submission File</Label>
-                <div>{submission.submissionFile}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
 
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.4 }}>
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                Submission Content
+                <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <Maximize2 className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-full w-[90vw] h-[90vh]">
+                    {currentFileContent && (
+                      <div className="flex flex-col gap-6 h-full">
+                        <DialogHeader>
+                          <DialogTitle>Submission Content</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex-grow">
+                          <embed
+                            src={currentFileContent}
+                            type="application/pdf"
+                            width="100%"
+                            height="100%"
+                            className="rounded-md"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px] w-full rounded-md border">
+                {currentFileContent && (
+                  <embed
+                    src={currentFileContent}
+                    type="application/pdf"
+                    width="100%"
+                    height="100%"
+                    className="rounded-md"
+                  />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.6 }}>
         <Card>
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
-              Submission Content
-              <Dialog
-                open={isFullscreenOpen}
-                onOpenChange={setIsFullscreenOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Maximize2 className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-full w-[90vw] h-[90vh]">
-                  {currentFileContent && (
-                    <div className="flex flex-col gap-6">
-                      <DialogHeader>
-                        <DialogTitle>Submission Content</DialogTitle>
-                      </DialogHeader>
-                      <div className="w-full h-full">
-                        <embed
-                          src={currentFileContent}
-                          type="application/pdf"
-                          width="100%"
-                          height="100%"
-                          className="rounded-md w-full h-full"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </DialogContent>
-              </Dialog>
+              Viva Questions
+              <div className="space-x-2">
+                <Button onClick={handleRegenerateQuestions}>
+                  <RotateCw className="w-4 h-4 mr-2" />
+                  Regenerate Unlocked
+                </Button>
+                <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Question
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>{editingQuestion ? 'Edit Question' : 'Add New Question'}</DialogTitle>
+                    </DialogHeader>
+                    <Textarea
+                      value={editingQuestion ? editingQuestion.question : newQuestionText}
+                      onChange={(e) =>
+                        editingQuestion
+                          ? setEditingQuestion({ ...editingQuestion, question: e.target.value })
+                          : setNewQuestionText(e.target.value)
+                      }
+                      placeholder="Enter question here..."
+                      className="min-h-[100px]"
+                    />
+                    <DialogFooter>
+                      <Button onClick={editingQuestion ? handleSaveQuestion : handleAddQuestion}>
+                        {editingQuestion ? 'Save Changes' : 'Add Question'}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] w-full rounded-md border p-4">
-              {currentFileContent && (
-                <embed
-                  src={currentFileContent}
-                  type="application/pdf"
-                  width="100%"
-                  height="100%"
-                  onError={() => {
-                    toast({
-                      title: "Error",
-                      description: "Failed to load PDF.",
-                      variant: "destructive",
-                    });
-                  }}
-                />
-              )}
-            </div>
+            <ScrollArea className="h-[300px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Question</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {submission.vivaQuestions.map((question) => (
+                    <TableRow key={question.id}>
+                      <TableCell className="font-medium">{question.question}</TableCell>
+                      <TableCell>{question.status}</TableCell>
+                      <TableCell>
+                        <div className="space-x-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEditQuestion(question)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleLockToggle(question.id)}>
+                            {question.isLocked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            Viva Questions
-            <div className="space-x-2">
-              <Button onClick={handleRegenerateQuestions}>
-                <RotateCw className="w-4 h-4 mr-2" />
-                Regenerate Unlocked
-              </Button>
-              <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Question
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingQuestion ? "Edit Question" : "Add New Question"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <Textarea
-                    value={
-                      editingQuestion
-                        ? editingQuestion.question
-                        : newQuestionText
-                    }
-                    onChange={(e) =>
-                      editingQuestion
-                        ? setEditingQuestion({
-                            ...editingQuestion,
-                            question: e.target.value,
-                          })
-                        : setNewQuestionText(e.target.value)
-                    }
-                    placeholder="Enter question here..."
-                  />
-                  <DialogFooter>
-                    <Button
-                      onClick={
-                        editingQuestion ? handleSaveQuestion : handleAddQuestion
-                      }
-                    >
-                      {editingQuestion ? "Save Changes" : "Add Question"}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Question</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {submission.vivaQuestions.map((question) => (
-                <TableRow key={question.id}>
-                  <TableCell>{question.question}</TableCell>
-                  <TableCell>{question.status}</TableCell>
-                  <TableCell>
-                    <div className="space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditQuestion(question)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleLockToggle(question.id)}
-                      >
-                        {question.isLocked ? (
-                          <Unlock className="w-4 h-4" />
-                        ) : (
-                          <Lock className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <div className="mt-6 flex justify-end">
+      <motion.div
+        className="flex justify-end"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
+      >
         <Button asChild>
-          <a
-            href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}`}
-          >
+          <a href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}`}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Assignment
           </a>
         </Button>
-      </div>
+      </motion.div>
     </div>
-  );
+  )
 }

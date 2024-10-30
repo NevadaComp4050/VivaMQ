@@ -25,6 +25,7 @@ import {
   CheckIcon,
   ArrowRightIcon,
   ArrowLeftIcon,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import createApiClient from "~/lib/api-client";
@@ -36,6 +37,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "~/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Submission {
   id: string;
@@ -532,9 +534,18 @@ export default function AssignmentManagementPage({
   }
 
   return (
-    <div className="container mx-auto p-8">
-      <div>
-        <h1 className="text-3xl font-bold mb-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen"
+    >
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        <h1 className="text-4xl font-bold mb-6">
           Assignment: {assignment.name}
         </h1>
         <div className="flex items-center justify-between mb-4">
@@ -542,7 +553,7 @@ export default function AssignmentManagementPage({
             Generate Viva Questions
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       <Tabs
         defaultValue={activeStep === 0 ? "view" : "upload"}
@@ -576,38 +587,46 @@ export default function AssignmentManagementPage({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {assignment.submissions.map((submission) => (
-                      <TableRow key={submission.id}>
-                        <TableCell>
-                          {submission.submissionFile.split("/").pop()}
-                        </TableCell>
-                        <TableCell>
-                          {submission.studentCode ?? "Not assigned"}
-                        </TableCell>
-                        <TableCell>{submission.status}</TableCell>
-                        <TableCell>{submission.vivaStatus}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" asChild>
-                              <Link
-                                href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${submission.id}`}
+                    <AnimatePresence>
+                      {assignment.submissions.map((submission) => (
+                        <motion.tr
+                          key={submission.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <TableCell>
+                            {submission.submissionFile.split("/").pop()}
+                          </TableCell>
+                          <TableCell>
+                            {submission.studentCode ?? "Not assigned"}
+                          </TableCell>
+                          <TableCell>{submission.status}</TableCell>
+                          <TableCell>{submission.vivaStatus}</TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button variant="outline" size="sm" asChild>
+                                <Link
+                                  href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}/submissions/${submission.id}`}
+                                >
+                                  Review
+                                </Link>
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() =>
+                                  handleDeleteSubmission(submission.id)
+                                }
                               >
-                                Review
-                              </Link>
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() =>
-                                handleDeleteSubmission(submission.id)
-                              }
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
                   </TableBody>
                 </Table>
               )}
@@ -630,260 +649,341 @@ export default function AssignmentManagementPage({
             </Step>
           </Stepper>
 
-          {activeStep === 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Upload Submissions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div
+          <AnimatePresence mode="wait">
+            {activeStep === 0 && (
+              <motion.div
+                key="step0"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Upload Submissions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                  <div
                   {...getRootProps()}
                   className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer"
                 >
-                  <input {...getInputProps()} />
-                  {isDragActive ? (
-                    <p>Drop the PDF files here ...</p>
-                  ) : (
-                    <>
-                      <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
-                      <p className="mt-2">
-                        Drag 'n' drop some PDF files here, or click to select
-                        files
-                      </p>
-                    </>
-                  )}
-                </div>
-                {uploadedFiles.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="text-lg font-semibold mb-2">
-                      Uploaded Files
-                    </h3>
-                    <ul className="space-y-2 max-h-60 overflow-y-auto">
-                      {uploadedFiles.map((file) => (
-                        <UploadedFileItem
-                          key={file.name || file.id}
-                          name={file.name}
-                          studentId={file.studentId}
-                          progress={file.progress}
-                          status={file.status}
-                        />
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {uploadedFiles.length > 0 && (
-                  // check all files have been uploaded
-                  <Button
-                    className="mt-4"
-                    onClick={() => setActiveStep(1)}
-                    disabled={uploadedFiles.some(
-                      (file) => file.status === "uploading"
-                    )}
-                  >
-                    Next
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {activeStep === 1 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Upload CSV or Skip</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col items-center gap-4">
-                  <Input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleCsvUpload}
-                    className="hidden"
-                    id="csv-upload"
-                  />
-                  <Button asChild>
-                    <label htmlFor="csv-upload" className="cursor-pointer">
-                      <UploadIcon className="mr-2 h-4 w-4" />
-                      Upload CSV with Student IDs
-                    </label>
-                  </Button>
-                  <Button variant="outline" onClick={handleSkipCsvUpload}>
-                    Skip CSV Upload
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {activeStep === 2 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Map Student IDs</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="studentId">
-                      Student ID for {unmappedFiles[currentFileIndex]?.name}
-                    </Label>
-                    <Input
-                      id="studentId"
-                      placeholder="Enter student ID"
-                      value={currentStudentId}
-                      onChange={(e) => setCurrentStudentId(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                    />
-                    <div className="flex justify-between mt-4">
-                      <Button
-                        onClick={handlePreviousFile}
-                        disabled={currentFileIndex === 0}
-                      >
-                        <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                        Previous
-                      </Button>
-                      <Button onClick={handleStudentIdSubmit}>
-                        {currentFileIndex < unmappedFiles.length - 1 ? (
-                          <>
-                            Next
-                            <ArrowRightIcon className="ml-2 h-4 w-4" />
-                          </>
-                        ) : (
-                          "Finish"
-                        )}
-                      </Button>
-                    </div>
-                    <div className="mt-4 text-sm text-muted-foreground">
-                      {currentFileIndex + 1} of {unmappedFiles.length}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="w-full h-96 border border-gray-300 rounded overflow-hidden">
-                      {currentFileContent ? (
-                        <embed
-                          src={currentFileContent}
-                          type="application/pdf"
-                          width="100%"
-                          height="100%"
-                          onError={() => {
-                            toast({
-                              title: "Error",
-                              description: "Failed to load PDF.",
-                              variant: "destructive",
-                            });
-                          }}
-                        />
+                      <input {...getInputProps()} />
+                      {isDragActive ? (
+                        <p>Drop the PDF files here ...</p>
                       ) : (
-                        <div className="flex items-center justify-center h-full">
-                          <Loader2 className="h-8 w-8 animate-spin" />
-                        </div>
+                        <>
+                          <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
+                          <p className="mt-2">
+                            Drag 'n' drop some PDF files here, or click to
+                            select files
+                          </p>
+                        </>
                       )}
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                    {uploadedFiles.length > 0 && (
+                      <motion.div
+                        className="mt-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <h3 className="text-lg font-semibold mb-2">
+                          Uploaded Files
+                        </h3>
+                        <ul className="space-y-2 max-h-60 overflow-y-auto">
+                          <AnimatePresence>
+                            {uploadedFiles.map((file) => (
+                              <motion.li
+                                key={file.name || file.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.3 }}
+                              >
+                                <UploadedFileItem
+                                  name={file.name}
+                                  studentId={file.studentId}
+                                  progress={file.progress}
+                                  status={file.status}
+                                />
+                              </motion.li>
+                            ))}
+                          </AnimatePresence>
+                        </ul>
+                      </motion.div>
+                    )}
 
-          {activeStep === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Review and Confirm</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold mb-2">
-                    CSV Mapped Submissions
-                  </h3>
-                  {mappedSubmissions.length === 0 ? (
-                    <p className="text-muted-foreground">
-                      No submissions have been mapped.
-                    </p>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>File Name</TableHead>
-                          <TableHead>Student ID</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {mappedSubmissions.map((file) => (
-                          <TableRow key={file.id}>
-                            <TableCell>{file.name}</TableCell>
-                            <TableCell>
-                              {file.studentId ?? "Not assigned"}
-                            </TableCell>
-                            <TableCell>
-                              {file.status === "success" ? (
-                                <CheckIcon className="text-green-500" />
-                              ) : (
-                                <FileIcon className="text-red-500" />
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </div>
+                    {uploadedFiles.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <Button
+                          className="mt-4"
+                          onClick={() => setActiveStep(1)}
+                          disabled={uploadedFiles.some(
+                            (file) => file.status === "uploading"
+                          )}
+                        >
+                          Next
+                        </Button>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
 
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold mb-2">
-                    Manually Mapped Submissions
-                  </h3>
-                  {remainingUnmappedSubmissions.length === 0 ? (
-                    <p className="text-muted-foreground">
-                      All submissions have been mapped.
-                    </p>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>File Name</TableHead>
-                          <TableHead>Student ID</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {remainingUnmappedSubmissions.map((file) => (
-                          <TableRow key={file.id}>
-                            <TableCell>{file.name}</TableCell>
-                            <TableCell>
-                              {file.studentId ?? "Not assigned"}
-                            </TableCell>
-                            <TableCell>
-                              {file.status === "success" ? (
-                                <CheckIcon className="text-green-500" />
-                              ) : (
-                                <FileIcon className="text-red-500" />
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </div>
+            {activeStep === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Upload CSV or Skip</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col items-center gap-4">
+                      <Input
+                        type="file"
+                        accept=".csv"
+                        onChange={handleCsvUpload}
+                        className="hidden"
+                        id="csv-upload"
+                      />
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Button asChild>
+                          <label
+                            htmlFor="csv-upload"
+                            className="cursor-pointer"
+                          >
+                            <UploadIcon className="mr-2 h-4 w-4" />
+                            Upload CSV with Student IDs
+                          </label>
+                        </Button>
+                      </motion.div>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Button variant="outline" onClick={handleSkipCsvUpload}>
+                          Skip CSV Upload
+                        </Button>
+                      </motion.div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
 
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveStep(2)}
-                  className="mr-4"
-                >
-                  Back
-                </Button>
-                <Button className="mt-4" onClick={handleConfirmAndFinish}>
-                  Confirm and Finish
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+            {activeStep === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Map Student IDs</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="studentId">
+                          Student ID for {unmappedFiles[currentFileIndex]?.name}
+                        </Label>
+                        <Input
+                          id="studentId"
+                          placeholder="Enter student ID"
+                          value={currentStudentId}
+                          onChange={(e) => setCurrentStudentId(e.target.value)}
+                          onKeyPress={handleKeyPress}
+                        />
+                        <div className="flex justify-between mt-4">
+                          <Button
+                            onClick={handlePreviousFile}
+                            disabled={currentFileIndex === 0}
+                          >
+                            <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                            Previous
+                          </Button>
+                          <Button onClick={handleStudentIdSubmit}>
+                            {currentFileIndex < unmappedFiles.length - 1 ? (
+                              <>
+                                Next
+                                <ArrowRightIcon className="ml-2 h-4 w-4" />
+                              </>
+                            ) : (
+                              "Finish"
+                            )}
+                          </Button>
+                        </div>
+                        <div className="mt-4 text-sm text-muted-foreground">
+                          {currentFileIndex + 1} of {unmappedFiles.length}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="w-full h-96 border border-gray-300 rounded overflow-hidden">
+                          {currentFileContent ? (
+                            <embed
+                              src={currentFileContent}
+                              type="application/pdf"
+                              width="100%"
+                              height="100%"
+                              onError={() => {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to load PDF.",
+                                  variant: "destructive",
+                                });
+                              }}
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <Loader2 className="h-8 w-8 animate-spin" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {activeStep === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Review and Confirm</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold mb-2">
+                        CSV Mapped Submissions
+                      </h3>
+                      {mappedSubmissions.length === 0 ? (
+                        <p className="text-muted-foreground">
+                          No submissions have been mapped.
+                        </p>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>File Name</TableHead>
+                              <TableHead>Student ID</TableHead>
+                              <TableHead>Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <AnimatePresence>
+                              {mappedSubmissions.map((file) => (
+                                <motion.tr
+                                  key={file.id}
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -20 }}
+                                  transition={{ duration: 0.3 }}
+                                >
+                                  <TableCell>{file.name}</TableCell>
+                                  <TableCell>
+                                    {file.studentId ?? "Not assigned"}
+                                  </TableCell>
+                                  <TableCell>
+                                    {file.status === "success" ? (
+                                      <CheckIcon className="text-green-500" />
+                                    ) : (
+                                      <FileIcon className="text-red-500" />
+                                    )}
+                                  </TableCell>
+                                </motion.tr>
+                              ))}
+                            </AnimatePresence>
+                          </TableBody>
+                        </Table>
+                      )}
+                    </div>
+
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold mb-2">
+                        Manually Mapped Submissions
+                      </h3>
+                      {remainingUnmappedSubmissions.length === 0 ? (
+                        <p className="text-muted-foreground">
+                          All submissions have been mapped.
+                        </p>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>File Name</TableHead>
+                              <TableHead>Student ID</TableHead>
+                              <TableHead>Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <AnimatePresence>
+                              {remainingUnmappedSubmissions.map((file) => (
+                                <motion.tr
+                                  key={file.id}
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -20 }}
+                                  transition={{ duration: 0.3 }}
+                                >
+                                  <TableCell>{file.name}</TableCell>
+                                  <TableCell>
+                                    {file.studentId ?? "Not assigned"}
+                                  </TableCell>
+                                  <TableCell>
+                                    {file.status === "success" ? (
+                                      <CheckIcon className="text-green-500" />
+                                    ) : (
+                                      <FileIcon className="text-red-500" />
+                                    )}
+                                  </TableCell>
+                                </motion.tr>
+                              ))}
+                            </AnimatePresence>
+                          </TableBody>
+                        </Table>
+                      )}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      onClick={() => setActiveStep(2)}
+                      className="mr-4"
+                    >
+                      Back
+                    </Button>
+                    <Button className="mt-4" onClick={handleConfirmAndFinish}>
+                      Confirm and Finish
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </TabsContent>
       </Tabs>
 
-      {/* Duplicate Entries Modal */}
       <Dialog open={showDuplicateModal} onOpenChange={setShowDuplicateModal}>
         <DialogContent>
           <DialogHeader>
@@ -921,7 +1021,6 @@ export default function AssignmentManagementPage({
         </DialogContent>
       </Dialog>
 
-      {/* Discard Confirmation Modal */}
       <Dialog open={showDiscardModal} onOpenChange={setShowDiscardModal}>
         <DialogContent>
           <DialogHeader>
@@ -944,6 +1043,6 @@ export default function AssignmentManagementPage({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 }

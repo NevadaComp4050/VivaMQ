@@ -29,6 +29,12 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+      - name: "Create env file"
+        run: |
+          touch .env
+          echo ${{ secrets.ENVCONTENTS }} >> .env
+          cat .env
+
       # Step 4: Build and push Docker images using Compose
       - name: Build and push Docker images
         run: |

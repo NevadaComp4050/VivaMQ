@@ -1,3 +1,7 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Table,
@@ -8,8 +12,6 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import Link from "next/link";
-import api from "~/lib/api";
-import { auth } from "~/auth";
 import {
   Accordion,
   AccordionContent,
@@ -17,8 +19,10 @@ import {
   AccordionTrigger,
 } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
-import { FileText, Book, Clock, ExternalLink } from "lucide-react";
-import { parseISO, formatRelative, format } from "date-fns";
+import { FileText, Book, Clock, ExternalLink, Loader2 } from "lucide-react";
+import { parseISO, formatRelative } from "date-fns";
+import { useSession } from "next-auth/react";
+import createApiClient from "~/lib/api-client";
 
 type Unit = {
   id: string;
@@ -27,7 +31,6 @@ type Unit = {
   ownerId: string;
   accessType: string;
 };
-
 type Session = {
   id: string;
   displayName: string;
@@ -35,7 +38,6 @@ type Session = {
   term: string;
   units: Unit[];
 };
-
 type Activity = {
   type: "rubric" | "assignment";
   id: string;
@@ -45,72 +47,40 @@ type Activity = {
   reason: string;
 };
 
-async function getUnits(): Promise<Session[]> {
-  const session = await auth();
-  if (!session?.user?.accessToken) {
-    throw new Error("Not authenticated");
-  }
+export default function DashboardPage() {
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
 
-  try {
-    const { data } = await api.get("/units/by-session");
-    return data.data;
-  } catch (error) {
-    console.error("Error fetching units:", error);
-    throw new Error("Failed to fetch units");
-  }
-}
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!session?.user?.accessToken) return;
 
-async function getDashboard() {
-  const session = await auth();
-  if (!session?.user?.accessToken) {
-    throw new Error("Not authenticated");
-  }
+      const apiClient = createApiClient(session.user.accessToken);
 
-  try {
-    const { data } = await api.get("/user/me");
-    return data;
-  } catch (error) {
-    console.error("Error fetching dashboard data:", error);
-    throw new Error("Failed to fetch dashboard data");
-  }
-}
+      try {
+        const [unitsResponse, dashboardResponse, activitiesResponse] =
+          await Promise.all([
+            apiClient.get("/units/by-session"),
+            apiClient.get("/user/me"),
+            apiClient.get("/activity"),
+          ]);
 
-async function getRecentActivities(): Promise<Activity[]> {
-  const session = await auth();
-  if (!session?.user?.accessToken) {
-    throw new Error("Not authenticated");
-  }
+        setSessions(unitsResponse.data.data);
+        setName(dashboardResponse.data.name);
+        setActivities(activitiesResponse.data.data);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "An unknown error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  try {
-    const { data } = await api.get("/activity");
-    return data.data;
-  } catch (error) {
-    console.error("Error fetching recent activities:", error);
-    throw new Error("Failed to fetch recent activities");
-  }
-}
-
-function formatDateTime(dateString: string): string {
-  const date = parseISO(dateString);
-  const relativeTime = formatRelative(date, new Date());
-  //const formattedDate = format(date, "PPpp");
-  return `${relativeTime}`;
-}
-
-export default async function DashboardPage() {
-  let sessions: Session[] = [];
-  let activities: Activity[] = [];
-  let error: string | null = null;
-  let name: string | null = null;
-
-  try {
-    sessions = await getUnits();
-    const dashboard = await getDashboard();
-    name = dashboard.name;
-    activities = await getRecentActivities();
-  } catch (e) {
-    error = e instanceof Error ? e.message : "An unknown error occurred";
-  }
+    fetchData();
+  }, [session]);
 
   const quickLinks = [
     { name: "Create New Unit", href: "/dashboard/units/create", icon: Book },
@@ -121,14 +91,41 @@ export default async function DashboardPage() {
     },
   ];
 
+  const formatDateTime = (dateString: string): string => {
+    const date = parseISO(dateString);
+    return formatRelative(date, new Date());
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">
-        Welcome
-        {name ? `, ${name}` : ""}!
-      </h1>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen"
+    >
+      <motion.h1
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="text-4xl font-bold mb-6"
+      >
+        Welcome{name ? `, ${name}` : ""}!
+      </motion.h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
+        <motion.div
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="md:col-span-2"
+        >
           <Card>
             <CardHeader>
               <CardTitle>My Units</CardTitle>
@@ -142,79 +139,103 @@ export default async function DashboardPage() {
                   defaultValue={sessions.map((session) => session.id)}
                   className="w-full"
                 >
-                  {sessions.length > 0 &&
-                    sessions.map((session) => (
-                      <AccordionItem key={session.id} value={session.id}>
-                        <AccordionTrigger>
-                          {session.displayName}
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead className="w-1/3">
-                                  Unit Name
-                                </TableHead>
-                                <TableHead className="w-1/3">
-                                  Access Type
-                                </TableHead>
-                                <TableHead className="w-1/3">Actions</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {session.units && session.units.length > 0 ? (
-                                session.units.map((unit: Unit) => (
-                                  <TableRow key={unit.id}>
-                                    <TableCell className="w-1/3">
-                                      <div
-                                        className="truncate"
-                                        title={unit.name}
-                                      >
-                                        {unit.name}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="w-1/3">
-                                      <div
-                                        className="truncate"
-                                        title={unit.accessType}
-                                      >
-                                        {unit.accessType}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="w-1/3">
-                                      <div className="flex space-x-2">
-                                        <Link
-                                          href={`/dashboard/units/${unit.id}`}
-                                        >
-                                          <Button variant="default">
-                                            View Unit
-                                          </Button>
-                                        </Link>
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>
-                                ))
-                              ) : (
+                  <AnimatePresence>
+                    {sessions.map((session) => (
+                      <motion.div
+                        key={session.id}
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <AccordionItem value={session.id}>
+                          <AccordionTrigger>
+                            {session.displayName}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <Table>
+                              <TableHeader>
                                 <TableRow>
-                                  <TableCell
-                                    colSpan={3}
-                                    className="text-center"
-                                  >
-                                    No units available for this session.
-                                  </TableCell>
+                                  <TableHead className="w-1/3">
+                                    Unit Name
+                                  </TableHead>
+                                  <TableHead className="w-1/3">
+                                    Access Type
+                                  </TableHead>
+                                  <TableHead className="w-1/3">
+                                    Actions
+                                  </TableHead>
                                 </TableRow>
-                              )}
-                            </TableBody>
-                          </Table>
-                        </AccordionContent>
-                      </AccordionItem>
+                              </TableHeader>
+                              <TableBody>
+                                <AnimatePresence>
+                                  {session.units && session.units.length > 0 ? (
+                                    session.units.map((unit: Unit) => (
+                                      <motion.tr
+                                        key={unit.id}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                      >
+                                        <TableCell className="w-1/3">
+                                          <div
+                                            className="truncate"
+                                            title={unit.name}
+                                          >
+                                            {unit.name}
+                                          </div>
+                                        </TableCell>
+                                        <TableCell className="w-1/3">
+                                          <div
+                                            className="truncate"
+                                            title={unit.accessType}
+                                          >
+                                            {unit.accessType}
+                                          </div>
+                                        </TableCell>
+                                        <TableCell className="w-1/3">
+                                          <div className="flex space-x-2">
+                                            <Link
+                                              href={`/dashboard/units/${unit.id}`}
+                                            >
+                                              <Button variant="default">
+                                                View Unit
+                                              </Button>
+                                            </Link>
+                                          </div>
+                                        </TableCell>
+                                      </motion.tr>
+                                    ))
+                                  ) : (
+                                    <TableRow>
+                                      <TableCell
+                                        colSpan={3}
+                                        className="text-center"
+                                      >
+                                        No units available for this session.
+                                      </TableCell>
+                                    </TableRow>
+                                  )}
+                                </AnimatePresence>
+                              </TableBody>
+                            </Table>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </motion.div>
                     ))}
+                  </AnimatePresence>
                 </Accordion>
               )}
             </CardContent>
           </Card>
-        </div>
-        <div className="space-y-6">
+        </motion.div>
+        <motion.div
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="space-y-6"
+        >
           <Card>
             <CardHeader>
               <CardTitle>Quick Links</CardTitle>
@@ -222,7 +243,12 @@ export default async function DashboardPage() {
             <CardContent>
               <ul className="space-y-2">
                 {quickLinks.map((link, index) => (
-                  <li key={index}>
+                  <motion.li
+                    key={index}
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.1 * index }}
+                  >
                     <Link
                       href={link.href}
                       className="flex items-center space-x-2 text-blue-600 hover:underline"
@@ -230,7 +256,7 @@ export default async function DashboardPage() {
                       <link.icon className="w-4 h-4" />
                       <span>{link.name}</span>
                     </Link>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
             </CardContent>
@@ -241,37 +267,46 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-4">
-                {activities.map((activity) => (
-                  <li key={activity.id} className="flex items-start space-x-2">
-                    {activity.type === "rubric" ? (
-                      <FileText className="w-5 h-5 mt-1 text-blue-500" />
-                    ) : (
-                      <Book className="w-5 h-5 mt-1 text-green-500" />
-                    )}
-                    <div>
-                      <Link
-                        href={
-                          activity.type === "rubric"
-                            ? `/dashboard/rubrics/${activity.id}`
-                            : `/dashboard/units/${activity.unitId}/assignments/${activity.id}`
-                        }
-                        className="font-medium hover:underline"
-                      >
-                        {activity.name}
-                      </Link>
-                      <p className="text-sm text-gray-500">
-                        <Clock className="inline w-4 h-4 mr-1" />
-                        {formatDateTime(activity.latestDate)} -{" "}
-                        {activity.reason}
-                      </p>
-                    </div>
-                  </li>
-                ))}
+                <AnimatePresence>
+                  {activities.map((activity, index) => (
+                    <motion.li
+                      key={activity.id}
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -20, opacity: 0 }}
+                      transition={{ delay: 0.1 * index }}
+                      className="flex items-start space-x-2"
+                    >
+                      {activity.type === "rubric" ? (
+                        <FileText className="w-5 h-5 mt-1 text-blue-500" />
+                      ) : (
+                        <Book className="w-5 h-5 mt-1 text-green-500" />
+                      )}
+                      <div>
+                        <Link
+                          href={
+                            activity.type === "rubric"
+                              ? `/dashboard/rubrics/${activity.id}`
+                              : `/dashboard/units/${activity.unitId}/assignments/${activity.id}`
+                          }
+                          className="font-medium hover:underline"
+                        >
+                          {activity.name}
+                        </Link>
+                        <p className="text-sm text-gray-500">
+                          <Clock className="inline w-4 h-4 mr-1" />
+                          {formatDateTime(activity.latestDate)} -{" "}
+                          {activity.reason}
+                        </p>
+                      </div>
+                    </motion.li>
+                  ))}
+                </AnimatePresence>
               </ul>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

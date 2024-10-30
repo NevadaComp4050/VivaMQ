@@ -6,6 +6,15 @@ const submissions: Router = Router();
 const controller = new SubmissionController();
 
 /**
+ * GET /api/submissions/{id}
+ * @summary Retrieve details of a specific submission, including viva questions
+ * @tags Submission
+ * @param {string} id.path.required - Submission ID
+ * @return {Submission} 200 - Submission details including viva questions
+ */
+submissions.get('/:id', verifyAuthToken, controller.getSubmissionById);
+
+/**
  * GET /api/submissions/{submissionId}/viva-questions
  * @summary Retrieve viva questions for a specific submission
  * @tags VivaQuestion
@@ -16,6 +25,19 @@ submissions.get(
   '/:submissionId/viva-questions',
   verifyAuthToken,
   controller.getVivaQuestions
+);
+
+/**
+ * GET /api/submissions/{submissionId}/summary
+ * @summary Get summary for a specific submission
+ * @tags Summary
+ * @param {string} submissionId.path.required - Submission ID
+ * @return {Summary} 200 - Summary of the submission
+ */
+submissions.get(
+  '/:submissionId/summary',
+  verifyAuthToken,
+  controller.getSummary
 );
 
 /**
@@ -32,6 +54,19 @@ submissions.post(
 );
 
 /**
+ * POST /api/submissions/{submissionId}/generate-summary
+ * @summary Trigger generation of summary for a specific submission
+ * @tags VivaQuestion
+ * @param {string} submissionId.path.required - Submission ID
+ * @return {string} 202 - Summary generation initiated
+ */
+submissions.post(
+  '/:submissionId/generate-summary',
+  verifyAuthToken,
+  controller.generateSummary
+);
+
+/**
  * GET /api/submissions/export-viva-questions
  * @summary Export viva questions for all submissions
  * @tags VivaQuestion
@@ -44,7 +79,6 @@ submissions.get(
   controller.exportVivaQuestions
 );
 
-
 /**
  * DELETE /submissions/{id}
  * @summary Delete a single submission
@@ -52,11 +86,7 @@ submissions.get(
  * @param {string} id.path.required - ID of the submission to delete
  * @return {Submission} 200 - submission list
  */
-submissions.delete(
-  '/:id',
-  verifyAuthToken,
-  controller.delete
-);
+submissions.delete('/:id', controller.delete);
 
 /**
  * DELETE /submissions/
@@ -65,11 +95,27 @@ submissions.delete(
  * @param None
  * @return {number} 200 - submission clear
  */
-submissions.delete(
-  '/',
-  verifyAuthToken,
-  controller.deleteAll
-);
+submissions.delete('/', verifyAuthToken, controller.deleteAll);
 
+/**
+ * GET /submissions/{id}/pdf
+ * @summary Fetch a submission PDF
+ * @tags Submission
+ * @param {string} id.path.required - ID of the submission to fetch PDF for
+ * @return {file} 200 - submission PDF
+ */
+submissions.get('/:id/file', controller.getSubmissionPDF);
+
+/**
+ * POST /assignments/{assignmentId}/bulkSubmissionMapping
+ * @summary Map multiple students to submissions
+ * @tags Submissions
+ * @param {object} request.body.required - Request body containing an array of mappings
+ * @param {Array.<object>} request.body.mappings.required - Array of mappings
+ * @param {string} request.body.mappings[].submissionId.required - ID of the submission
+ * @param {string} request.body.mappings[].studentId.required - ID of the student
+ * @return {Array.<Submission>} 200 - Submissions updated with student mappings
+ */
+submissions.post('/bulkSubmissionMapping', controller.mapMultipleSubmissions);
 
 export default submissions;

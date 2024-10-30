@@ -1,92 +1,62 @@
 import { type User, Role } from '@prisma/client';
-import prisma from '@/lib/prisma';
-import LogMessage from '@/decorators/log-message.decorator';
 import argon2 from 'argon2';
+import prisma from '@/lib/prisma';
 
 export default class UserService {
-  
-  @LogMessage<[User]>({ message: 'test-decorator' })
-  public async create(data: User) {
-    const hashedPassword = await argon2.hash(data.password);
+  public async createUser(data: Omit<User, 'id'>) {
+    try {
+      if (!Object.values(Role).includes(data.role)) {
+        throw new Error(
+          `Invalid role: ${data.role}. Expected one of: ${Object.values(Role).join(', ')}`
+        );
+      }
 
-    const user = await prisma.user.create({ 
-      data // Changes below need to be integrated properly
-      /*
-      data: {
-        ...data,
-        password: hashedPassword,
-      },
-      */
-    });
-    return user;
-  }
+      const existingUser = await prisma.user.findUnique({
+        where: { email: data.email },
+      });
 
-  public async get(id: string) {
-    const ret = await prisma.user.findUnique({
-      where: { id },
-    });
-    return ret;
-  }
+      if (existingUser) {
+        throw new Error(`Email ${data.email} is already in use.`);
+      }
 
-  public async getEmail(email: string){
-    const ret =  await prisma.user.findUnique({
-      where: { email },
-    });
-      return ret;
-  }
+      const hashedPassword = await argon2.hash(data.password);
 
-  // TODO log the calls
-  //@LogMessage<[users]>({message: 'get all'})
-  public async getAll() {
-    const user = await prisma.user.findMany();
-    return user;
-  }
-
-  public async delete(id: string) {
-    const ret = await prisma.user.delete({
-      where: { id },
-    });
-    return ret;
-  }
-
-  public async deleteAll() {
-    const { count } = await prisma.user.deleteMany();
-    return count;
-  }
-  // Removed getEmail from here, other func returned a variable called user
-
-  // TODO why is this here?
-  public async dummyLogin() {
-    let user = await prisma.user.findFirst({
-      where: { email: "test@example.com" },
-    });
-
-    if (!user) {
-      
-      //TODO Purpose of User.service is to require service calls
-      //const hashedPassword = await argon2.hash("password123");
-      const hashedPassword = "password123";
-      
-      user = await prisma.user.create({
+      const user = await prisma.user.create({
         data: {
-          email: "test@example.com",
-          name: "Test User",
+          ...data,
           password: hashedPassword,
-          role: Role.ADMIN,
+          role: data.role,
         },
       });
-    }
 
-    return user;
+      return user;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
   }
 
-
-  // TODO this needs explanation
-  public async getCurrentUser() {
-    const user = await prisma.user.findFirst({
-      where: { email: "test@example.com" },
+  public async validateUser(email: string, password: string) {
+    const user = await prisma.user.findUnique({
+      where: { email },
     });
-    
-    return user;
+
+    if (user && (await argon2.verify(user.password, password))) {
+      return user;
+    }
+
+    return null;
+  }
+
+  public async getUserById(id: string) {
+    return await prisma.user.findUnique({
+      where: { id },
+    });
+  }
+
+  public async getUserByEmail(email: string) {
+    return await prisma.user.findUnique({
+      where: { email },
+    });
   }
 }

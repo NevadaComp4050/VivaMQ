@@ -58,7 +58,9 @@ class Environment implements IEnvironment {
     const envPath = path.resolve(rootDir, EnvironmentFile[key]);
     const defaultEnvPath = path.resolve(rootDir, EnvironmentFile.DEFAULT);
     if (!fs.existsSync(envPath) && !fs.existsSync(defaultEnvPath)) {
-      throw new Error(envFileNotFoundError(key));
+      if (process.env.NODE_ENV !== Environments.PRODUCTION) {
+        throw new Error(envFileNotFoundError(key));
+      }
     }
     return fs.existsSync(envPath) ? envPath : defaultEnvPath;
   }

@@ -1,23 +1,38 @@
-import { NextResponse } from "next/server";
-import { auth } from "./auth";
+import { auth } from "~/auth"
+
+// Helper function to handle CORS
+const handleCORS = (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    const headers = new Headers()
+    headers.set('Access-Control-Allow-Origin', 'http://3.107.222.31')
+    headers.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    headers.set('Access-Control-Allow-Credentials', 'true')
+    return new Response(null, { headers })
+  }
+
+  return null
+}
 
 export default auth((req) => {
-  const isLoggedIn = !!req.auth;
-  const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard");
-  const isOnLoginPage = req.nextUrl.pathname.startsWith("/login");
+  // Handle CORS
+  const corsResponse = handleCORS(req)
+  if (corsResponse) return corsResponse
 
-  if (isOnDashboard && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/signin", req.url));
+  // Existing authentication logic
+  const isAuthPage = req.nextUrl.pathname.startsWith('/signin') || req.nextUrl.pathname.startsWith('/register')
+  
+  if (!req.auth && !isAuthPage) {
+    const signInUrl = new URL('/signin', req.url)
+    signInUrl.searchParams.set('callbackUrl', req.url)
+    return Response.redirect(signInUrl)
   }
 
-  if (isOnLoginPage && isLoggedIn) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+  if (req.auth && isAuthPage) {
+    return Response.redirect(new URL('/dashboard/units', req.url))
   }
+})
 
-  return NextResponse.next();
-});
-
-// Optionally, don't invoke Middleware on some paths
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
-};
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+}

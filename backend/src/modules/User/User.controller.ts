@@ -1,142 +1,47 @@
-import { type NextFunction, type Request } from 'express';
-import { type User } from '@prisma/client';
+import { type NextFunction, type Request, type Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { HttpStatusCode } from 'axios';
+import { type User } from '@prisma/client';
 import UserService from './User.service';
-import { type CustomResponse } from '@/types/common.type';
-import Api from '@/lib/api';
 
-export default class UserController extends Api {
+export default class UserController {
   private readonly userService = new UserService();
 
-  public create = async (
-    req: Request,
-    res: CustomResponse<User>,
-    next: NextFunction
-  ) => {
+  public register = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const newUser = await this.userService.create(req.body);
-      this.send(res, newUser, HttpStatusCode.Created, 'createUser');
-    } catch (e) {
-      next(e);
+      const newUser: User = await this.userService.createUser(req.body);
+      res.status(HttpStatusCode.Created).json(newUser);
+    } catch (err) {
+      next(err);
     }
   };
 
-  public createreq = async (
-    req: Request,
-    res: CustomResponse<User>,
-    next: NextFunction
-  ) => {
-    try {
-      const newUser: User = await this.userService.create(req.body);
-      const ID = newUser.id;
-      req.body = { ID };
-      next();
-    } catch (e) {
-      next(e);
-    }
-  };
+  public login = async (req: Request, res: Response, next: NextFunction) => {
+    const { email, password } = req.body;
 
-  public getreq = async (
-    req: Request,
-    res: CustomResponse<User>,
-    next: NextFunction
-  ) => {
     try {
-      const { email, password } = req.body;
-      const user = await this.userService.getEmail(email);
+      const user = await this.userService.validateUser(email, password);
+
       if (!user) {
-        throw new Error('User not found');
+        return res
+          .status(HttpStatusCode.Unauthorized)
+          .json({ error: 'Invalid email or password. Please try again.' });
       }
-      const ID = user.id;
-      req.body = { ID };
-      next();
-    } catch (e) {
-      next(e);
+
+      const token = jwt.sign(
+        { sub: user.id, email: user.email },
+        process.env.JWT_SECRET ?? 'your_secret',
+        { expiresIn: '1days' }
+      );
+
+      return res.json({ token });
+    } catch (err) {
+      next(err);
     }
   };
 
-  public get = async (
-    req: Request,
-    res: CustomResponse<User>,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params;
-      const user = await this.userService.get(id);
-      if (!user) {
-        throw new Error('User not found');
-      }
-      this.send(res, user, HttpStatusCode.Ok, 'gotUser:' + id);
-    } catch (e) {
-      next(e);
-    }
-  };
-
-  public getAll = async (
-    req: Request,
-    res: CustomResponse<User[]>,
-    next: NextFunction
-  ) => {
-    try {
-      const userList = await this.userService.getAll();
-      this.send(res, userList, HttpStatusCode.Ok, 'gotAllUsers');
-    } catch (e) {
-      next(e);
-    }
-  };
-
-  public delete = async (
-    req: Request,
-    res: CustomResponse<User>,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params;
-      const user = await this.userService.delete(id);
-      this.send(res, user, HttpStatusCode.Ok, 'deletedUser:+id');
-    } catch (e) {
-      next(e);
-    }
-  };
-
-  public deleteAll = async (
-    req: Request,
-    res: CustomResponse<User[]>,
-    next: NextFunction
-  ) => {
-    try {
-      const count = await this.userService.deleteAll();
-      this.send(res, count, HttpStatusCode.Ok, 'deletedAllUsers');
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  
-  public dummyLogin = async (
-    req: Request,
-    res: CustomResponse<User>,
-    next: NextFunction
-  ) => {
-    try {
-      const user = await this.userService.dummyLogin();
-      this.send(res, user, HttpStatusCode.Ok, 'loggedInTestUser');
-    } catch (e) {
-      next(e);
-    }
-  };
-
-  
-  public getCurrentUser = async (
-    req: Request,
-    res: CustomResponse<User>,
-    next: NextFunction
-  ) => {
-    try {
-      const user = await this.userService.getCurrentUser();
-      this.send(res, user, HttpStatusCode.Ok, 'gotCurrentUser');
-    } catch (e) {
-      next(e);
-    }
+  public getCurrentUser = async (req: Request, res: Response) => {
+    console.log('get current user: ', req.user);
+    return res.json(req.user);
   };
 }

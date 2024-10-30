@@ -25,6 +25,7 @@ export async function promptSubUUID(
   }
 ): Promise<[string, string]> {
   try {
+    console.log("Prompting for submission:", submission);
     const prompt = generateSingleQuestionVivaPrompt(submission, customPrompt);
     const response = await openAIClient.chat.completions.create({
       model: "gpt-4o-2024-08-06",

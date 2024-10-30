@@ -8,3 +8,8 @@ type Send<ResBody = any, T = Response<ResBody>> = (body?: {
 export interface CustomResponse<T> extends Response {
   json: Send<T, this>;
 }
+
+export interface CustomResponse<T> {
+  message: string;
+  data: T;
+}

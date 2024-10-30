@@ -1,5 +1,6 @@
 import { type NextFunction, type Request } from 'express';
 import { HttpStatusCode } from 'axios';
+import { type Submission } from '@prisma/client';
 import SubmissionService from './Submission.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
@@ -14,7 +15,8 @@ export default class SubmissionController extends Api {
   ) => {
     try {
       const { submissionId } = req.params;
-      const vivaQuestions = await this.submissionService.getVivaQuestions(submissionId);
+      const vivaQuestions =
+        await this.submissionService.getVivaQuestions(submissionId);
       this.send(res, vivaQuestions, HttpStatusCode.Ok, 'getVivaQuestions');
     } catch (e) {
       next(e);
@@ -29,11 +31,43 @@ export default class SubmissionController extends Api {
     try {
       const { submissionId } = req.params;
 
-   
-      this.submissionService.generateVivaQuestions(submissionId);
+      void this.submissionService.generateVivaQuestions(submissionId);
 
       res.status(HttpStatusCode.Accepted).send({
-        message: 'Viva questions are being generated. Please check back later.',
+        message: 'Your request to generate viva questions has been accepted.',
+      });
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  public getSummary = async (
+    req: Request,
+    res: CustomResponse<any>,
+    next: NextFunction
+  ) => {
+    try {
+      const { submissionId } = req.params;
+      const vivaQuestions =
+        await this.submissionService.getSummary(submissionId);
+      this.send(res, vivaQuestions, HttpStatusCode.Ok, 'getSummary');
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  public generateSummary = async (
+    req: Request,
+    res: CustomResponse<void>,
+    next: NextFunction
+  ) => {
+    try {
+      const { submissionId } = req.params;
+
+      void this.submissionService.generateSummary(submissionId);
+
+      res.status(HttpStatusCode.Accepted).send({
+        message: 'Your request to generate a summery has been accepted.',
       });
     } catch (e) {
       next(e);
@@ -62,7 +96,6 @@ export default class SubmissionController extends Api {
     }
   };
 
-
   public delete = async (
     req: Request,
     res: CustomResponse<Submission>,
@@ -71,23 +104,93 @@ export default class SubmissionController extends Api {
     try {
       const { id } = req.params;
       const submission = await this.submissionService.delete(id);
-      this.send(res, submission, HttpStatusCode.Ok, 'deletedSubmission' )
+      this.send(res, submission, HttpStatusCode.Ok, 'Soft Deleted Submission');
     } catch (e) {
-      next(e)
+      next(e);
     }
-  }
+  };
 
   public deleteAll = async (
+    req: Request,
+    res: CustomResponse<void>,
+    next: NextFunction
+  ) => {
+    try {
+      const count = await this.submissionService.deleteAll();
+      this.send(res, count, HttpStatusCode.Ok, 'deletedAllSubmissions');
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  public getSubmissionPDF = async (
+    req: Request,
+    res: CustomResponse<void>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const pdfData = await this.submissionService.getPDFById(id);
+
+      if (!pdfData) {
+        return res.status(HttpStatusCode.NotFound).send('PDF not found');
+      }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=submission_${id}.pdf`
+      );
+      res.send(pdfData);
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  public mapMultipleSubmissions = async (
     req: Request,
     res: CustomResponse<Submission[]>,
     next: NextFunction
   ) => {
     try {
-      const count = await this.submissionService.deleteAll();
-      this.send(res, count, HttpStatusCode.Ok, 'deletedAllSubmissions' )
+      const { mappings } = req.body;
+
+      if (!Array.isArray(mappings) || mappings.length === 0) {
+        throw new Error('Mappings must be a non-empty array');
+      }
+
+      const updatedSubmissions =
+        await this.submissionService.mapMultipleSubmissions(mappings);
+
+      this.send(
+        res,
+        updatedSubmissions,
+        HttpStatusCode.Ok,
+        'multipleStudentMappings'
+      );
     } catch (e) {
-      next(e)
+      next(e);
     }
   };
 
+  public getSubmissionById = async (
+    req: Request,
+    res: CustomResponse<Submission | null>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const submission = await this.submissionService.getSubmissionById(id);
+
+      if (!submission) {
+        return res.status(HttpStatusCode.NotFound).send({
+          message: 'Submission not found',
+        });
+      }
+
+      this.send(res, submission, HttpStatusCode.Ok, 'getSubmissionById');
+    } catch (e) {
+      next(e);
+    }
+  };
 }

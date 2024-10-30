@@ -1,75 +1,87 @@
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { comparePassword } from "~/utils/password";
-import prisma from "./lib/prisma";
-
+import NextAuth, { User } from "next-auth";
+import { authConfig } from "./auth.config";
+import CredentialsProvider from "next-auth/providers/credentials";
+import axios from "axios";
+import https from "https";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  session: {
-    strategy: "jwt",
-  },
+  ...authConfig,
   providers: [
-    Credentials({
+    CredentialsProvider({
+      name: "Credentials",
       credentials: {
-        email: {},
-        password: {},
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
       },
-      authorize: async (credentials) => {
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null;
 
-        console.log(credentials);
+        const email = credentials.email as string;
+        const password = credentials.password as string;
 
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email and password required");
-        }
+        let user = null;
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email as string,
-          },
-        });
+        user = await getUser(email, password);
 
         if (!user) {
           throw new Error("User not found");
         }
-
-        const isPasswordValid = await comparePassword(credentials.password as string, user.password);
-
-        if (!isPasswordValid) {
-          throw new Error("Invalid password");
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
+        return user;
       },
     }),
   ],
+  session: {
+    strategy: "jwt",
+    maxAge: 60 * 60 * 12, // 12 hours
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
-        token.role = user.role;
+        token.accessToken = user.accessToken;
+        token.email = user.email as string;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id ?? '';
-        session.user.email = token.email ?? '';
-        session.user.name = token.name ?? '';
-        session.user.role = token.role ?? 'USER'; // Provide a default role if undefined
-      }
+      session.user = {
+        ...session.user,
+        accessToken: token.accessToken as string,
+        email: token.email as string,
+      };
       return session;
     },
   },
   pages: {
-    signIn: '/signin',
+    signIn: "/signin",
   },
 });
+
+const getUser = async (email: string, password: string) => {
+
+const axiosInstance = axios.create({
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false,  // Disable SSL certificate verification
+      }),
+    });
+
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/user/login`,
+      {
+        email: email,
+        password: password,
+      }
+    );
+
+    if (response.data && response.data.token) {
+      const user: User = {
+        email: email,
+        accessToken: response.data.token,
+      };
+      return user;
+    }
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};

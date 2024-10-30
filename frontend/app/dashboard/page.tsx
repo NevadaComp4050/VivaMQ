@@ -1,11 +1,8 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,222 +11,302 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import Link from "next/link";
 import {
-  BookOpenIcon,
-  FileTextIcon,
-  UsersIcon,
-  CalendarIcon,
-  AlertCircleIcon,
-} from "lucide-react";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "~/components/ui/accordion";
+import { Button } from "~/components/ui/button";
+import { FileText, Book, Clock, ExternalLink, Loader2 } from "lucide-react";
+import { parseISO, formatRelative } from "date-fns";
+import { useSession } from "next-auth/react";
+import createApiClient from "~/lib/api-client";
 
-export default function Dashboard() {
-  // In a real application, this data would be fetched from your backend
-  const stats = {
-    totalUnits: 8,
-    activeAssignments: 12,
-    pendingVivas: 24,
-    activeUsers: 15,
+type Unit = {
+  id: string;
+  name: string;
+  sessionId: string;
+  ownerId: string;
+  accessType: string;
+};
+type Session = {
+  id: string;
+  displayName: string;
+  year: number;
+  term: string;
+  units: Unit[];
+};
+type Activity = {
+  type: "rubric" | "assignment";
+  id: string;
+  unitId?: string;
+  name: string;
+  latestDate: string;
+  reason: string;
+};
+
+export default function DashboardPage() {
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!session?.user?.accessToken) return;
+
+      const apiClient = createApiClient(session.user.accessToken);
+
+      try {
+        const [unitsResponse, dashboardResponse, activitiesResponse] =
+          await Promise.all([
+            apiClient.get("/units/by-session"),
+            apiClient.get("/user/me"),
+            apiClient.get("/activity"),
+          ]);
+
+        setSessions(unitsResponse.data.data);
+        setName(dashboardResponse.data.name);
+        setActivities(activitiesResponse.data.data);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "An unknown error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [session]);
+
+  const quickLinks = [
+    { name: "Create New Unit", href: "/dashboard/units/create", icon: Book },
+    {
+      name: "Create New Rubric",
+      href: "/dashboard/rubrics/create",
+      icon: FileText,
+    },
+  ];
+
+  const formatDateTime = (dateString: string): string => {
+    const date = parseISO(dateString);
+    return formatRelative(date, new Date());
   };
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: "unit",
-      action: "created",
-      name: "Advanced Machine Learning",
-      date: "2023-05-15",
-    },
-    {
-      id: 2,
-      type: "assignment",
-      action: "updated",
-      name: "Database Normalization",
-      date: "2023-05-14",
-    },
-    {
-      id: 3,
-      type: "viva",
-      action: "completed",
-      name: "John Doe - Software Engineering",
-      date: "2023-05-13",
-    },
-    {
-      id: 4,
-      type: "user",
-      action: "added",
-      name: "new_tutor~example.com",
-      date: "2023-05-12",
-    },
-  ];
-
-  const upcomingVivas = [
-    {
-      id: 1,
-      student: "Alice Johnson",
-      assignment: "Data Structures",
-      date: "2023-05-20",
-      time: "10:00 AM",
-    },
-    {
-      id: 2,
-      student: "Bob Smith",
-      assignment: "Web Development",
-      date: "2023-05-21",
-      time: "2:00 PM",
-    },
-    {
-      id: 3,
-      student: "Charlie Brown",
-      assignment: "Artificial Intelligence",
-      date: "2023-05-22",
-      time: "11:00 AM",
-    },
-  ];
-
-  const pendingTasks = [
-    {
-      id: 1,
-      task: "Review generated questions for Database Systems",
-      dueDate: "2023-05-18",
-    },
-    {
-      id: 2,
-      task: "Approve viva schedule for Software Engineering",
-      dueDate: "2023-05-19",
-    },
-    {
-      id: 3,
-      task: "Upload student submissions for Machine Learning",
-      dueDate: "2023-05-20",
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">VivaMQ Dashboard</h1>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Units</CardTitle>
-            <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUnits}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Assignments
-            </CardTitle>
-            <FileTextIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activeAssignments}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Vivas</CardTitle>
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingVivas}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <UsersIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activeUsers}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle>Recent Activities</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentActivities.map((activity) => (
-                  <TableRow key={activity.id}>
-                    <TableCell className="capitalize">
-                      {activity.type}
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {activity.action}
-                    </TableCell>
-                    <TableCell>{activity.name}</TableCell>
-                    <TableCell>{activity.date}</TableCell>
-                  </TableRow>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen"
+    >
+      <motion.h1
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="text-4xl font-bold mb-6"
+      >
+        Welcome{name ? `, ${name}` : ""}!
+      </motion.h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="md:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>My Units</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {error ? (
+                <p className="text-red-500">{error}</p>
+              ) : (
+                <Accordion
+                  type="multiple"
+                  defaultValue={sessions.map((session) => session.id)}
+                  className="w-full"
+                >
+                  <AnimatePresence>
+                    {sessions.map((session) => (
+                      <motion.div
+                        key={session.id}
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <AccordionItem value={session.id}>
+                          <AccordionTrigger>
+                            {session.displayName}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead className="w-1/3">
+                                    Unit Name
+                                  </TableHead>
+                                  <TableHead className="w-1/3">
+                                    Access Type
+                                  </TableHead>
+                                  <TableHead className="w-1/3">
+                                    Actions
+                                  </TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                <AnimatePresence>
+                                  {session.units && session.units.length > 0 ? (
+                                    session.units.map((unit: Unit) => (
+                                      <motion.tr
+                                        key={unit.id}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                      >
+                                        <TableCell className="w-1/3">
+                                          <div
+                                            className="truncate"
+                                            title={unit.name}
+                                          >
+                                            {unit.name}
+                                          </div>
+                                        </TableCell>
+                                        <TableCell className="w-1/3">
+                                          <div
+                                            className="truncate"
+                                            title={unit.accessType}
+                                          >
+                                            {unit.accessType}
+                                          </div>
+                                        </TableCell>
+                                        <TableCell className="w-1/3">
+                                          <div className="flex space-x-2">
+                                            <Link
+                                              href={`/dashboard/units/${unit.id}`}
+                                            >
+                                              <Button variant="default">
+                                                View Unit
+                                              </Button>
+                                            </Link>
+                                          </div>
+                                        </TableCell>
+                                      </motion.tr>
+                                    ))
+                                  ) : (
+                                    <TableRow>
+                                      <TableCell
+                                        colSpan={3}
+                                        className="text-center"
+                                      >
+                                        No units available for this session.
+                                      </TableCell>
+                                    </TableRow>
+                                  )}
+                                </AnimatePresence>
+                              </TableBody>
+                            </Table>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </Accordion>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+        <motion.div
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="space-y-6"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Links</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                {quickLinks.map((link, index) => (
+                  <motion.li
+                    key={index}
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.1 * index }}
+                  >
+                    <Link
+                      href={link.href}
+                      className="flex items-center space-x-2 text-blue-600 hover:underline"
+                    >
+                      <link.icon className="w-4 h-4" />
+                      <span>{link.name}</span>
+                    </Link>
+                  </motion.li>
                 ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Tasks</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-4">
-              {pendingTasks.map((task) => (
-                <li key={task.id} className="flex items-start space-x-2">
-                  <AlertCircleIcon className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">{task.task}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Due: {task.dueDate}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+              </ul>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-4">
+                <AnimatePresence>
+                  {activities.map((activity, index) => (
+                    <motion.li
+                      key={activity.id}
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -20, opacity: 0 }}
+                      transition={{ delay: 0.1 * index }}
+                      className="flex items-start space-x-2"
+                    >
+                      {activity.type === "rubric" ? (
+                        <FileText className="w-5 h-5 mt-1 text-blue-500" />
+                      ) : (
+                        <Book className="w-5 h-5 mt-1 text-green-500" />
+                      )}
+                      <div>
+                        <Link
+                          href={
+                            activity.type === "rubric"
+                              ? `/dashboard/rubrics/${activity.id}`
+                              : `/dashboard/units/${activity.unitId}/assignments/${activity.id}`
+                          }
+                          className="font-medium hover:underline"
+                        >
+                          {activity.name}
+                        </Link>
+                        <p className="text-sm text-gray-500">
+                          <Clock className="inline w-4 h-4 mr-1" />
+                          {formatDateTime(activity.latestDate)} -{" "}
+                          {activity.reason}
+                        </p>
+                      </div>
+                    </motion.li>
+                  ))}
+                </AnimatePresence>
+              </ul>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Vivas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student</TableHead>
-                <TableHead>Assignment</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Time</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {upcomingVivas.map((viva) => (
-                <TableRow key={viva.id}>
-                  <TableCell>{viva.student}</TableCell>
-                  <TableCell>{viva.assignment}</TableCell>
-                  <TableCell>{viva.date}</TableCell>
-                  <TableCell>{viva.time}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+    </motion.div>
   );
 }

@@ -8,16 +8,12 @@ import { optimizePromptAndConfig } from "./handlers/promptEngineeringAndAIModelC
 import { createRubric } from "./handlers/rubricCreationAndConversion";
 import dotenv from "dotenv";
 import openAIClient from "./config/openAIClient";
-dotenv.config();
 
-interface Message {
-  type: string;
-  data: any;
-  uuid: string;
-} 
+dotenv.config();
 
 export async function processMessage(message: Message): Promise<any> {
   try {
+
     let response;
     switch (message.type) {
       case "vivaQuestions":
@@ -36,12 +32,14 @@ export async function processMessage(message: Message): Promise<any> {
             criteria: message.data.criteria,
           }
         );
-        break;
       case "summaryAndReport":
         response = await generateSummaryAndReport(
-          openAIClient,
-          message.data.document
+          openAIClient, {
+            document: message.data.submission,
+          }
+          
         );
+
         break;
       case "automatedMarksheet":
         response = await generateAutomatedMarksheet(openAIClient, {
@@ -57,52 +55,51 @@ export async function processMessage(message: Message): Promise<any> {
         );
         break;
       case "createRubric":
-        response = await createRubric(
-          openAIClient,
-          {
-          assessmentTask:message.data.assessmentTask,
-          criteria:message.data.criteria,
-          keywords:message.data.keywords,
-          learningObjectives:message.data.learningObjectives,
-          existingGuide:message.data.existingGuide
-          }
-        );
+        response = await createRubric(openAIClient, {
+          assessmentTask: message.data.assessmentTask,
+          criteria: message.data.criteria,
+          keywords: message.data.keywords,
+          learningObjectives: message.data.learningObjectives,
+          existingGuide: message.data.existingGuide,
+        });
         break;
       default:
         throw new Error(`Unknown message type: ${message.type}`);
     }
+    console.log("Returning data:", response);
     return { type: message.type, data: response, uuid: message.uuid };
   } catch (error) {
     console.error("Error processing message:", error);
-    return { type: "error", data: error, uuid: message.uuid };
+    return {
+      type: "error",
+      data: error || "Unknown error",
+      uuid: message.uuid,
+    };
   }
 }
 
 export async function startMessageProcessor() {
   try {
-<<<<<<< HEAD
-    console.log(
-      "Connecting to RabbitMQ at: ",
-      process.env.RABBITMQ_URL ?? "amqp://user:password@rabbitmq:5672"
-    );
-    const connection = await amqp.connect(
-      process.env.RABBITMQ_URL ?? "amqp://user:password@rabbitmq:5672"
-    );
-=======
-    const rabbitMQUrl =
-      process.env.RABBITMQ_URL || "amqp://user:password@rabbitmq:5672";
+    const rabbitMQUrl = process.env.RABBITMQ_URL;
+
+    if (!rabbitMQUrl) {
+      throw new Error("RABBITMQ_URL environment variable is not set");
+    }
     console.log("Connecting to RabbitMQ at:", rabbitMQUrl);
     const connection = await amqp.connect(rabbitMQUrl);
->>>>>>> origin/ai-testing
     console.log("Connected to RabbitMQ successfully");
 
     const channel = await connection.createChannel();
 
-    const receiveQueue = "BEtoAI";
-    const sendQueue = "AItoBE";
+    const receiveQueue = `${process.env.NODE_ENV ?? "development"}_${
+      process.env.uniqueID ?? "defaultID"
+    }_BEtoAI`;
+    const sendQueue = `${process.env.NODE_ENV ?? "development"}_${
+      process.env.uniqueID ?? "defaultID"
+    }_AItoBE`;
 
-    await channel.assertQueue(receiveQueue, { durable: false });
-    await channel.assertQueue(sendQueue, { durable: false });
+    await channel.assertQueue(receiveQueue, { durable: true });
+    await channel.assertQueue(sendQueue, { durable: true });
 
     console.log(
       ` [*] Waiting for messages in '${receiveQueue}'. To exit press CTRL+C`
@@ -117,18 +114,18 @@ export async function startMessageProcessor() {
         try {
           const response = await processMessage(message);
           const sendMsg = Buffer.from(JSON.stringify(response));
-          channel.sendToQueue(sendQueue, sendMsg);
+          channel.sendToQueue(sendQueue, sendMsg, { persistent: true });
           console.log("Sent response:", sendMsg.toString());
         } catch (error) {
           console.error("Error processing message:", content, error);
           const errorMsg = Buffer.from(
             JSON.stringify({
               type: "error",
-              data: error,
+              data: error || "Unknown error",
               uuid: message.uuid,
             })
           );
-          channel.sendToQueue(sendQueue, errorMsg);
+          channel.sendToQueue(sendQueue, errorMsg, { persistent: true });
         }
 
         channel.ack(msg);

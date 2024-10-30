@@ -44,7 +44,7 @@ interface AppConfig {
 
 const appConfig: AppConfig = {
   api: {
-    basePath: 'api',
+    basePath: 'backend',
     version: 'v1',
   },
   docs: {

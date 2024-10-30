@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import Controller from './VivaQuestion.controller';
+import { Submission, VivaQuestion } from '@prisma/client';
+import VivaQuestionController from './VivaQuestion.controller';
 import { CreateVivaQuestionDto } from '@/dto/vivaQuestion.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
 
 const vivaQuestions: Router = Router();
-const controller = new Controller();
+const controller = new VivaQuestionController();
 
 // Define CreateVivaQuestionBody
 // Comments after property do render
@@ -47,11 +48,7 @@ vivaQuestions.post(
  * @param {string} id.path.required
  * @return {VivaQuestion} 200 - vivaQuestion list
  */
-vivaQuestions.get(
-  '/:id',
-  verifyAuthToken,
-  controller.get
-);
+vivaQuestions.get('/:id', verifyAuthToken, controller.get);
 
 /**
  * GET /vivaQuestions/
@@ -60,11 +57,7 @@ vivaQuestions.get(
  * @param None
  * @return {Array.<VivaQuestion>} 200 - vivaQuestion list
  */
-vivaQuestions.get(
-  '/',
-  verifyAuthToken,
-  controller.getAll
-);
+vivaQuestions.get('/', verifyAuthToken, controller.getAll);
 
 /**
  * DELETE /vivaQuestions/{id}
@@ -73,11 +66,7 @@ vivaQuestions.get(
  * @param {string} id.path.required - ID of the viva question to delete
  * @return {VivaQuestion} 200 - vivaQuestion list
  */
-vivaQuestions.delete(
-  '/:id',
-  verifyAuthToken,
-  controller.delete
-);
+vivaQuestions.delete('/:id', verifyAuthToken, controller.delete);
 
 /**
  * DELETE /vivaQuestions/
@@ -86,12 +75,6 @@ vivaQuestions.delete(
  * @param None
  * @return {number} 200 - vivaQuestion clear
  */
-vivaQuestions.delete(
-  '/',
-  verifyAuthToken,
-  controller.deleteAll
-);
-
+vivaQuestions.delete('/', verifyAuthToken, controller.deleteAll);
 
 export default vivaQuestions;
-

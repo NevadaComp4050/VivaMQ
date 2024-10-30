@@ -38,7 +38,18 @@ import {
   DialogFooter,
 } from "~/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "~/components/ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from "~/components/ui/breadcrumb";
+import { RainbowButton } from "~/components/ui/rainbow-button";
+
+// Define VivaStatus type
+type VivaStatus = "NOT STARTED" | "COMPLETED" | "ERROR";
 
 interface Submission {
   id: string;
@@ -47,7 +58,7 @@ interface Submission {
   studentCode?: string;
   submissionFile: string;
   status: string;
-  vivaStatus: string;
+  vivaStatus: VivaStatus;
 }
 
 interface Assignment {
@@ -91,8 +102,14 @@ export default function AssignmentManagementPage({
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
 
+  // Polling state
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(
+    null
+  );
+
   const fileContentRef = useRef<string | null>(null);
 
+  // Function to fetch assignment data
   const fetchAssignment = useCallback(async () => {
     if (!session?.user?.accessToken) return;
 
@@ -121,6 +138,7 @@ export default function AssignmentManagementPage({
     fetchAssignment();
   }, [fetchAssignment]);
 
+  // File drop handler
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       const newFiles = acceptedFiles.map((file) => ({
@@ -203,34 +221,13 @@ export default function AssignmentManagementPage({
     [params.assignmentId, session]
   );
 
-  // generate viva questions  for the assignment
-  const generateVivaQuestions = async () => {
-    if (!session?.user?.accessToken) return;
-
-    const apiClient = createApiClient(session.user.accessToken);
-    try {
-      await apiClient.post(
-        `/assignments/${params.assignmentId}/generateVivaQuestions`
-      );
-      toast({
-        title: "Success",
-        description: "Viva questions generated successfully",
-      });
-    } catch (error) {
-      console.error("Error generating viva questions:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate viva questions. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
+  // Initialize dropzone
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "application/pdf": [".pdf"] },
   });
 
+  // CSV upload handler
   const handleCsvUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -314,12 +311,14 @@ export default function AssignmentManagementPage({
     }
   };
 
+  // Skip CSV upload handler
   const handleSkipCsvUpload = () => {
     setUnmappedFiles(uploadedFiles);
     setUploadedFiles([]);
     setActiveStep(2);
   };
 
+  // Submit Student ID mapping
   const handleStudentIdSubmit = () => {
     if (!currentStudentId.trim()) {
       toast({
@@ -352,12 +351,14 @@ export default function AssignmentManagementPage({
     }
   };
 
+  // Handle Enter key press in Student ID input
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       handleStudentIdSubmit();
     }
   };
 
+  // Delete a submission
   const handleDeleteSubmission = async (submissionId: string) => {
     if (!session?.user?.accessToken) return;
 
@@ -389,6 +390,7 @@ export default function AssignmentManagementPage({
     }
   };
 
+  // Fetch file content for preview
   const fetchFileContent = useCallback(
     async (fileId: string) => {
       if (!session?.user?.accessToken) return;
@@ -414,6 +416,7 @@ export default function AssignmentManagementPage({
     [session]
   );
 
+  // Confirm and finish mapping
   const handleConfirmAndFinish = async () => {
     if (!session?.user?.accessToken) return;
 
@@ -443,6 +446,7 @@ export default function AssignmentManagementPage({
     }
   };
 
+  // Discard CSV upload
   const handleDiscardCsv = () => {
     setUploadedFiles((prevFiles) =>
       prevFiles.map((file) => ({
@@ -460,6 +464,7 @@ export default function AssignmentManagementPage({
     });
   };
 
+  // Handle duplicates without discarding
   const processMappingsWithoutDuplicates = () => {
     // Remove duplicates from uploadedFiles based on duplicateEntries
     const filteredUploadedFiles = uploadedFiles.filter(
@@ -485,6 +490,7 @@ export default function AssignmentManagementPage({
     }
   };
 
+  // Navigate to previous file in mapping
   const handlePreviousFile = () => {
     if (currentFileIndex > 0) {
       setCurrentFileIndex(currentFileIndex - 1);
@@ -492,6 +498,7 @@ export default function AssignmentManagementPage({
     }
   };
 
+  // Navigate to next file in mapping
   const handleNextFile = () => {
     if (currentFileIndex < unmappedFiles.length - 1) {
       setCurrentFileIndex(currentFileIndex + 1);
@@ -499,6 +506,7 @@ export default function AssignmentManagementPage({
     }
   };
 
+  // Fetch file content when currentFileIndex or unmappedFiles change
   useEffect(() => {
     if (unmappedFiles[currentFileIndex]?.id) {
       fetchFileContent(unmappedFiles[currentFileIndex].id);
@@ -512,9 +520,87 @@ export default function AssignmentManagementPage({
     };
   }, [currentFileIndex, unmappedFiles, fetchFileContent]);
 
+  // Determine mapped and unmapped submissions
   const mappedSubmissions = uploadedFiles.filter((file) => file.studentId);
   const remainingUnmappedSubmissions = unmappedFiles;
 
+  // Polling: Check Viva Status
+  const checkVivaStatus = useCallback(async () => {
+    if (!session?.user?.accessToken) return;
+
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      const response = await apiClient.get(
+        `/assignments/${params.assignmentId}`
+      );
+      const updatedAssignment = response.data.data as Assignment;
+
+      const allCompleted = updatedAssignment.submissions.every(
+        (submission: Submission) =>
+          submission.vivaStatus === "COMPLETED" ||
+          submission.vivaStatus === "ERROR"
+      );
+
+      if (allCompleted) {
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+          setPollingInterval(null);
+        }
+        toast({
+          title: "Viva Generation Complete",
+          description: "All submissions have completed viva generation.",
+        });
+      }
+
+      setAssignment(updatedAssignment);
+    } catch (error) {
+      console.error("Error checking viva status:", error);
+    }
+  }, [params.assignmentId, session, pollingInterval]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
+
+  // Start polling function
+  const startPolling = useCallback(() => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+    }
+    const interval = setInterval(checkVivaStatus, 5000); // Poll every 5 seconds
+    setPollingInterval(interval);
+  }, [checkVivaStatus, pollingInterval]);
+
+  // Generate Viva Questions and start polling
+  const generateVivaQuestions = async () => {
+    if (!session?.user?.accessToken) return;
+
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      await apiClient.post(
+        `/assignments/${params.assignmentId}/generateVivaQuestions`
+      );
+      toast({
+        title: "Success",
+        description: "Viva questions generation started.",
+      });
+      startPolling(); // Start polling after initiating viva generation
+    } catch (error) {
+      console.error("Error generating viva questions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate viva questions. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Render loading state
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -523,6 +609,7 @@ export default function AssignmentManagementPage({
     );
   }
 
+  // Render not found state
   if (!assignment) {
     return (
       <div className="p-8 text-center">
@@ -562,7 +649,9 @@ export default function AssignmentManagementPage({
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/dashboard/units/${params.unitId}`}>...</BreadcrumbLink>
+                <BreadcrumbLink href={`/dashboard/units/${params.unitId}`}>
+                  Unit Details
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -573,9 +662,17 @@ export default function AssignmentManagementPage({
         </div>
 
         <div className="flex items-center justify-between mb-4">
-          <Button variant="outline" onClick={generateVivaQuestions}>
-            Generate Viva Questions
-          </Button>
+          {assignment.submissions.some(
+            (submission) => submission.vivaStatus === "NOTSTARTED"
+          ) ? (
+            <RainbowButton onClick={generateVivaQuestions}>
+              Generate Viva
+            </RainbowButton>
+          ) : (
+            <Button variant="outline" onClick={generateVivaQuestions}>
+              Regenerate Viva Questions
+            </Button>
+          )}
         </div>
       </motion.div>
 
@@ -687,10 +784,10 @@ export default function AssignmentManagementPage({
                     <CardTitle>Upload Submissions</CardTitle>
                   </CardHeader>
                   <CardContent>
-                  <div
-                  {...getRootProps()}
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer"
-                >
+                    <div
+                      {...getRootProps()}
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer"
+                    >
                       <input {...getInputProps()} />
                       {isDragActive ? (
                         <p>Drop the PDF files here ...</p>
@@ -1008,6 +1105,7 @@ export default function AssignmentManagementPage({
         </TabsContent>
       </Tabs>
 
+      {/* Duplicate Entries Modal */}
       <Dialog open={showDuplicateModal} onOpenChange={setShowDuplicateModal}>
         <DialogContent>
           <DialogHeader>
@@ -1045,6 +1143,7 @@ export default function AssignmentManagementPage({
         </DialogContent>
       </Dialog>
 
+      {/* Discard CSV Modal */}
       <Dialog open={showDiscardModal} onOpenChange={setShowDiscardModal}>
         <DialogContent>
           <DialogHeader>

@@ -124,7 +124,7 @@ export default function SingleSubmissionReviewPage({
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-6">
-        Review Submission: {submission.id}
+        Review Student: {submission.studentCode}
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -135,16 +135,8 @@ export default function SingleSubmissionReviewPage({
           <CardContent>
             <div className="space-y-2">
               <div>
-                <Label>Submission ID</Label>
-                <div>{submission.id}</div>
-              </div>
-              <div>
-                <Label>Assignment ID</Label>
-                <div>{submission.assignmentId}</div>
-              </div>
-              <div>
                 <Label>Student ID</Label>
-                <div>{submission.studentId || "N/A"}</div>
+                <div>{submission.studentCode || "N/A"}</div>
               </div>
               <div>
                 <Label>Status</Label>

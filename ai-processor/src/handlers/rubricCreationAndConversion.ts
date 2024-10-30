@@ -3,29 +3,23 @@ import { OpenAI } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import dotenv from "dotenv";
 import { generateRubricPrompt } from "../utilities/promptGenerators";
+import { LogError } from '../logger';
 
 dotenv.config();
 
-const Descriptor = z.object({
-  F: z.string(),
-  P: z.string(),
-  C: z.string(),
-  D: z.string(),
-  HD: z.string(),
-});
-
-const Criterion = z.object({
-  name: z.string(),
-  descriptors: Descriptor,
-  marks: z.number(),
-});
-
 const Rubric = z.object({
-  title: z.string(),
-  criteria: z.array(Criterion),
+  criteria: z.array(
+    z.object({
+      name: z.string(),
+      descriptors: z.record(z.enum(["F", "P", "C", "D", "HD"]), z.string()),
+    })
+  ),
 });
 
-async function createRubric(
+class createARubric {
+
+  @LogError()
+async  createRubric(
   openAIClient: OpenAI,
   {
     assessmentTask,
@@ -40,7 +34,7 @@ async function createRubric(
     learningObjectives: string[];
     existingGuide: string;
   }
-): Promise<z.infer<typeof Rubric>> {
+): Promise<typeof Rubric> {
   try {
     const prompt = generateRubricPrompt(
       assessmentTask,
@@ -66,5 +60,6 @@ async function createRubric(
     throw error;
   }
 }
+}
 
-export { createRubric, Rubric };
+export { createARubric };

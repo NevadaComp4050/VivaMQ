@@ -5,6 +5,7 @@ jest.mock("openai");
 
 describe("generateAutomatedMarksheet", () => {
   let mockOpenAIClient: jest.Mocked<OpenAI>;
+  const assessAWritingQuality = new assessWritingQuality();
 
   beforeEach(() => {
     mockOpenAIClient = {
@@ -34,7 +35,7 @@ describe("generateAutomatedMarksheet", () => {
     const document = "Test document";
     const criteria = "test-criteria";
     
-    const result = await assessWritingQuality(mockOpenAIClient, {
+    const result = await assessAWritingQuality.assessWritingQuality(mockOpenAIClient, {
       document,
       criteria
     });
@@ -78,7 +79,7 @@ describe("generateAutomatedMarksheet", () => {
     const criteria = "test-criteria";
    
     await expect(
-        assessWritingQuality(mockOpenAIClient, {
+      assessAWritingQuality.assessWritingQuality(mockOpenAIClient, {
         document,
         criteria
       })
@@ -103,7 +104,7 @@ describe("generateAutomatedMarksheet", () => {
     const document = "Test document";
     const criteria = "test-criteria";
 
-    await expect(assessWritingQuality(mockOpenAIClient, {
+    await expect(assessAWritingQuality.assessWritingQuality(mockOpenAIClient, {
       document,
       criteria
     })).rejects.toThrow("Failed to generate writing quality assessment");

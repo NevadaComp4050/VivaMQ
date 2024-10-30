@@ -1,11 +1,11 @@
-import { createRubric } from "../handlers/rubricCreationAndConversion";
+import { createARubric } from "../handlers/rubricCreationAndConversion";
 import { OpenAI } from "openai";
 
 jest.mock("openai");
 
 describe("generateAutomatedMarksheet", () => {
   let mockOpenAIClient: jest.Mocked<OpenAI>;
-
+  const createRubrics = new createARubric();
   beforeEach(() => {
     mockOpenAIClient = {
       chat: {
@@ -37,7 +37,7 @@ describe("generateAutomatedMarksheet", () => {
     const learningObjectives = ["test-rubric??!!"];
     const existingGuide = "Test learning Outcome Prompt??!!";
 
-    const result = await createRubric(mockOpenAIClient, {
+    const result = await createRubrics.createRubric(mockOpenAIClient, {
       assessmentTask,
       criteria,
       keywords,
@@ -87,7 +87,7 @@ describe("generateAutomatedMarksheet", () => {
     const existingGuide = "Test learning Outcome Prompt??!!";
 
     await expect(
-      createRubric(mockOpenAIClient, {
+      createRubrics.createRubric(mockOpenAIClient, {
         assessmentTask,
         criteria,
         keywords,
@@ -119,7 +119,7 @@ describe("generateAutomatedMarksheet", () => {
     const existingGuide = "Test learning Outcome Prompt??!!";
 
     await expect(
-      createRubric(mockOpenAIClient, {
+      createRubrics.createRubric(mockOpenAIClient, {
         assessmentTask,
         criteria,
         keywords,

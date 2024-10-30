@@ -2,6 +2,7 @@ import { z } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { generateSingleQuestionVivaPrompt } from "../utilities/promptGenerators";
 import { OpenAI } from "openai";
+import { LogError } from '../logger';
 
 const Question = z.object({
   question_text: z.string(),
@@ -11,8 +12,10 @@ const Question = z.object({
 const QuestionResponse = z.object({
   questions: z.array(Question),
 });
+class promptSub {
 
-export async function promptSubUUID(
+  @LogError()
+async promptSubUUID(
   openAIClient: OpenAI,
   {
     submission,
@@ -25,7 +28,6 @@ export async function promptSubUUID(
   }
 ): Promise<[string, string]> {
   try {
-    console.log("Prompting for submission:", submission);
     const prompt = generateSingleQuestionVivaPrompt(submission, customPrompt);
     const response = await openAIClient.chat.completions.create({
       model: "gpt-4o-2024-08-06",
@@ -40,3 +42,6 @@ export async function promptSubUUID(
     throw error;
   }
 }
+}
+
+export { promptSub };

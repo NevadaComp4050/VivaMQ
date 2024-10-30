@@ -3,6 +3,7 @@ import { OpenAI } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import dotenv from "dotenv";
 import { generateDocumentSummaryPrompt } from "../utilities/promptGenerators";
+import { LogError } from '../logger';
 
 dotenv.config();
 
@@ -12,7 +13,10 @@ const SummaryAndReport = z.object({
   detailed_report: z.string(),
 });
 
-async function generateSummaryAndReport(
+class generateSummaryAndReport {
+
+  @LogError()
+async  generateSummaryAndReport(
   openAIClient: OpenAI,
   {
     document
@@ -38,6 +42,7 @@ async function generateSummaryAndReport(
     console.error("Error:", error);
     throw error;
   }
+}
 }
 
 export { generateSummaryAndReport };

@@ -1,0 +1,9 @@
+[2024-10-28T07:52:24.465Z] - ERROR: generateAutomatedMarksheet failed: OpenAI Error
+[2024-10-28T07:52:24.473Z] - ERROR: generateAutomatedMarksheet failed: Failed to generate automated marksheet
+[2024-10-28T07:52:24.729Z] - ERROR: generateSummaryAndReport failed: OpenAI Error
+[2024-10-28T07:52:24.732Z] - ERROR: generateSummaryAndReport failed: Failed to generate summary and report
+[2024-10-28T07:52:24.747Z] - ERROR: createRubric failed: OpenAI Error
+[2024-10-28T07:52:24.750Z] - ERROR: createRubric failed: Failed to create rubric
+[2024-10-28T07:52:24.750Z] - ERROR: promptSubUUID failed: OpenAI Error
+[2024-10-28T07:52:24.863Z] - ERROR: assessWritingQuality failed: OpenAI Error
+[2024-10-28T07:52:24.869Z] - ERROR: assessWritingQuality failed: Failed to generate writing quality assessment

@@ -1,10 +1,11 @@
-import { promptSubUUID } from "../handlers/openAIAPI";
+import { promptSub } from "../handlers/openAIAPI";
 import { OpenAI } from "openai";
 
 jest.mock("openai");
 
 describe("promptSubUUID", () => {
   let mockOpenAIClient: jest.Mocked<OpenAI>;
+  const promptSubs = new promptSub();
 
   beforeEach(() => {
     mockOpenAIClient = {
@@ -36,7 +37,7 @@ describe("promptSubUUID", () => {
     const uuid = "test-uuid";
     const customPrompt = "Test custom prompt";
 
-    const result = await promptSubUUID(mockOpenAIClient, {
+    const result = await promptSubs.promptSubUUID(mockOpenAIClient, {
       submission,
       uuid,
       customPrompt,
@@ -63,7 +64,7 @@ describe("promptSubUUID", () => {
     const uuid = "test-uuid";
 
     await expect(
-      promptSubUUID(mockOpenAIClient, { submission, uuid })
+      promptSubs.promptSubUUID(mockOpenAIClient, { submission, uuid })
     ).rejects.toThrow("OpenAI Error");
   });
 
@@ -85,7 +86,7 @@ describe("promptSubUUID", () => {
     const submission = "Test submission";
     const uuid = "test-uuid";
 
-    const result = await promptSubUUID(mockOpenAIClient, { submission, uuid });
+    const result = await promptSubs.promptSubUUID(mockOpenAIClient, { submission, uuid });
 
     expect(result).toEqual(["response error", "test-uuid"]);
   });

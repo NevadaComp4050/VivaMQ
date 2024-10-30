@@ -5,6 +5,7 @@ jest.mock("openai");
 
 describe("generateAutomatedMarksheet", () => {
   let mockOpenAIClient: jest.Mocked<OpenAI>;
+  const generateASummaryAndReport = new generateSummaryAndReport();
 
   beforeEach(() => {
     mockOpenAIClient = {
@@ -33,7 +34,7 @@ describe("generateAutomatedMarksheet", () => {
 
     const document = "Test document";
 
-    const result = await generateSummaryAndReport(mockOpenAIClient, {
+    const result = await generateASummaryAndReport.generateSummaryAndReport(mockOpenAIClient, {
       document,
     });
 
@@ -75,7 +76,7 @@ describe("generateAutomatedMarksheet", () => {
     const document = "Test document";
 
     await expect(
-      generateSummaryAndReport(mockOpenAIClient, {
+      generateASummaryAndReport.generateSummaryAndReport(mockOpenAIClient, {
         document,
       })
     ).rejects.toThrow("OpenAI Error");
@@ -99,7 +100,7 @@ describe("generateAutomatedMarksheet", () => {
     const document = "Test document";
 
     await expect(
-      generateSummaryAndReport(mockOpenAIClient, {
+      generateASummaryAndReport.generateSummaryAndReport(mockOpenAIClient, {
         document,
       })
     ).rejects.toThrow("Failed to generate summary and report");

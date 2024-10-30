@@ -1,29 +1,35 @@
 import * as amqp from "amqplib";
 import { Message } from "./types";
-import { promptSubUUID } from "./handlers/openAIAPI";
+import { promptSub } from "./handlers/openAIAPI";
 import { assessWritingQuality } from "./handlers/writingQualityAssessment";
 import { generateSummaryAndReport } from "./handlers/summarizationAndReportGeneration";
-import { generateAutomatedMarksheet } from "./handlers/automatedMarksheetGeneration";
-import { optimizePromptAndConfig } from "./handlers/promptEngineeringAndAIModelConfiguration";
-import { createRubric } from "./handlers/rubricCreationAndConversion";
+import { MarksheetGenerator } from "./handlers/automatedMarksheetGeneration";
+import { optimizePrompt } from "./handlers/promptEngineeringAndAIModelConfiguration";
+import { createARubric } from "./handlers/rubricCreationAndConversion";
 import dotenv from "dotenv";
 import openAIClient from "./config/openAIClient";
+import { LogError } from "./logger";
 
 dotenv.config();
 
-export async function processMessage(message: Message): Promise<any> {
+class messageProcessor {
+  
+  @LogError()
+async processMessage(message: Message): Promise<any> {
   try {
     let response;
     switch (message.type) {
       case "vivaQuestions":
-        response = await promptSubUUID(openAIClient, {
+        const prompSubs = new promptSub();
+        response = await prompSubs.promptSubUUID(openAIClient, {
           submission: message.data.submission,
           uuid: message.uuid,
           customPrompt: message.data.customPrompt,
         });
         break;
       case "writingQuality":
-        response = await assessWritingQuality(
+        const writingAQuality = new assessWritingQuality();
+        response = await writingAQuality.assessWritingQuality(
           openAIClient,
 
           {
@@ -33,26 +39,30 @@ export async function processMessage(message: Message): Promise<any> {
         );
         break;
       case "summaryAndReport":
-        response = await generateSummaryAndReport(
+        const summaryAndAReport = new generateSummaryAndReport();
+        response = await summaryAndAReport.generateSummaryAndReport(
           openAIClient,
           message.data.document
         );
         break;
       case "automatedMarksheet":
-        response = await generateAutomatedMarksheet(openAIClient, {
+        const automatedMarkSheet = new MarksheetGenerator();
+        response = await automatedMarkSheet.generateAutomatedMarksheet(openAIClient, {
           document: message.data.document,
           rubric: message.data.rubric,
           learningOutcomes: message.data.learningOutcomes,
         });
         break;
       case "optimizePrompt":
-        response = await optimizePromptAndConfig(
+        const promptAndConfig = new optimizePrompt();
+        response = await promptAndConfig.optimizePromptAndConfig(
           message.data.originalPrompt,
           message.data.configParams
         );
         break;
       case "createRubric":
-        response = await createRubric(openAIClient, {
+        const RubricCreation = new createARubric();
+        response = await RubricCreation.createRubric(openAIClient, {
           assessmentTask: message.data.assessmentTask,
           criteria: message.data.criteria,
           keywords: message.data.keywords,
@@ -74,7 +84,8 @@ export async function processMessage(message: Message): Promise<any> {
   }
 }
 
-export async function startMessageProcessor() {
+@LogError()
+ async startMessageProcessor() {
   try {
     const rabbitMQUrl = process.env.RABBITMQ_URL;
 
@@ -108,7 +119,7 @@ export async function startMessageProcessor() {
         console.log("Received message:", content);
 
         try {
-          const response = await processMessage(message);
+          const response = await this.processMessage(message);
           const sendMsg = Buffer.from(JSON.stringify(response));
           channel.sendToQueue(sendQueue, sendMsg, { persistent: true });
           console.log("Sent response:", sendMsg.toString());
@@ -131,3 +142,6 @@ export async function startMessageProcessor() {
     console.error("Error in startMessageProcessor:", error);
   }
 }
+}
+
+export {messageProcessor}

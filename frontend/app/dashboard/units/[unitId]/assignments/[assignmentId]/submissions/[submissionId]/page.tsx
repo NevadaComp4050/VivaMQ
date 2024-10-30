@@ -277,7 +277,7 @@ export default function SingleSubmissionReviewPage({
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard/units">Units</BreadcrumbLink>
+                <BreadcrumbPage>Units</BreadcrumbPage>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>

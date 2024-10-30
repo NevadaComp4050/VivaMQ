@@ -74,6 +74,13 @@ export function getMenuList(pathname: string): Group[] {
           icon: SquarePen,
           submenus: [],
         },
+        {
+          href: "/dashboard/invite",
+          label: "Invite Management",
+          active: pathname === "/dashboard/invite",
+          icon: Users,
+          submenus: [],
+        },
       ],
     },
     /* {

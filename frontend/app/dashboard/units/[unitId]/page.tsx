@@ -300,7 +300,6 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
               <CardTitle>Unit Details</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="mb-4">Session ID: {unit.sessionId}</p>
               <div className="flex space-x-4">
                 <div>
                   <strong>Assignments:</strong> {unit.assignments.length}

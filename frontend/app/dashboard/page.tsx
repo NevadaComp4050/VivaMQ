@@ -18,6 +18,7 @@ import {
 } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { FileText, Book, Clock, ExternalLink } from "lucide-react";
+import { parseISO, formatRelative, format } from "date-fns";
 
 type Unit = {
   id: string;
@@ -87,6 +88,13 @@ async function getRecentActivities(): Promise<Activity[]> {
     console.error("Error fetching recent activities:", error);
     throw new Error("Failed to fetch recent activities");
   }
+}
+
+function formatDateTime(dateString: string): string {
+  const date = parseISO(dateString);
+  const relativeTime = formatRelative(date, new Date());
+  //const formattedDate = format(date, "PPpp");
+  return `${relativeTime}`;
 }
 
 export default async function DashboardPage() {
@@ -210,6 +218,26 @@ export default async function DashboardPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
+              <CardTitle>Quick Links</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                {quickLinks.map((link, index) => (
+                  <li key={index}>
+                    <Link
+                      href={link.href}
+                      className="flex items-center space-x-2 text-blue-600 hover:underline"
+                    >
+                      <link.icon className="w-4 h-4" />
+                      <span>{link.name}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
@@ -234,9 +262,8 @@ export default async function DashboardPage() {
                       </Link>
                       <p className="text-sm text-gray-500">
                         <Clock className="inline w-4 h-4 mr-1" />
-                        {new Date(
-                          activity.latestDate
-                        ).toLocaleDateString()} - {activity.reason}
+                        {formatDateTime(activity.latestDate)} -{" "}
+                        {activity.reason}
                       </p>
                     </div>
                   </li>

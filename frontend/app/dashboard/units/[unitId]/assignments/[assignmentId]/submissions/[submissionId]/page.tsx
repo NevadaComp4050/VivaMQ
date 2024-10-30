@@ -306,7 +306,7 @@ export default function SingleSubmissionReviewPage({
               <div className="space-y-4">
                 <div>
                   <Label className="text-sm font-medium">Student ID</Label>
-                  <div className="text-lg">{submission.studentCode || 'N/A'}</div>
+                  <div className="text-lg">{submission.studentCode ?? 'N/A'}</div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Status</Label>
@@ -431,7 +431,7 @@ export default function SingleSubmissionReviewPage({
                       <TableCell className="font-medium">{question.question}</TableCell>
                       <TableCell>{question.status}</TableCell>
                       <TableCell>
-                        <div className="space-x-2">
+                        <div className="space-x-2 flex flex-row">
                           <Button variant="outline" size="sm" onClick={() => handleEditQuestion(question)}>
                             <Edit className="w-4 h-4" />
                           </Button>

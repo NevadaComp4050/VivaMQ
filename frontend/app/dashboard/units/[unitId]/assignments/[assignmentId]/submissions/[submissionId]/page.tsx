@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
+import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -13,7 +15,15 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { Loader2, Maximize2 } from "lucide-react";
+import {
+  Loader2,
+  Maximize2,
+  Lock,
+  Unlock,
+  Plus,
+  Edit,
+  RotateCw,
+} from "lucide-react";
 import { useToast } from "~/components/ui/use-toast";
 import createApiClient from "~/lib/api-client";
 import { useSession } from "next-auth/react";
@@ -23,6 +33,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "~/components/ui/dialog";
 
 interface VivaQuestion {
@@ -30,6 +41,7 @@ interface VivaQuestion {
   submissionId: string;
   question: string;
   status: string;
+  isLocked: boolean;
 }
 
 interface Submission {
@@ -57,6 +69,11 @@ export default function SingleSubmissionReviewPage({
     null
   );
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<VivaQuestion | null>(
+    null
+  );
+  const [newQuestionText, setNewQuestionText] = useState("");
   const { data: session } = useSession();
   const { toast } = useToast();
   const fileContentRef = useRef<string | null>(null);
@@ -88,9 +105,9 @@ export default function SingleSubmissionReviewPage({
 
   useEffect(() => {
     const fetchSubmission = async () => {
+      if (!session?.user?.accessToken) return;
+      const apiClient = createApiClient(session.user.accessToken);
       try {
-        if (!session?.user?.accessToken) return;
-        const apiClient = createApiClient(session.user.accessToken);
         const response = await apiClient.get(
           `/submissions/${params.submissionId}`
         );
@@ -108,6 +125,125 @@ export default function SingleSubmissionReviewPage({
 
     fetchSubmission();
   }, [params.submissionId, session, fetchFileContent]);
+
+  const handleLockToggle = async (questionId: string) => {
+    if (!submission) return;
+    if (!session?.user?.accessToken) return;
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      await apiClient.post(`/viva-questions/${questionId}/toggle-lock`);
+      setSubmission({
+        ...submission,
+        vivaQuestions: submission.vivaQuestions.map((q) =>
+          q.id === questionId ? { ...q, isLocked: !q.isLocked } : q
+        ),
+      });
+      toast({
+        title: "Success",
+        description: "Question lock status updated.",
+      });
+    } catch (error) {
+      console.error("Error toggling question lock:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update question lock status.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRegenerateQuestions = async () => {
+    if (!submission) return;
+    if (!session?.user?.accessToken) return;
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      const response = await apiClient.post(
+        `/submissions/${submission.id}/regenerate-viva-questions`
+      );
+      setSubmission({
+        ...submission,
+        vivaQuestions: response.data.data,
+      });
+      toast({
+        title: "Success",
+        description: "Viva questions regenerated successfully.",
+      });
+    } catch (error) {
+      console.error("Error regenerating questions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to regenerate viva questions.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditQuestion = (question: VivaQuestion) => {
+    setEditingQuestion(question);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveQuestion = async () => {
+    if (!editingQuestion || !submission) return;
+    if (!session?.user?.accessToken) return;
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      const response = await apiClient.put(
+        `/viva-questions/${editingQuestion.id}`,
+        {
+          question: editingQuestion.question,
+        }
+      );
+      setSubmission({
+        ...submission,
+        vivaQuestions: submission.vivaQuestions.map((q) =>
+          q.id === editingQuestion.id ? response.data.data : q
+        ),
+      });
+      setIsEditModalOpen(false);
+      toast({
+        title: "Success",
+        description: "Question updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error updating question:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update question.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddQuestion = async () => {
+    if (!submission || !newQuestionText) return;
+    if (!session?.user?.accessToken) return;
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      const response = await apiClient.post(
+        `/submissions/${submission.id}/viva-questions`,
+        {
+          question: newQuestionText,
+        }
+      );
+      setSubmission({
+        ...submission,
+        vivaQuestions: [...submission.vivaQuestions, response.data.data],
+      });
+      setNewQuestionText("");
+      toast({
+        title: "Success",
+        description: "New question added successfully.",
+      });
+    } catch (error) {
+      console.error("Error adding new question:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add new question.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -212,7 +348,55 @@ export default function SingleSubmissionReviewPage({
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Viva Questions</CardTitle>
+          <CardTitle className="flex justify-between items-center">
+            Viva Questions
+            <div className="space-x-2">
+              <Button onClick={handleRegenerateQuestions}>
+                <RotateCw className="w-4 h-4 mr-2" />
+                Regenerate Unlocked
+              </Button>
+              <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Question
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingQuestion ? "Edit Question" : "Add New Question"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <Textarea
+                    value={
+                      editingQuestion
+                        ? editingQuestion.question
+                        : newQuestionText
+                    }
+                    onChange={(e) =>
+                      editingQuestion
+                        ? setEditingQuestion({
+                            ...editingQuestion,
+                            question: e.target.value,
+                          })
+                        : setNewQuestionText(e.target.value)
+                    }
+                    placeholder="Enter question here..."
+                  />
+                  <DialogFooter>
+                    <Button
+                      onClick={
+                        editingQuestion ? handleSaveQuestion : handleAddQuestion
+                      }
+                    >
+                      {editingQuestion ? "Save Changes" : "Add Question"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -220,6 +404,7 @@ export default function SingleSubmissionReviewPage({
               <TableRow>
                 <TableHead>Question</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -227,6 +412,28 @@ export default function SingleSubmissionReviewPage({
                 <TableRow key={question.id}>
                   <TableCell>{question.question}</TableCell>
                   <TableCell>{question.status}</TableCell>
+                  <TableCell>
+                    <div className="space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditQuestion(question)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleLockToggle(question.id)}
+                      >
+                        {question.isLocked ? (
+                          <Unlock className="w-4 h-4" />
+                        ) : (
+                          <Lock className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -49,7 +49,7 @@ import {
 import { RainbowButton } from "~/components/ui/rainbow-button";
 
 // Define VivaStatus type
-type VivaStatus = "NOT STARTED" | "COMPLETED" | "ERROR";
+type VivaStatus = "NOTSTARTED" | "COMPLETED" | "ERROR";
 
 interface Submission {
   id: string;

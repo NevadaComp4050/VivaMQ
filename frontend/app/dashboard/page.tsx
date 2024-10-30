@@ -113,13 +113,12 @@ export default async function DashboardPage() {
   }
 
   const quickLinks = [
-    { name: "Create New Unit", href: "/dashboard/units/new", icon: Book },
+    { name: "Create New Unit", href: "/dashboard/units/create", icon: Book },
     {
       name: "Create New Rubric",
-      href: "/dashboard/rubrics/new",
+      href: "/dashboard/rubrics/create",
       icon: FileText,
     },
-    { name: "View All Units", href: "/dashboard/units", icon: ExternalLink },
   ];
 
   return (

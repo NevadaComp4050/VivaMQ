@@ -37,6 +37,7 @@ import {
   DialogFooter,
 } from "~/components/ui/dialog";
 import { motion } from 'framer-motion'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "~/components/ui/breadcrumb";
 
 interface VivaQuestion {
   id: string;
@@ -267,7 +268,32 @@ export default function SingleSubmissionReviewPage({
         transition={{ duration: 0.5 }}
       >
         <h1 className="text-4xl font-bold mb-2">Review Submission</h1>
-        <p className="text-xl text-muted-foreground">Student: {submission.studentCode || 'N/A'}</p>
+
+        <div className="mb-6">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard/units">Units</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/dashboard/units/${params.unitId}`}>...</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}`}>Submissions</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{submission.studentCode ?? 'N/A'}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -38,6 +38,7 @@ import {
   DialogFooter,
 } from "~/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "~/components/ui/breadcrumb";
 
 interface Submission {
   id: string;
@@ -548,6 +549,29 @@ export default function AssignmentManagementPage({
         <h1 className="text-4xl font-bold mb-6">
           Assignment: {assignment.name}
         </h1>
+
+        <div className="mb-6">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink>Units</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/dashboard/units/${params.unitId}`}>...</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{assignment.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
         <div className="flex items-center justify-between mb-4">
           <Button variant="outline" onClick={generateVivaQuestions}>
             Generate Viva Questions

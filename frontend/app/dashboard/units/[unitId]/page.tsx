@@ -41,6 +41,14 @@ import { notFound } from "next/navigation";
 import { Plus, Loader2 } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from "~/components/ui/breadcrumb";
 
 interface Assignment {
   id: string;
@@ -185,6 +193,7 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
         className="flex justify-between items-center mb-6"
       >
         <h1 className="text-4xl font-bold">Unit: {unit.name}</h1>
+
         <Dialog
           open={isNewAssignmentModalOpen}
           onOpenChange={setIsNewAssignmentModalOpen}
@@ -260,6 +269,24 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
           </DialogContent>
         </Dialog>
       </motion.div>
+
+      <div className="mb-6">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard/units">Units</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{unit.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
         <motion.div

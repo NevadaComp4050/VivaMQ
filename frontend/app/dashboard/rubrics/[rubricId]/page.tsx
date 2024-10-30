@@ -412,7 +412,7 @@ export default function ViewRubricPage({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="container mx-auto p-4 space-y-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900  dark:to-gray-800 min-h-screen"
+      className="flex flex-col p-8 space-y-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900  dark:to-gray-800 min-h-screen"
     >
       <Breadcrumb>
         <BreadcrumbList>

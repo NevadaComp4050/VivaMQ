@@ -55,7 +55,7 @@ jobs:
       # Install and build AI microservice
       - name: Build AI microservice
         run: |
-          cd ai-microservice
+          cd ai-processor
           npm install
           npm run build
 

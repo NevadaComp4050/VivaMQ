@@ -27,16 +27,27 @@ jobs:
         env:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
+          ENV_FILE_CONTENT: ${{ secrets.ENVCONTENTS }}
         run: |
+          touch .env
+          echo $ENV_FILE_CONTENT > .env
           scp .env $DROPLET_USER@$DROPLET_IP:/frontend/.env
           scp .env $DROPLET_USER@$DROPLET_IP:/backend/.env
           scp .env $DROPLET_USER@$DROPLET_IP:/ai-processor/.env
+
+      # Step 4: Copy the env file to the folder
+      - name: Copy env file to backend folder
+        run: cp .env ./backend/.env
+      - name: Copy env file to frontend folder
+        run: cp .env ./frontend/.env
+      - name: Copy env file to ai-processor folder
+        run: cp .env ./ai-processor/.env
 
       # Add Node.js setup
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: "20"
 
       # Install and build frontend
       - name: Build frontend
@@ -79,7 +90,6 @@ jobs:
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
         run: |
           scp -o StrictHostKeyChecking=no repo.zip $DROPLET_USER@$DROPLET_IP:~/
-
 
       - name: Deploy to DigitalOcean Droplet
         env:

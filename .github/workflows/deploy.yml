@@ -32,6 +32,7 @@ jobs:
       - name: Build frontend
         run: |
           cd frontend
+          scp $DROPLET_USER@$DROPLET_IP:~/.env .
           npm install
           npm run build
           # remove node_modules to reduce the size of the zipped repository
@@ -42,6 +43,7 @@ jobs:
       - name: Build backend
         run: |
           cd backend
+          scp $DROPLET_USER@$DROPLET_IP:~/.env .
           npm install
           npm run build
           # remove node_modules to reduce the size of the zipped repository
@@ -52,6 +54,7 @@ jobs:
       - name: Build AI microservice
         run: |
           cd ai-processor
+          scp $DROPLET_USER@$DROPLET_IP:~/.env .
           npm install
           npm run build
           # remove node_modules to reduce the size of the zipped repository

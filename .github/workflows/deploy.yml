@@ -31,9 +31,9 @@ jobs:
         run: |
           touch .env
           echo $ENV_FILE_CONTENT > .env
-          scp .env $DROPLET_USER@$DROPLET_IP:/frontend/.env
-          scp .env $DROPLET_USER@$DROPLET_IP:/backend/.env
-          scp .env $DROPLET_USER@$DROPLET_IP:/ai-processor/.env
+          scp .env $DROPLET_USER@$DROPLET_IP:~/frontend/.env
+          scp .env $DROPLET_USER@$DROPLET_IP:~/backend/.env
+          scp .env $DROPLET_USER@$DROPLET_IP:~/ai-processor/.env
 
       # Step 4: Copy the env file to the folder
       - name: Copy env file to backend folder

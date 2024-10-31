@@ -426,7 +426,7 @@ export default function SingleSubmissionReviewPage({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {submission.vivaQuestions.map((question) => (
+                  {submission.vivaQuestions && submission.vivaQuestions.map((question) => (
                     <TableRow key={question.id}>
                       <TableCell className="font-medium">{question.question}</TableCell>
                       <TableCell>{question.status}</TableCell>

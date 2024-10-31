@@ -182,7 +182,7 @@ export default class SubmissionController extends Api {
     try {
       const { id } = req.params;
       const submission = await this.submissionService.getSubmissionById(id);
-
+      console.log('Got the requested submission: ', submission);
       if (!submission) {
         return res.status(HttpStatusCode.NotFound).send({
           message: 'Submission not found',

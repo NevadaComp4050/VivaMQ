@@ -1,11 +1,12 @@
 import axios from "axios";
 
 const createApiClient = (accessToken: string | undefined) => {
+  const baseURL =
+    process.env.NEXT_PUBLIC_BE_API_URL ||
+    "http://localhost:8080/api/v1/production";
+
   const apiClient = axios.create({
-    baseURL:
-      process.env.NEXT_PUBLIC_BE_API_URL == ""
-        ? "http://localhost:8080/api/v1/production"
-        : process.env.NEXT_PUBLIC_BE_API_URL,
+    baseURL,
     httpsAgent: new (require("https").Agent)({ rejectUnauthorized: false }),
   });
 

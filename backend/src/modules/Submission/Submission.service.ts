@@ -255,7 +255,7 @@ export default class SubmissionService {
       data: {
         id: uuidv4(),
         submissionId,
-        question: { text: questionText },
+        question: questionText,
         category: 'custom',
         status: 'GENERATED',
         locked: true,

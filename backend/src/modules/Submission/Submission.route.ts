@@ -53,6 +53,12 @@ submissions.post(
   controller.generateVivaQuestions
 );
 
+submissions.post(
+  '/:submissionId/regenerate-viva-questions',
+  verifyAuthToken,
+  controller.generateVivaQuestions
+);
+
 /**
  * POST /api/submissions/{submissionId}/generate-summary
  * @summary Trigger generation of summary for a specific submission

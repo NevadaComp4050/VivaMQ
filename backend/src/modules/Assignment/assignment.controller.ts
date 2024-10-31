@@ -37,6 +37,7 @@ export default class AssignmentController extends Api {
     try {
       const { id } = req.params;
       const userId = req.user?.id;
+      console.log('Assignments requested by: ', userId);
       if (!userId) {
         return this.unauthorizedResponse(res, 'User not authenticated');
       }

@@ -236,4 +236,35 @@ export default class SubmissionController extends Api {
       next(e);
     }
   };
+
+  public addCustomQuestion = async (
+    req: Request,
+    res: CustomResponse<any>,
+    next: NextFunction
+  ) => {
+    try {
+      const { submissionId } = req.params;
+      const { question } = req.body;
+
+      // Validate question text
+      if (!question || typeof question !== 'string') {
+        return res.status(HttpStatusCode.BadRequest).send({
+          message: 'Invalid question text. Please provide a valid question.',
+        });
+      }
+
+      // Call the service function to add the custom question
+      const newQuestion = await this.submissionService.addCustomQuestion(
+        submissionId,
+        question
+      );
+
+      res.status(HttpStatusCode.Created).json({
+        message: 'Custom viva question created successfully',
+        data: newQuestion,
+      });
+    } catch (e) {
+      next(e);
+    }
+  };
 }

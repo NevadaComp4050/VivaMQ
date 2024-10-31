@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild": "npm run clean:build",
     "build": "npm run prisma:generate && tsc --build --verbose tsconfig.build.json && tsc-alias -p tsconfig.json",
-    "start": "cross-env FORCE_COLOR=2 node ./dist/index.js",
+    "start": "node ./dist/index.js",
     "dev": "npm run prisma:generate && cross-env NODE_ENV=development ts-node-dev --project tsconfig.dev.json -r tsconfig-paths/register --transpile-only --respawn --exit-child src/index.ts",
     "prod": "npm run build && npm run start",
     "clean": "rm -rf node_modules coverage dist .nyc_output",

@@ -52,27 +52,23 @@ class Environment implements IEnvironment {
   }
 
   private resolveEnvPath(key: CommonEnvKeys): string {
+    // On priority bar, .env.[NODE_ENV] has higher priority than default env file (.env)
+    // If both are not resolved, error is thrown.
     const rootDir: string = path.resolve(__dirname, '../../');
     const envPath = path.resolve(rootDir, EnvironmentFile[key]);
     const defaultEnvPath = path.resolve(rootDir, EnvironmentFile.DEFAULT);
-
-    // Don't throw error in production; bypass validation
-    if (process.env.NODE_ENV !== Environments.PRODUCTION) {
-      if (!fs.existsSync(envPath) && !fs.existsSync(defaultEnvPath)) {
+    if (!fs.existsSync(envPath) && !fs.existsSync(defaultEnvPath)) {
+      if (process.env.NODE_ENV !== Environments.PRODUCTION) {
         throw new Error(envFileNotFoundError(key));
       }
     }
-
     return fs.existsSync(envPath) ? envPath : defaultEnvPath;
   }
 
   private validateEnvValues() {
-    // Skip validation if in production
-    if (process.env.NODE_ENV !== Environments.PRODUCTION) {
-      const env = cleanEnv(process.env, envValidationConfig);
-      this.port = env.PORT;
-      this.appUrl = env.APP_BASE_URL;
-    }
+    const env = cleanEnv(process.env, envValidationConfig);
+    this.port = env.PORT;
+    this.appUrl = env.APP_BASE_URL;
   }
 
   public setEnvironment(env = Environments.DEV): void {
@@ -83,10 +79,7 @@ class Environment implements IEnvironment {
     ) as keyof typeof Environments;
     const envPath = this.resolveEnvPath(envKey);
 
-    // Load environment variables from the file
     configDotenv({ path: envPath });
-
-    // Validate environment variables if not in production
     this.validateEnvValues();
   }
 

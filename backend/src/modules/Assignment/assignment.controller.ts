@@ -122,7 +122,6 @@ export default class AssignmentController extends Api {
     }
   };
 
-  // Create a submission for an assignment
   public createSubmission = async (
     req: ExtendedRequest,
     res: CustomResponse<Submission>,
@@ -144,10 +143,12 @@ export default class AssignmentController extends Api {
       }
 
       const fileBuffer = req.file.buffer;
+      const originalFileName = req.file.originalname;
 
       const newSubmission = await this.assignmentService.createSubmission({
         assignmentId,
         fileBuffer,
+        originalFileName,
       });
 
       this.send(res, newSubmission, HttpStatusCode.Created, 'createSubmission');

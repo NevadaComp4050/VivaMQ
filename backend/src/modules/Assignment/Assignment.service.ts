@@ -135,6 +135,7 @@ export default class AssignmentService {
   public async createSubmission(data: {
     assignmentId: string;
     fileBuffer: Buffer;
+    originalFileName: string; // Include original file name in data
   }) {
     if (!data.assignmentId) {
       throw new Error('Assignment ID must be provided');
@@ -148,10 +149,13 @@ export default class AssignmentService {
     });
 
     if (!assignment) {
-      throw new Error('Assignment with id ' + data.assignmentId + ' not found');
+      throw new Error(`Assignment with id ${data.assignmentId} not found`);
     }
 
-    const s3Key = `submissions/${data.assignmentId}/${Date.now()}.pdf`;
+    const sanitizedFileName = data.originalFileName
+      .replace(/[^a-z0-9.]/gi, '_')
+      .toLowerCase();
+    const s3Key = `submissions/${data.assignmentId}/${sanitizedFileName}`;
 
     await this.s3Handler.uploadPDFWithText(data.fileBuffer, s3Key);
 

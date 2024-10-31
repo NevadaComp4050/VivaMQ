@@ -3,9 +3,13 @@
 import axios from "axios";
 import { auth } from "~/auth";
 
+const baseURL =
+  process.env.NEXT_PUBLIC_BE_API_URL ||
+  "http://localhost:8080/api/v1/production";
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BE_API_URL,
-  httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),  
+  baseURL,
+  httpsAgent: new (require("https").Agent)({ rejectUnauthorized: false }),
 });
 
 api.interceptors.request.use(async (config) => {

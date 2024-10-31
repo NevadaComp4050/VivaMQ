@@ -65,7 +65,11 @@ const getUser = async (email: string, password: string) => {
 
   try {
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BE_API_URL}/user/login`,
+      `${
+        process.env.NEXT_PUBLIC_BE_API_URL == ""
+          ? "http://localhost:8080/api/v1/production"
+          : process.env.NEXT_PUBLIC_BE_API_URL
+      }/user/login`,
       {
         email: email,
         password: password,

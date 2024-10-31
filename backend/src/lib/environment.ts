@@ -68,9 +68,11 @@ class Environment implements IEnvironment {
   }
 
   private validateEnvValues() {
-    const env = cleanEnv(process.env, envValidationConfig);
-    this.port = env.PORT;
-    this.appUrl = env.APP_BASE_URL;
+    if (process.env.NODE_ENV !== Environments.PRODUCTION) {
+      const env = cleanEnv(process.env, envValidationConfig);
+      this.port = env.PORT;
+      this.appUrl = env.APP_BASE_URL;
+    }
   }
 
   public setEnvironment(env = Environments.DEV): void {

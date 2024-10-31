@@ -29,10 +29,13 @@ class App {
   private setMiddlewares(): void {
     this.express.use(
       cors({
-        origin: '*', // Allows all origins
-        methods: '*', // Allows all HTTP methods
-        allowedHeaders: '*', // Allows all headers
-        credentials: true, // Allows cookies and authentication headers
+        origin:
+          process.env.NODE_ENV === 'production'
+            ? ['https://app.vivamq.app', 'https://app.vivamq.app/api']
+            : ['http://localhost:3000', 'http://localhost:8080'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Authorization', 'Content-Type', 'Accept'],
+        credentials: true,
       })
     );
 

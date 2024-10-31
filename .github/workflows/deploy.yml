@@ -78,6 +78,7 @@ jobs:
           ssh $DROPLET_USER@$DROPLET_IP << 'EOF'
             # Stop existing servers
             pm2 stop all
+            pm2 delete all
             
             unzip -o -qq ~/repo.zip -d ~/
             

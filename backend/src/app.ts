@@ -29,8 +29,8 @@ class App {
   private setMiddlewares(): void {
     this.express.use(
       cors({
-        origin: ['http://localhost:3000', 'http://localhost:8080'],
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+        origin: ['*'],
+        methods: ['*'],
         allowedHeaders: [
           'Authorization',
           'Content-Type',

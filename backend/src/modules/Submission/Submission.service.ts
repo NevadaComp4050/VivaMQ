@@ -198,4 +198,54 @@ export default class SubmissionService {
       failedUpdates,
     };
   }
+
+  public async regenerateUnlockedQuestions(submissionId: string) {
+    // Retrieve locked categories for the submission
+    const submission = await prisma.submission.findUnique({
+      where: { id: submissionId },
+      select: { lockedCategories: true },
+    });
+
+    if (!submission) throw new Error('Submission not found');
+
+    const { lockedCategories } = submission;
+
+    // Delete only unlocked VivaQuestions
+    await prisma.vivaQuestion.deleteMany({
+      where: {
+        submissionId,
+        category: { notIn: lockedCategories },
+      },
+    });
+
+    // Request AI service to regenerate questions for unlocked categories
+    await requestVivaGeneration(submissionId);
+  }
+
+  public async getLockedStatus(submissionId: string) {
+    // Retrieve locked categories for the submission
+    const submission = await prisma.submission.findUnique({
+      where: { id: submissionId },
+      select: { lockedCategories: true },
+    });
+
+    if (!submission) throw new Error('Submission not found');
+
+    // Get all VivaQuestions for the submission with their categories and locked status
+    const vivaQuestions = await prisma.vivaQuestion.findMany({
+      where: { submissionId },
+      select: {
+        category: true,
+        locked: true,
+      },
+    });
+
+    // Return each category's locked status based on whether it's in lockedCategories
+    return vivaQuestions.map((question) => ({
+      category: question.category,
+      locked: question.category
+        ? submission.lockedCategories.includes(question.category)
+        : false,
+    }));
+  }
 }

@@ -1,5 +1,8 @@
-export async function handleWritingQuality(data: any, uuid: string) {
-  const { document, criteria } = data;
-
-  console.log('Writing Quality Response:', document, criteria);
+// Function to handle writing quality assessments
+export async function handleWritingQuality(
+  data: any,
+  uuid: string,
+  requestType: string | null
+) {
+  console.log('Handling writing quality for submission ID:', uuid);
 }

@@ -9,7 +9,8 @@
  * ```
  */
 export interface Message {
-    type: string;
-    data: any;
-    uuid: string;
-  }
+  type: string;
+  data: any;
+  uuid: string;
+  requestType?: string | null;
+}

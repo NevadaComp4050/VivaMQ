@@ -118,4 +118,11 @@ submissions.get('/:id/file', controller.getSubmissionPDF);
  */
 submissions.post('/bulkSubmissionMapping', controller.mapMultipleSubmissions);
 
+// GET endpoint to fetch locked status of VivaQuestions for a specific Submission
+submissions.get(
+  '/:id/lockedStatus',
+  verifyAuthToken,
+  controller.getLockedStatus
+);
+
 export default submissions;

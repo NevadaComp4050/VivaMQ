@@ -21,6 +21,7 @@ export async function processMessage(message: Message): Promise<any> {
           submission: message.data.submission,
           uuid: message.uuid,
           customPrompt: message.data.customPrompt,
+          requestType: message.requestType, 
         });
         break;
       case "writingQuality":
@@ -67,7 +68,12 @@ export async function processMessage(message: Message): Promise<any> {
         throw new Error(`Unknown message type: ${message.type}`);
     }
     console.log("Returning data:", response);
-    return { type: message.type, data: response, uuid: message.uuid };
+    return {
+      type: message.type,
+      data: response,
+      uuid: message.uuid,
+      requestType: message.requestType,
+    };
   } catch (error) {
     console.error("Error processing message:", error);
     return {

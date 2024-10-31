@@ -1,19 +1,28 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+// Function to handle summary and report generation
+export async function handleSummaryAndReport(
+  data: any,
+  uuid: string,
+  requestType: string | null
+) {
+  console.log('Handling summary and report for submission ID:', uuid);
 
-export async function handleSummaryAndReport(data: any, uuid: string) {
   try {
-    const newSummary = await prisma.submissionSummary.create({
+    // Update the submission with the generated summary and report
+    await prisma.submission.update({
+      where: { id: uuid },
       data: {
-        submissionId: uuid,
-        data,
-        status: 'COMPLETED',
+        summary: data.summary,
+        qualityAssessment: data.quality,
+        vivaStatus: 'COMPLETED',
       },
     });
-
-    console.log('New Submission Summary created:', newSummary);
+    console.log(
+      'Summary and report processing completed for submission:',
+      uuid
+    );
   } catch (error) {
-    console.error('Error creating Submission Summary:', error);
+    console.error('Error handling summary and report:', error);
   }
 }

@@ -13,7 +13,6 @@ interface CreateEmailResponseSuccess {
 
 interface ErrorResponse {
   message: string;
-  // Add other relevant fields
 }
 
 interface CreateEmailResponse {
@@ -59,7 +58,7 @@ class EmailService {
     templateName: string,
     variables: Record<string, string>
   ): Promise<CreateEmailResponse> {
-    await this.loadingTemplates; // Ensure templates are loaded
+    await this.loadingTemplates;
 
     if (!this.templates[templateName]) {
       throw new Error(`Template ${templateName} not found`);

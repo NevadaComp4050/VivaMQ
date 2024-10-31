@@ -4,6 +4,7 @@ import { type Submission } from '@prisma/client';
 import SubmissionService from './Submission.service';
 import { type CustomResponse } from '@/types/common.type';
 import Api from '@/lib/api';
+import { type ExtendedRequest } from '@/types/express';
 
 export default class SubmissionController extends Api {
   private readonly submissionService = new SubmissionService();
@@ -189,6 +190,48 @@ export default class SubmissionController extends Api {
       }
 
       this.send(res, submission, HttpStatusCode.Ok, 'getSubmissionById');
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  public regenerateUnlockedQuestions = async (
+    req: ExtendedRequest,
+    res: CustomResponse<void>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id: submissionId } = req.params;
+      await this.submissionService.regenerateUnlockedQuestions(submissionId);
+      res.status(HttpStatusCode.Accepted).json({
+        message: 'Viva questions regeneration started',
+        data: undefined,
+      });
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  public getLockedStatus = async (
+    req: ExtendedRequest,
+    res: CustomResponse<Array<{ category: string; locked: boolean }>>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id: submissionId } = req.params;
+
+      // Retrieve locked status and assign 'Unknown' for any missing category
+      const lockedStatus = (
+        await this.submissionService.getLockedStatus(submissionId)
+      ).map((status) => ({
+        ...status,
+        category: status.category ?? 'Unknown',
+      }));
+
+      res.status(HttpStatusCode.Ok).json({
+        message: 'Locked status retrieved successfully',
+        data: lockedStatus,
+      });
     } catch (e) {
       next(e);
     }

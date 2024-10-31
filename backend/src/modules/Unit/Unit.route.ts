@@ -113,6 +113,29 @@ units.get(
   controller.getAssignments
 );
 
-// TODO: Share units woth other users
+/**
+ * POST /units/{id}/sharing
+ * @summary Share a unit with a user
+ * @tags Unit Sharing
+ */
+units.post('/:id/sharing', verifyAuthToken, controller.shareUnit);
+
+/**
+ * GET /units/{id}/sharing
+ * @summary Get list of users with access to the unit
+ * @tags Unit Sharing
+ */
+units.get('/:id/sharing', verifyAuthToken, controller.getUnitSharers);
+
+/**
+ * DELETE /units/{id}/sharing/{userId}
+ * @summary Remove a user's access to the unit
+ * @tags Unit Sharing
+ */
+units.delete(
+  '/:id/sharing/:userId',
+  verifyAuthToken,
+  controller.deleteUnitShare
+);
 
 export default units;

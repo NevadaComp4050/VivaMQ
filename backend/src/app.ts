@@ -27,7 +27,15 @@ class App {
   }
 
   private setMiddlewares(): void {
-    this.express.use(cors());
+    this.express.use(
+      cors({
+        origin: '*', // Allows all origins
+        methods: '*', // Allows all HTTP methods
+        allowedHeaders: '*', // Allows all headers
+        credentials: true, // Allows cookies and authentication headers
+      })
+    );
+
     this.express.use(morgan('dev'));
     this.express.use(nocache());
     this.express.use(express.json());
@@ -37,17 +45,6 @@ class App {
 
     configurePassport();
     this.express.use(passport.initialize());
-
-    this.express.use(
-      cors({
-        origin: [
-          'http://3.107.222.31',
-          'http://localhost:3000, http://localhost:8080',
-          '*',
-        ],
-        credentials: true,
-      })
-    );
   }
 
   private disableSettings(): void {

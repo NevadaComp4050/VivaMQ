@@ -98,5 +98,5 @@ jobs:
             touch .env
             echo $ENVCONTENTS >> .env
             npm install
-            npm start &
+            npm start
           EOF

@@ -13,6 +13,9 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
+# create an empty .env file
+RUN touch .env
+
 # Build the TypeScript code
 RUN npm run build
 

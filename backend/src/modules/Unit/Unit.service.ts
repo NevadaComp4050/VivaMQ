@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/filename-case */
-import { type Assignment, type Term } from '@prisma/client';
+import { type Assignment, type Term, type AccessRole } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { getTermDisplayString } from '@/utils/term-name-util';
 
@@ -253,5 +253,124 @@ export default class UnitService {
       skip: offset,
       take: limit,
     });
+  }
+
+  public async shareUnitWithUser(
+    ownerId: string,
+    unitId: string,
+    email: string,
+    role: AccessRole
+  ) {
+    // Check if the unit exists and belongs to the owner
+    const unit = await prisma.unit.findFirst({
+      where: { id: unitId, ownerId, deletedAt: null },
+    });
+
+    if (!unit) {
+      throw new Error('Unit not found or access denied');
+    }
+
+    // Find the user by email
+    const user = await prisma.user.findFirst({
+      where: { email, deletedAt: null },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Check if access already exists
+    const existingAccess = await prisma.unitAccess.findFirst({
+      where: {
+        unitId,
+        userId: user.id,
+        deletedAt: null,
+      },
+    });
+
+    if (existingAccess) {
+      throw new Error('Unit already shared with this user');
+    }
+
+    // Create unit access (automatically accepted for now)
+    const access = await prisma.unitAccess.create({
+      data: {
+        unitId,
+        userId: user.id,
+        role,
+        status: 'ACCEPTED',
+      },
+    });
+
+    // TODO: Send notification or email if needed
+
+    return {
+      message: 'Unit shared successfully',
+      access,
+    };
+  }
+
+  // Get list of users with access to the unit
+  public async getUnitSharers(ownerId: string, unitId: string) {
+    // Check if the unit exists and belongs to the owner
+    const unit = await prisma.unit.findFirst({
+      where: { id: unitId, ownerId, deletedAt: null },
+    });
+
+    if (!unit) {
+      throw new Error('Unit not found or access denied');
+    }
+
+    // Get list of users with access
+    const accesses = await prisma.unitAccess.findMany({
+      where: { unitId, deletedAt: null },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    return accesses;
+  }
+
+  // Remove a user's access to the unit
+  public async removeUnitShare(
+    ownerId: string,
+    unitId: string,
+    userId: string
+  ) {
+    // Check if the unit exists and belongs to the owner
+    const unit = await prisma.unit.findFirst({
+      where: { id: unitId, ownerId, deletedAt: null },
+    });
+
+    if (!unit) {
+      throw new Error('Unit not found or access denied');
+    }
+
+    // Check if the access exists
+    const access = await prisma.unitAccess.findFirst({
+      where: { unitId, userId, deletedAt: null },
+    });
+
+    if (!access) {
+      throw new Error('Access not found');
+    }
+
+    // Soft delete the access
+    await prisma.unitAccess.update({
+      where: { id: access.id },
+      data: { deletedAt: new Date() },
+    });
+
+    return {
+      message: 'Access revoked successfully',
+    };
   }
 }

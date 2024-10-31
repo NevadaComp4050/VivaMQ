@@ -18,15 +18,20 @@ export async function promptSubUUID(
     submission,
     uuid,
     customPrompt = null,
+    requestType = null, // Accept requestType
   }: {
     submission: string;
     uuid: string;
     customPrompt?: string | null;
+    requestType?: string | null;
   }
-): Promise<[string, string]> {
+): Promise<string> { // Return type is now string
   try {
     console.log("Prompting for submission:", submission);
-    const prompt = generateSingleQuestionVivaPrompt(submission, customPrompt);
+    const prompt = generateSingleQuestionVivaPrompt(
+      submission,
+      customPrompt,
+    );
     const response = await openAIClient.chat.completions.create({
       model: "gpt-4o-2024-08-06",
       messages: [{ role: "user", content: prompt }],
@@ -34,7 +39,11 @@ export async function promptSubUUID(
     });
 
     const responseText = response.choices[0].message.content;
-    return responseText != null ? [responseText, uuid] : ["response error", uuid];
+    if (responseText != null) {
+      return responseText; // Return only the response text
+    } else {
+      throw new Error("Response text is null");
+    }
   } catch (error) {
     console.error("Error in promptSubUUID:", error);
     throw error;

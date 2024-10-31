@@ -7,13 +7,19 @@ import { handleAutomatedMarksheet } from './handlers/automatedMarksheetHandler';
 import { handleOptimizePrompt } from './handlers/optimizePromptHandler';
 import { ackMessage } from './utils/rabbitmq';
 
+// Define the interface for incoming messages
 interface MessageResponse {
   type: string;
   data: any;
   uuid: string;
+  requestType?: string | null; // Optional or nullable
 }
 
-const handlers: Record<string, (data: any, uuid: string) => Promise<void>> = {
+// Map each message type to its respective handler
+const handlers: Record<
+  string,
+  (data: any, uuid: string, requestType: string | null) => Promise<void>
+> = {
   vivaQuestions: handleVivaQuestions,
   createRubric: handleCreateRubric,
   writingQuality: handleWritingQuality,
@@ -34,11 +40,11 @@ export async function dispatchMessage(msg: amqp.Message | null) {
     return;
   }
 
-  const { type, data, uuid } = response;
+  const { type, data, uuid, requestType = null } = response; // Extract requestType
 
   if (handlers[type]) {
     try {
-      await handlers[type](data, uuid);
+      await handlers[type](data, uuid, requestType);
     } catch (error) {
       console.error(`Error handling message type ${type}:`, error);
     }
@@ -46,5 +52,6 @@ export async function dispatchMessage(msg: amqp.Message | null) {
     console.warn(`Unhandled message type: ${type}`);
   }
 
+  // Acknowledge message after processing
   ackMessage(msg);
 }

@@ -98,6 +98,7 @@ model Submission {
   vivaQuestions       VivaQuestion[]
   submissionSummary   SubmissionSummary?
   submissionSummaryId String?
+  lockedCategories    String[]           @default([])
 }
 
 model SubmissionSummary {
@@ -119,6 +120,7 @@ model VivaQuestion {
   status       String
   deletedAt    DateTime?
   category     String?
+  locked       Boolean    @default(false)
   submission   Submission @relation(fields: [submissionId], references: [id])
 }
 

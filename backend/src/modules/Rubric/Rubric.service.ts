@@ -5,8 +5,6 @@ import { Buffer } from 'buffer';
 import { Prisma, RubricStatus, type Rubric } from '@prisma/client';
 import pdfkit from 'pdfkit';
 import ExcelJS from 'exceljs';
-import { v4 as uuidv4 } from 'uuid';
-import { instanceToPlain } from 'class-transformer';
 import prisma from '@/lib/prisma';
 import vivaService from '@/services/ai-service/ai-service';
 import { type CreateRubricDto, type UpdateRubricDto } from '@/dto/rubric.dto';
@@ -40,7 +38,8 @@ export default class RubricService {
         createdById: data.createdById,
         assignmentId: data.assignmentId ?? '',
       },
-      uuid: rubric.id, // Use Rubric ID for correlation
+      uuid: rubric.id,
+      requestType: null,
     };
 
     // Send message to AI service via RabbitMQ

@@ -1,38 +1,18 @@
 import { Router } from 'express';
-import { Submission, VivaQuestion } from '@prisma/client';
 import VivaQuestionController from './VivaQuestion.controller';
-import { CreateVivaQuestionDto } from '@/dto/vivaQuestion.dto';
 import RequestValidator from '@/middlewares/request-validator';
 import { verifyAuthToken } from '@/middlewares/auth';
+import { CreateVivaQuestionDto } from '@/dto/vivaQuestion.dto';
 
 const vivaQuestions: Router = Router();
 const controller = new VivaQuestionController();
 
-// Define CreateVivaQuestionBody
-// Comments after property do render
 /**
- * Create viva question
- * @typedef {object} CreateVivaQuestion
- * @property {string} submissionId.required - ID of submission of viva question
- * @property {string} question.required - viva question text
- * @property {string} status.required - status of viva question
- */
-/**
- * VivaQuestion
- * @typedef {object} VivaQuestion
- * @property {string} id - unique ID
- * @property {string} submissionId - ID of submission of viva question
- * @property {string} question - viva question text
- * @property {string} status - status of viva question
- * @property {submission} submission - submission of viva question
- */
-
-/**
- * POST /vivaQuestions/create
- * @summary Create viva question
+ * POST /viva-questions/create
+ * @summary Create a new viva question
  * @tags VivaQuestion
  * @param {CreateVivaQuestion} request.body.required
- * @return {VivaQuestion} 201 - vivaQuestion created
+ * @return {VivaQuestion} 201 - Viva question created
  */
 vivaQuestions.post(
   '/create',
@@ -42,39 +22,68 @@ vivaQuestions.post(
 );
 
 /**
- * GET /vivaQuestions/{id}
+ * GET /viva-questions/{id}
  * @summary Get a single viva question
  * @tags VivaQuestion
- * @param {string} id.path.required
- * @return {VivaQuestion} 200 - vivaQuestion list
+ * @param {string} id.path.required - ID of the viva question to retrieve
+ * @return {VivaQuestion} 200 - Viva question retrieved
  */
 vivaQuestions.get('/:id', verifyAuthToken, controller.get);
 
 /**
- * GET /vivaQuestions/
- * @summary Get all vivaQuestion data
+ * GET /viva-questions/
+ * @summary Get all viva questions
  * @tags VivaQuestion
- * @param None
- * @return {Array.<VivaQuestion>} 200 - vivaQuestion list
+ * @return {Array.<VivaQuestion>} 200 - Viva questions retrieved
  */
 vivaQuestions.get('/', verifyAuthToken, controller.getAll);
 
 /**
- * DELETE /vivaQuestions/{id}
+ * DELETE /viva-questions/{id}
  * @summary Delete a single viva question
  * @tags VivaQuestion
  * @param {string} id.path.required - ID of the viva question to delete
- * @return {VivaQuestion} 200 - vivaQuestion list
+ * @return {VivaQuestion} 200 - Viva question deleted
  */
 vivaQuestions.delete('/:id', verifyAuthToken, controller.delete);
 
 /**
- * DELETE /vivaQuestions/
- * @summary Delete all vivaQuestion data
+ * DELETE /viva-questions/
+ * @summary Delete all viva questions
  * @tags VivaQuestion
- * @param None
- * @return {number} 200 - vivaQuestion clear
+ * @return {number} 200 - Count of deleted viva questions
  */
 vivaQuestions.delete('/', verifyAuthToken, controller.deleteAll);
+
+/**
+ * POST /viva-questions/{id}/toggle-lock
+ * @summary Toggle lock status of a viva question
+ * @tags VivaQuestion
+ * @param {string} id.path.required - ID of the viva question to toggle lock
+ * @return {VivaQuestion} 200 - Lock status toggled
+ */
+vivaQuestions.post('/:id/toggle-lock', verifyAuthToken, controller.toggleLock);
+
+/**
+ * POST /viva-questions/{id}/regenerate
+ * @summary Regenerate a viva question
+ * @tags VivaQuestion
+ * @param {string} id.path.required - ID of the viva question to regenerate
+ * @return {VivaQuestion} 201 - Viva question regenerated
+ */
+vivaQuestions.post(
+  '/:id/regenerate',
+  verifyAuthToken,
+  controller.regenerateVivaQuestion
+);
+
+vivaQuestions.patch('/:id/lock', verifyAuthToken, controller.lockVivaQuestion);
+
+// PATCH endpoint to unlock a specific VivaQuestion
+vivaQuestions.patch(
+  '/:id/unlock',
+  verifyAuthToken,
+  controller.unlockVivaQuestion
+);
 
 export default vivaQuestions;

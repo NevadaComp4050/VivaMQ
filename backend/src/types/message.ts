@@ -2,6 +2,7 @@ export interface Message {
   type: string;
   data: any;
   uuid: string;
+  requestType: string | null;
 }
 
 export interface CreateRubricMessage extends Message {

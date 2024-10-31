@@ -1,5 +1,5 @@
 import { type NextFunction, type Request } from 'express';
-import { type Unit, type Assignment } from '@prisma/client';
+import { type Unit, type Assignment, AccessRole } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import { Term } from '@prisma/client';
 import UnitService from './Unit.service';
@@ -325,6 +325,143 @@ export default class UnitController extends Api {
       this.send(res, assignments, HttpStatusCode.Ok, 'gotAssignments');
     } catch (e) {
       console.error(e);
+      res
+        .status(HttpStatusCode.InternalServerError)
+        .json({ message: 'An error occurred', data: null });
+    }
+  };
+
+  // Share a unit with a user
+  public shareUnit = async (
+    req: ExtendedRequest,
+    res: CustomResponse<any>,
+    next: NextFunction
+  ) => {
+    try {
+      const ownerId = req.user?.id;
+      const unitId = req.params.id;
+      const { email, role } = req.body;
+
+      if (!ownerId) {
+        return res.status(HttpStatusCode.Unauthorized).json({
+          message: 'User not authenticated',
+          data: null,
+        });
+      }
+
+      if (!email) {
+        return res.status(HttpStatusCode.BadRequest).json({
+          message: 'Email is required',
+          data: null,
+        });
+      }
+
+      const accessRole = role || AccessRole.READ_ONLY;
+
+      const result = await this.unitService.shareUnitWithUser(
+        ownerId,
+        unitId,
+        email,
+        accessRole
+      );
+
+      this.send(res, result, HttpStatusCode.Ok, 'unitShared');
+    } catch (e: any) {
+      console.error(e);
+      if (e.message === 'User not found') {
+        return res.status(HttpStatusCode.NotFound).json({
+          message: 'User does not exist',
+          data: null,
+        });
+      } else if (e.message === 'Unit already shared with this user') {
+        return res.status(HttpStatusCode.Conflict).json({
+          message: 'Unit already shared with this user',
+          data: null,
+        });
+      } else if (e.message === 'Unit not found or access denied') {
+        return res.status(HttpStatusCode.NotFound).json({
+          message: 'Unit not found or access denied',
+          data: null,
+        });
+      }
+      res
+        .status(HttpStatusCode.InternalServerError)
+        .json({ message: 'An error occurred', data: null });
+    }
+  };
+
+  // Get list of users with access to the unit
+  public getUnitSharers = async (
+    req: ExtendedRequest,
+    res: CustomResponse<any>,
+    next: NextFunction
+  ) => {
+    try {
+      const ownerId = req.user?.id;
+      const unitId = req.params.id;
+
+      if (!ownerId) {
+        return res.status(HttpStatusCode.Unauthorized).json({
+          message: 'User not authenticated',
+          data: null,
+        });
+      }
+
+      const sharers = await this.unitService.getUnitSharers(ownerId, unitId);
+
+      this.send(res, sharers, HttpStatusCode.Ok, 'gotUnitSharers');
+    } catch (e: any) {
+      console.error(e);
+      if (e.message === 'Unit not found or access denied') {
+        return res.status(HttpStatusCode.NotFound).json({
+          message: 'Unit not found or access denied',
+          data: null,
+        });
+      }
+      res
+        .status(HttpStatusCode.InternalServerError)
+        .json({ message: 'An error occurred', data: null });
+    }
+  };
+
+  // Remove a user's access to the unit
+  public deleteUnitShare = async (
+    req: ExtendedRequest,
+    res: CustomResponse<any>,
+    next: NextFunction
+  ) => {
+    try {
+      const ownerId = req.user?.id;
+      const unitId = req.params.id;
+      const userId = req.params.userId;
+
+      if (!ownerId) {
+        return res.status(HttpStatusCode.Unauthorized).json({
+          message: 'User not authenticated',
+          data: null,
+        });
+      }
+
+      const result = await this.unitService.removeUnitShare(
+        ownerId,
+        unitId,
+        userId
+      );
+
+      this.send(res, result, HttpStatusCode.Ok, 'unitShareRemoved');
+    } catch (e: any) {
+      console.error(e);
+      if (e.message === 'Unit not found or access denied') {
+        return res.status(HttpStatusCode.NotFound).json({
+          message: 'Unit not found or access denied',
+          data: null,
+        });
+      } else if (e.message === 'Access not found') {
+        return res.status(HttpStatusCode.NotFound).json({
+          message: 'Access not found',
+          data: null,
+        });
+      }
       res
         .status(HttpStatusCode.InternalServerError)
         .json({ message: 'An error occurred', data: null });

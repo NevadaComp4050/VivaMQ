@@ -54,20 +54,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: "/signin",
   },
-  
 });
 
 const getUser = async (email: string, password: string) => {
-
-const axiosInstance = axios.create({
-      httpsAgent: new https.Agent({
-        rejectUnauthorized: false,  // Disable SSL certificate verification
-      }),
-    });
+  const axiosInstance = axios.create({
+    httpsAgent: new https.Agent({
+      rejectUnauthorized: false, // Disable SSL certificate verification
+    }),
+  });
 
   try {
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/user/login`,
+      `${process.env.NEXT_PUBLIC_BE_API_URL}/user/login`,
       {
         email: email,
         password: password,

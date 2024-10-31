@@ -16,16 +16,34 @@ sudo apt-get install nodejs npm # Install Node.js and npm
 
 
 sudo nano /etc/nginx/sites-available/my-next-app #Create NGINX config file
-
+                                                                            
 server {
-    listen 80;
-    listen [::]:80;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name app.vivamq.app;
 
     root /var/www/html;
     index index.html index.htm index.nginx-debian.html;
 
-    server_name app.vivamq.app;
+    # SSL Configuration
+    ssl_certificate /etc/letsencrypt/live/app.vivamq.app/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/app.vivamq.app/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
+    # Proxy API requests to backend server
+    location /api-service/api/v1/production {
+        proxy_pass http://localhost:8080/api/v1/production;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # Proxy all other requests to frontend server
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
@@ -33,7 +51,28 @@ server {
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
         proxy_cache_bypass $http_upgrade;
+
+        # Optional: Improve WebSocket support if needed
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
+
+    # Security Headers (Optional but Recommended)
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+}
+
+server {
+    if ($host = app.vivamq.app) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    listen [::]:80;
+
+    server_name app.vivamq.app;
+    return 404; # managed by Certbot
 }
 
 

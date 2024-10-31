@@ -93,19 +93,19 @@ jobs:
         run: |
           ssh $DROPLET_USER@$DROPLET_IP << 'EOF'
             unzip -o -qq ~/repo.zip -d ~/
+            rm -f ~/frontend/.env
+            rm -f ~/backend/.env
+            rm -f ~/ai-processor/.env
+            echo "${ENVCONTENTS}" > ~/frontend/.env
+            echo "${ENVCONTENTS}" > ~/backend/.env
+            echo "${ENVCONTENTS}" > ~/ai-processor/.env
             cd frontend
-            touch .env
-            echo $ENVCONTENTS >> .env
             npm install
             npm start &
             cd ../backend
-            touch .env
-            echo $ENVCONTENTS >> .env
             npm install
             npm start &
             cd ../ai-processor
-            touch .env
-            echo $ENVCONTENTS >> .env
             npm install
             npm start
           EOF

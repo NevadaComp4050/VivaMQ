@@ -8,32 +8,14 @@ services:
       - "8080:8080"
     env_file:
       - ./.env
-    environment:
-      NODE_ENV: ${NODE_ENV}
-      PORT: ${PORT}
-      APP_BASE_URL: ${APP_BASE_URL}
-      DATABASE_URL: ${DATABASE_URL}
-      DIRECT_URL: ${DIRECT_URL}
-      JWT_SECRET: ${JWT_SECRET}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      S3_REGION: ${S3_REGION}
-      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
-      S3_BUCKET_URL: ${S3_BUCKET_URL}
-      RESEND_API_KEY: ${RESEND_API_KEY}
-      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
-      RABBITMQ_URL: ${RABBITMQ_URL}
-      uniqueID: ${uniqueID}
 
   ai-processor:
     image: megapz/vivamq-ai-processor:latest
     build:
       context: ./ai-processor
       dockerfile: Dockerfile
-    environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      RABBITMQ_URL: ${RABBITMQ_URL}
-      uniqueID: ${uniqueID}
+    env_file:
+      - ./.env
 
   frontend:
     image: megapz/vivamq-frontend:latest
@@ -42,6 +24,5 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    environment:
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    env_file:
+      - ./.env

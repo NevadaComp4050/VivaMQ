@@ -119,4 +119,24 @@ export default class VivaQuestionService {
       data: { locked: false },
     });
   }
+
+  public async update(id: string, question: string) {
+    const vivaQuestion = await prisma.vivaQuestion.findUnique({
+      where: { id },
+    });
+
+    if (!vivaQuestion) {
+      throw new Error('Viva question not found');
+    }
+
+    const updatedVivaQuestion = await prisma.vivaQuestion.update({
+      where: { id },
+      data: {
+        question,
+        category: 'custom',
+      },
+    });
+
+    return updatedVivaQuestion;
+  }
 }

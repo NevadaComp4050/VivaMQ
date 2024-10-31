@@ -41,6 +41,29 @@ export default class VivaQuestionController extends Api {
     }
   };
 
+  public update = async (
+    req: Request,
+    res: CustomResponse<VivaQuestion>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const { question } = req.body;
+      const updatedVivaQuestion = await this.vivaQuestionService.update(
+        id,
+        question
+      );
+      this.send(
+        res,
+        updatedVivaQuestion,
+        HttpStatusCode.Ok,
+        'updatedVivaQuestion:' + id
+      );
+    } catch (e) {
+      next(e);
+    }
+  };
+
   public getAll = async (
     req: Request,
     res: CustomResponse<VivaQuestion[]>,

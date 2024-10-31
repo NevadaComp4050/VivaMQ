@@ -31,6 +31,16 @@ vivaQuestions.post(
 vivaQuestions.get('/:id', verifyAuthToken, controller.get);
 
 /**
+ * PATCH /viva-questions/{id}
+ * @summary Update the text of a viva question
+ * @tags VivaQuestion
+ * @param {string} id.path.required - ID of the viva question to update
+ * @param {string} request.body.required - New text for the viva question
+ * @return {VivaQuestion} 200 - Viva question updated
+ */
+vivaQuestions.patch('/:id', verifyAuthToken, controller.update);
+
+/**
  * GET /viva-questions/
  * @summary Get all viva questions
  * @tags VivaQuestion

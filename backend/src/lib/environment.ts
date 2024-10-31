@@ -24,9 +24,7 @@ class Environment implements IEnvironment {
 
   constructor() {
     this.port = +process.env.PORT ?? appConfig.defaultPort;
-    if (process.env.NODE_ENV !== Environments.PRODUCTION) {
-      this.setEnvironment(process.env.NODE_ENV ?? Environments.DEV);
-    }
+    this.setEnvironment(process.env.NODE_ENV ?? Environments.DEV);
   }
 
   get env() {

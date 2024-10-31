@@ -146,4 +146,11 @@ assignments.post('/:id/generateSummaries', controller.generateSummaries);
 // get all assignments
 assignments.get('/', verifyAuthToken, controller.getAll);
 
+assignments.post(
+  '/:id/download-vivas',
+  verifyAuthToken,
+  VerifyAssignmentReadAccess,
+  controller.downloadVivas
+);
+
 export default assignments;

@@ -293,4 +293,28 @@ export default class AssignmentController extends Api {
       data: null,
     });
   }
+
+  public downloadVivas = async (
+    req: ExtendedRequest,
+    res: CustomResponse<Buffer>,
+    next: NextFunction
+  ) => {
+    try {
+      const { id: assignmentId } = req.params;
+      const { studentIds } = req.body;
+
+      const zipBuffer = await this.assignmentService.generateVivaQuestionsZip(
+        assignmentId,
+        studentIds
+      );
+
+      res.set({
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename=viva_questions_${assignmentId}.zip`,
+      });
+      res.send(zipBuffer);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

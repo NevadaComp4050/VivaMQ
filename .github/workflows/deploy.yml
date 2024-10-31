@@ -48,6 +48,9 @@ jobs:
           cd frontend
           npm install
           npm run build
+          # remove node_modules to reduce the size of the zipped repository
+          rm -rf node_modules
+          rm package-lock.json
 
       # Install and build backend
       - name: Build backend
@@ -55,6 +58,9 @@ jobs:
           cd backend
           npm install
           npm run build
+          # remove node_modules to reduce the size of the zipped repository
+          rm -rf node_modules
+          rm package-lock.json
 
       # Install and build AI microservice
       - name: Build AI microservice
@@ -62,6 +68,9 @@ jobs:
           cd ai-processor
           npm install
           npm run build
+          # remove node_modules to reduce the size of the zipped repository
+          rm -rf node_modules
+          rm package-lock.json
 
       # Step 6: Zip the repository
       - name: Zip repository

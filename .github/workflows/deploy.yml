@@ -37,7 +37,7 @@ jobs:
 
       # Step 4: Copy the env file to the backend folder
       - name: Copy env file to backend folder
-        run: mv .env ./backend/.env
+        run: cp .env ./backend/.env
 
       # Step 5: Build and push Docker images using Compose
       - name: Build and push Docker images

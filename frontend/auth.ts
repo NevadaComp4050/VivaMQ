@@ -54,6 +54,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: "/signin",
   },
+  
 });
 
 const getUser = async (email: string, password: string) => {

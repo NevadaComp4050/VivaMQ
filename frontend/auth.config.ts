@@ -22,5 +22,6 @@ export const authConfig = {
       return true
     },
   },
+  trustHost: true,
   providers: [], // configured in auth.ts
 } satisfies NextAuthConfig

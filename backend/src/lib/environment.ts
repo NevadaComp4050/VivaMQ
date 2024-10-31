@@ -24,9 +24,7 @@ class Environment implements IEnvironment {
 
   constructor() {
     this.port = +process.env.PORT ?? appConfig.defaultPort;
-    if (process.env.NODE_ENV !== Environments.PRODUCTION) {
-      this.setEnvironment(process.env.NODE_ENV ?? Environments.DEV);
-    }
+    this.setEnvironment(process.env.NODE_ENV ?? Environments.DEV);
   }
 
   get env() {
@@ -68,11 +66,9 @@ class Environment implements IEnvironment {
   }
 
   private validateEnvValues() {
-    if (process.env.NODE_ENV !== Environments.PRODUCTION) {
-      const env = cleanEnv(process.env, envValidationConfig);
-      this.port = env.PORT;
-      this.appUrl = env.APP_BASE_URL;
-    }
+    const env = cleanEnv(process.env, envValidationConfig);
+    this.port = env.PORT;
+    this.appUrl = env.APP_BASE_URL;
   }
 
   public setEnvironment(env = Environments.DEV): void {

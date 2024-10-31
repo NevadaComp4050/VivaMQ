@@ -22,21 +22,11 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H $DROPLET_IP >> ~/.ssh/known_hosts
 
-      - name: "Create env file"
-        run: |
-          touch .env
-          echo ${{ secrets.ENVCONTENTS }} >> .env
-          cat .env
-
-      # Step 4: Copy the env file to the backend folder
-      - name: Copy env file to backend folder
-        run: cp .env ./backend/.env
-
       # Add Node.js setup
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'
+          node-version: "20"
 
       # Install and build frontend
       - name: Build frontend
@@ -44,6 +34,9 @@ jobs:
           cd frontend
           npm install
           npm run build
+          # remove node_modules to reduce the size of the zipped repository
+          rm -rf node_modules
+          rm package-lock.json
 
       # Install and build backend
       - name: Build backend
@@ -51,6 +44,9 @@ jobs:
           cd backend
           npm install
           npm run build
+          # remove node_modules to reduce the size of the zipped repository
+          rm -rf node_modules
+          rm package-lock.json
 
       # Install and build AI microservice
       - name: Build AI microservice
@@ -58,10 +54,13 @@ jobs:
           cd ai-processor
           npm install
           npm run build
+          # remove node_modules to reduce the size of the zipped repository
+          rm -rf node_modules
+          rm package-lock.json
 
       # Step 6: Zip the repository
       - name: Zip repository
-        run: zip -r repo.zip .
+        run: zip -r -qq repo.zip .
 
       # Step 7: Copy the zipped repository to the remote system
       - name: Copy zipped repository to remote
@@ -71,18 +70,32 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no repo.zip $DROPLET_USER@$DROPLET_IP:~/
 
-      # Update deploy step
       - name: Deploy to DigitalOcean Droplet
         env:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
         run: |
           ssh $DROPLET_USER@$DROPLET_IP << 'EOF'
-            unzip -o ~/repo.zip -d ~/
+            # Stop existing servers
+            pm2 stop all
+            pm2 delete all
+            
+            unzip -o -qq ~/repo.zip -d ~/
+            
+            cp .env ~/frontend/
+            cp .env ~/backend/
+            cp .env ~/ai-processor/
+
+            # Install pm2 globally
+            npm install -g pm2
+
             cd frontend
-            npm start &
+            npm install
+            pm2 start npm --name "frontend" -- start &
             cd ../backend
-            npm start &
-            cd ../ai-microservice
-            npm start &
+            npm install
+            pm2 start npm --name "backend" -- start &
+            cd ../ai-processor
+            npm install
+            pm2 start npm --name "ai-processor" -- start
           EOF

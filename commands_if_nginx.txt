@@ -1,0 +1,49 @@
+sudo ufw app list
+sudo ufw allow OpenSSH
+sudo ufw enable
+sudo ufw status
+
+sudo apt-get update # Update package list
+sudo apt-get install nginx # Install Nginx
+
+
+sudo npm cache clean -f # Clean npm cache
+sudo npm install -g n # Install n package manager
+sudo n stable # Install latest stable version of Node.js
+
+
+sudo apt-get install nodejs npm # Install Node.js and npm
+
+
+sudo nano /etc/nginx/sites-available/my-next-app #Create NGINX config file
+
+server {
+    listen 80;
+    listen [::]:80;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+
+    server_name app.vivamq.app;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+
+sudo ln -s /etc/nginx/sites-available/my-next-app /etc/nginx/sites-enabled # Enable NGINX site
+sudo nginx -t # Verify NGINX configuration syntax
+sudo systemctl restart nginx # Restart NGINX
+
+
+
+sudo apt-get install certbot python3-certbot-nginx # Install Certbot
+sudo ufw allow 'Nginx Full' # Allow HTTPS traffic
+sudo certbot --nginx -d app.vivamq.app # Obtain SSL certificate
+sudo certbot renew --dry-run # Test automatic certificate renewal

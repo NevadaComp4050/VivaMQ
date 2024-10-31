@@ -30,6 +30,9 @@ jobs:
 
       # Install and build frontend
       - name: Build frontend
+        env:
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
         run: |
           cd frontend
           scp $DROPLET_USER@$DROPLET_IP:~/.env .
@@ -41,6 +44,9 @@ jobs:
 
       # Install and build backend
       - name: Build backend
+        env:
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
         run: |
           cd backend
           scp $DROPLET_USER@$DROPLET_IP:~/.env .
@@ -52,6 +58,9 @@ jobs:
 
       # Install and build AI microservice
       - name: Build AI microservice
+        env:
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
         run: |
           cd ai-processor
           scp $DROPLET_USER@$DROPLET_IP:~/.env .

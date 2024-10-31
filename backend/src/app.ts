@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
 import passport from 'passport';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import home from './home';
 import environment from './lib/environment';
 import expressJSDocSwaggerConfig from './config/express-jsdoc-swagger.config';
@@ -29,7 +30,14 @@ class App {
   private setMiddlewares(): void {
     this.express.use(
       cors({
-        origin: ['http://localhost:3000', 'http://localhost:8080', "https://app.vivamq.app"],
+        origin: [
+          'http://localhost:3000',
+          'http://localhost:8080',
+          'https://app.vivamq.app',
+          'https://vivamq.app',
+          'https://www.app.vivamq.app/api-service',
+          'https://www.app.vivamq.app/api',
+        ],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
         allowedHeaders: [
           'Authorization',
@@ -48,6 +56,16 @@ class App {
     this.express.use(express.urlencoded({ extended: true }));
     this.express.use(helmet());
     this.express.use(express.static('public'));
+
+    this.express.use(
+      '/api-service',
+      createProxyMiddleware({
+        target: 'https://app.vivamq.app',
+        changeOrigin: true,
+        pathRewrite: { '^/api-service': '/api' },
+        secure: true,
+      })
+    );
 
     configurePassport();
     this.express.use(passport.initialize());

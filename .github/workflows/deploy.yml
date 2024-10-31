@@ -22,19 +22,15 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H $DROPLET_IP >> ~/.ssh/known_hosts
 
-      - name: "Create env file"
+      # Add step to copy .env files via SCP
+      - name: Copy .env files to remote server
+        env:
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
         run: |
-          touch .env
-          echo ${{ secrets.ENVCONTENTS }} >> .env
-          cat .env
-
-      # Step 4: Copy the env file to the backend folder
-      - name: Copy env file to backend folder
-        run: cp .env ./backend/.env
-      - name: Copy env file to frontend folder
-        run: cp .env ./frontend/.env
-      - name: Copy env file to ai-processor folder
-        run: cp .env ./ai-processor/.env
+          scp .env $DROPLET_USER@$DROPLET_IP:/frontend/.env
+          scp .env $DROPLET_USER@$DROPLET_IP:/backend/.env
+          scp .env $DROPLET_USER@$DROPLET_IP:/ai-processor/.env
 
       # Add Node.js setup
       - name: Setup Node.js
@@ -84,21 +80,14 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no repo.zip $DROPLET_USER@$DROPLET_IP:~/
 
-      # Update deploy step
+
       - name: Deploy to DigitalOcean Droplet
         env:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
-          ENVCONTENTS: ${{ secrets.ENVCONTENTS }}
         run: |
           ssh $DROPLET_USER@$DROPLET_IP << 'EOF'
             unzip -o -qq ~/repo.zip -d ~/
-            rm -f ~/frontend/.env
-            rm -f ~/backend/.env
-            rm -f ~/ai-processor/.env
-            echo "${ENVCONTENTS}" > ~/frontend/.env
-            echo "${ENVCONTENTS}" > ~/backend/.env
-            echo "${ENVCONTENTS}" > ~/ai-processor/.env
             cd frontend
             npm install
             npm start &

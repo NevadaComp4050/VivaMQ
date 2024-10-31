@@ -125,4 +125,19 @@ submissions.get(
   controller.getLockedStatus
 );
 
+/**
+ * POST /api/submissions/{submissionId}/custom-question
+ * @summary Add a custom viva question for a specific submission
+ * @tags VivaQuestion
+ * @param {string} submissionId.path.required - Submission ID
+ * @param {object} request.body.required - Request body containing the custom question details
+ * @param {string} request.body.question.required - The text of the custom question
+ * @return {VivaQuestion} 201 - Custom viva question created
+ */
+submissions.post(
+  '/:submissionId/viva-questions',
+  verifyAuthToken,
+  controller.addCustomQuestion
+);
+
 export default submissions;

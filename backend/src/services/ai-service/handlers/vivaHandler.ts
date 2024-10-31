@@ -1,5 +1,3 @@
-// /Users/ryankontos/VivaMQ/backend/src/services/ai-service/handlers/vivaHandler.ts
-
 import { v4 as uuidv4 } from 'uuid';
 import { VIVASTATUS, type Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
@@ -157,17 +155,26 @@ async function handleSubmissionVivaQuestions(data: any, submissionID: string) {
     return;
   }
 
-  // Retrieve locked categories for this submission
+  // Retrieve locked categories and ensure custom questions are not deleted
   const { lockedCategories } = await prisma.submission.findUniqueOrThrow({
     where: { id: submissionID },
     select: { lockedCategories: true },
   });
 
-  // Process each question, skipping locked categories
+  // Delete all existing non-custom, non-locked viva questions for this submission
+  await prisma.vivaQuestion.deleteMany({
+    where: {
+      submissionId: submissionID,
+      category: { notIn: ['custom', ...lockedCategories] }, // Exclude custom and locked categories
+    },
+  });
+
+  // Process each question, adding only those not in locked or custom categories
   for (const question of parsedData.questions) {
     if (
       isValidQuestion(question) &&
-      !lockedCategories.includes(question.question_category)
+      !lockedCategories.includes(question.question_category) &&
+      question.question_category !== 'custom'
     ) {
       await saveVivaQuestion(submissionID, question);
     } else if (!isValidQuestion(question)) {

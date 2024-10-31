@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/lib/prisma';
 import S3PDFHandler from '@/utils/s3-util';
 import {
@@ -247,5 +248,20 @@ export default class SubmissionService {
         ? submission.lockedCategories.includes(question.category)
         : false,
     }));
+  }
+
+  public async addCustomQuestion(submissionId: string, questionText: string) {
+    const customQuestion = await prisma.vivaQuestion.create({
+      data: {
+        id: uuidv4(),
+        submissionId,
+        question: { text: questionText },
+        category: 'custom',
+        status: 'GENERATED',
+        locked: true,
+      },
+    });
+
+    return customQuestion;
   }
 }

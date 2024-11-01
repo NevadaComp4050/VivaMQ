@@ -24,6 +24,8 @@ import {
   Edit,
   RotateCw,
   ArrowLeft,
+  Download,
+  FileDown,
 } from "lucide-react";
 import { useToast } from "~/components/ui/use-toast";
 import createApiClient from "~/lib/api-client";
@@ -36,8 +38,15 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "~/components/ui/dialog";
-import { motion } from 'framer-motion'
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "~/components/ui/breadcrumb";
+import { motion } from "framer-motion";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "~/components/ui/breadcrumb";
 
 interface VivaQuestion {
   id: string;
@@ -130,11 +139,17 @@ export default function SingleSubmissionReviewPage({
   }, [params.submissionId, session, fetchFileContent]);
 
   const handleLockToggle = async (questionId: string) => {
-    if (!submission) return;
-    if (!session?.user?.accessToken) return;
+    if (!submission || !session?.user?.accessToken) return;
     const apiClient = createApiClient(session.user.accessToken);
     try {
-      await apiClient.post(`/viva-questions/${questionId}/toggle-lock`);
+      const currentQuestion = submission.vivaQuestions.find(
+        (q) => q.id === questionId
+      );
+      if (currentQuestion?.isLocked) {
+        await apiClient.patch(`/viva-questions/${questionId}/unlock`);
+      } else {
+        await apiClient.patch(`/viva-questions/${questionId}/lock`);
+      }
       setSubmission({
         ...submission,
         vivaQuestions: submission.vivaQuestions.map((q) =>
@@ -156,12 +171,11 @@ export default function SingleSubmissionReviewPage({
   };
 
   const handleRegenerateQuestions = async () => {
-    if (!submission) return;
-    if (!session?.user?.accessToken) return;
+    if (!submission || !session?.user?.accessToken) return;
     const apiClient = createApiClient(session.user.accessToken);
     try {
       const response = await apiClient.post(
-        `/submissions/${submission.id}/regenerate-viva-questions`
+        `/viva-questions/${submission.id}/regenerate`
       );
       setSubmission({
         ...submission,
@@ -181,17 +195,11 @@ export default function SingleSubmissionReviewPage({
     }
   };
 
-  const handleEditQuestion = (question: VivaQuestion) => {
-    setEditingQuestion(question);
-    setIsEditModalOpen(true);
-  };
-
   const handleSaveQuestion = async () => {
-    if (!editingQuestion || !submission) return;
-    if (!session?.user?.accessToken) return;
+    if (!editingQuestion || !submission || !session?.user?.accessToken) return;
     const apiClient = createApiClient(session.user.accessToken);
     try {
-      const response = await apiClient.put(
+      const response = await apiClient.patch(
         `/viva-questions/${editingQuestion.id}`,
         {
           question: editingQuestion.question,
@@ -219,16 +227,13 @@ export default function SingleSubmissionReviewPage({
   };
 
   const handleAddQuestion = async () => {
-    if (!submission || !newQuestionText) return;
-    if (!session?.user?.accessToken) return;
+    if (!submission || !newQuestionText || !session?.user?.accessToken) return;
     const apiClient = createApiClient(session.user.accessToken);
     try {
-      const response = await apiClient.post(
-        `/submissions/${submission.id}/viva-questions`,
-        {
-          question: newQuestionText,
-        }
-      );
+      const response = await apiClient.post("/viva-questions/create", {
+        submissionId: submission.id,
+        question: newQuestionText,
+      });
       setSubmission({
         ...submission,
         vivaQuestions: [...submission.vivaQuestions, response.data.data],
@@ -247,6 +252,69 @@ export default function SingleSubmissionReviewPage({
       });
     }
   };
+
+  const handleDownload = useCallback(async () => {
+    if (!submission || !session?.user?.accessToken) return;
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      const response = await apiClient.get(
+        `submissions/${submission.id}/file`,
+        {
+          responseType: "blob",
+        }
+      );
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = submission.submissionFile || "submission.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast({
+        title: "Error",
+        description:
+          "Failed to download the submission file. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [submission, session, toast]);
+
+  const handleDownloadQuestions = useCallback(async () => {
+    if (!submission || !session?.user?.accessToken) return;
+    const apiClient = createApiClient(session.user.accessToken);
+    try {
+      const response = await apiClient.get(
+        `/viva-questions/${submission.id}/download`,
+        {
+          responseType: "blob",
+        }
+      );
+      const blob = new Blob([response.data], { type: "application/zip" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `viva_questions_${submission.id}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast({
+        title: "Success",
+        description: "Viva questions downloaded successfully.",
+      });
+    } catch (error) {
+      console.error("Error downloading questions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to download viva questions. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [submission, session, toast]);
 
   if (loading) {
     return (
@@ -267,7 +335,13 @@ export default function SingleSubmissionReviewPage({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-4xl font-bold mb-2">Review Submission</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-bold">Review Submission</h1>
+          <Button onClick={handleDownloadQuestions}>
+            <FileDown className="w-4 h-4 mr-2" />
+            Download Questions
+          </Button>
+        </div>
 
         <div className="mb-6">
           <Breadcrumb>
@@ -281,15 +355,23 @@ export default function SingleSubmissionReviewPage({
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/dashboard/units/${params.unitId}`}>...</BreadcrumbLink>
+                <BreadcrumbLink href={`/dashboard/units/${params.unitId}`}>
+                  ...
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}`}>Submissions</BreadcrumbLink>
+                <BreadcrumbLink
+                  href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}`}
+                >
+                  Submissions
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{submission.studentCode ?? 'N/A'}</BreadcrumbPage>
+                <BreadcrumbPage>
+                  {submission.studentCode ?? "N/A"}
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -297,7 +379,11 @@ export default function SingleSubmissionReviewPage({
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
           <Card className="h-full">
             <CardHeader>
               <CardTitle>Submission Details</CardTitle>
@@ -306,11 +392,9 @@ export default function SingleSubmissionReviewPage({
               <div className="space-y-4">
                 <div>
                   <Label className="text-sm font-medium">Student ID</Label>
-                  <div className="text-lg">{submission.studentCode ?? 'N/A'}</div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Status</Label>
-                  <div className="text-lg">{submission.status}</div>
+                  <div className="text-lg">
+                    {submission.studentCode ?? "N/A"}
+                  </div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Viva Status</Label>
@@ -318,19 +402,35 @@ export default function SingleSubmissionReviewPage({
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Submission File</Label>
-                  <div className="text-lg">{submission.submissionFile}</div>
+                  <div className="flex items-center mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownload}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.4 }}>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
           <Card className="h-full">
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
                 Submission Content
-                <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
+                <Dialog
+                  open={isFullscreenOpen}
+                  onOpenChange={setIsFullscreenOpen}
+                >
                   <DialogTrigger asChild>
                     <Button variant="outline" size="icon">
                       <Maximize2 className="h-4 w-4" />
@@ -374,7 +474,11 @@ export default function SingleSubmissionReviewPage({
         </motion.div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.6 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+      >
         <Card>
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
@@ -384,7 +488,10 @@ export default function SingleSubmissionReviewPage({
                   <RotateCw className="w-4 h-4 mr-2" />
                   Regenerate Unlocked
                 </Button>
-                <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <Dialog
+                  open={isEditModalOpen}
+                  onOpenChange={setIsEditModalOpen}
+                >
                   <DialogTrigger asChild>
                     <Button>
                       <Plus className="w-4 h-4 mr-2" />
@@ -393,21 +500,36 @@ export default function SingleSubmissionReviewPage({
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>{editingQuestion ? 'Edit Question' : 'Add New Question'}</DialogTitle>
+                      <DialogTitle>
+                        {editingQuestion ? "Edit Question" : "Add New Question"}
+                      </DialogTitle>
                     </DialogHeader>
                     <Textarea
-                      value={editingQuestion ? editingQuestion.question : newQuestionText}
+                      value={
+                        editingQuestion
+                          ? editingQuestion.question
+                          : newQuestionText
+                      }
                       onChange={(e) =>
                         editingQuestion
-                          ? setEditingQuestion({ ...editingQuestion, question: e.target.value })
+                          ? setEditingQuestion({
+                              ...editingQuestion,
+                              question: e.target.value,
+                            })
                           : setNewQuestionText(e.target.value)
                       }
                       placeholder="Enter question here..."
                       className="min-h-[100px]"
                     />
                     <DialogFooter>
-                      <Button onClick={editingQuestion ? handleSaveQuestion : handleAddQuestion}>
-                        {editingQuestion ? 'Save Changes' : 'Add Question'}
+                      <Button
+                        onClick={
+                          editingQuestion
+                            ? handleSaveQuestion
+                            : handleAddQuestion
+                        }
+                      >
+                        {editingQuestion ? "Save Changes" : "Add Question"}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -426,22 +548,37 @@ export default function SingleSubmissionReviewPage({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {submission.vivaQuestions && submission.vivaQuestions.map((question) => (
-                    <TableRow key={question.id}>
-                      <TableCell className="font-medium">{question.question}</TableCell>
-                      <TableCell>{question.status}</TableCell>
-                      <TableCell>
-                        <div className="space-x-2 flex flex-row">
-                          <Button variant="outline" size="sm" onClick={() => handleEditQuestion(question)}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleLockToggle(question.id)}>
-                            {question.isLocked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {submission.vivaQuestions &&
+                    submission.vivaQuestions.map((question) => (
+                      <TableRow key={question.id}>
+                        <TableCell className="font-medium">
+                          {question.question}
+                        </TableCell>
+                        <TableCell>{question.status}</TableCell>
+                        <TableCell>
+                          <div className="space-x-2 flex flex-row">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSaveQuestion()}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleLockToggle(question.id)}
+                            >
+                              {question.isLocked ? (
+                                <Unlock className="w-4 h-4" />
+                              ) : (
+                                <Lock className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </ScrollArea>
@@ -456,12 +593,14 @@ export default function SingleSubmissionReviewPage({
         transition={{ duration: 0.5, delay: 0.8 }}
       >
         <Button asChild>
-          <a href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}`}>
+          <a
+            href={`/dashboard/units/${params.unitId}/assignments/${params.assignmentId}`}
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Assignment
           </a>
         </Button>
       </motion.div>
     </div>
-  )
+  );
 }

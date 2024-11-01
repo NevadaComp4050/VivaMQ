@@ -8,15 +8,13 @@ const createApiClient = (accessToken: string | undefined) => {
   const apiClient = axios.create({
     baseURL,
     httpsAgent: new (require("https").Agent)({ rejectUnauthorized: false }),
+    withCredentials: true,
   });
 
   apiClient.interceptors.request.use((config) => {
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
-      // cors
-      config.headers["Access-Control-Allow-Origin"] = "*";
     }
-    config.headers["Access-Control-Allow-Origin"] = "*";
     return config;
   });
 

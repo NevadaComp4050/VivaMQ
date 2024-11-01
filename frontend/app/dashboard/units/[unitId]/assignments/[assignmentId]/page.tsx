@@ -661,19 +661,21 @@ export default function AssignmentManagementPage({
           </Breadcrumb>
         </div>
 
-        <div className="flex items-center justify-between mb-4">
-          {assignment.submissions.some(
-            (submission) => submission.vivaStatus === "NOTSTARTED"
-          ) ? (
-            <RainbowButton onClick={generateVivaQuestions}>
-              Generate Viva
-            </RainbowButton>
-          ) : (
-            <Button variant="outline" onClick={generateVivaQuestions}>
-              Regenerate Viva Questions
-            </Button>
-          )}
-        </div>
+        {assignment.writeable && (
+          <div className="flex items-center justify-between mb-4">
+            {assignment.submissions.some(
+              (submission) => submission.vivaStatus === "NOTSTARTED"
+            ) ? (
+              <RainbowButton onClick={generateVivaQuestions}>
+                Generate Viva
+              </RainbowButton>
+            ) : (
+              <Button variant="outline" onClick={generateVivaQuestions}>
+                Regenerate Viva Questions
+              </Button>
+            )}
+          </div>
+        )}
       </motion.div>
 
       <Tabs

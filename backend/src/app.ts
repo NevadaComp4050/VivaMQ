@@ -30,14 +30,26 @@ class App {
   private setMiddlewares(): void {
     this.express.use(
       cors({
-        origin: [
-          'http://localhost:3000',
-          'http://localhost:8080',
-          'https://app.vivamq.app',
-          'https://vivamq.app',
-          'https://www.app.vivamq.app/api-service',
-          'https://www.app.vivamq.app/api',
-        ],
+        origin: (origin, callback) => {
+          console.log(`Incoming origin: ${origin}`);
+          const allowedOrigins = [
+            'http://localhost:3000',
+            'http://localhost:8080',
+            'https://app.vivamq.app',
+            'https://vivamq.app',
+            'https://www.app.vivamq.app/api-service',
+            'https://www.app.vivamq.app/api',
+          ];
+          if (!origin) {
+            // Allow requests with no origin (e.g., mobile apps, curl requests)
+            callback(null, true);
+          } else if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            console.error(`CORS error: Origin ${origin} not allowed`);
+            callback(new Error('Not allowed by CORS'));
+          }
+        },
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
         allowedHeaders: [
           'Authorization',

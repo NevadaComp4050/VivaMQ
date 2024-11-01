@@ -97,10 +97,10 @@ export async function startMessageProcessor() {
 
     const channel = await connection.createChannel();
 
-    const receiveQueue = `${process.env.NODE_ENV ?? "development"}_${
+    const receiveQueue = `${process.env.AI_NODE_ENV ?? "development"}_${
       process.env.uniqueID ?? "defaultID"
     }_BEtoAI`;
-    const sendQueue = `${process.env.NODE_ENV ?? "development"}_${
+    const sendQueue = `${process.env.AI_NODE_ENV ?? "development"}_${
       process.env.uniqueID ?? "defaultID"
     }_AItoBE`;
 

@@ -85,9 +85,9 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
     useState(false);
   const [newAssignment, setNewAssignment] = useState({
     name: "",
-    aiModel: "GPT-4",
+    aiModel: "GPT-4o",
     specs: "",
-    settings: "language:en,temperature:0.7",
+    settings: "Single Submission",
   });
   const [loading, setLoading] = useState(true);
 
@@ -231,13 +231,13 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
                     <SelectValue placeholder="Select AI Model" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="GPT-4o">GPT-4o</SelectItem>
                     <SelectItem value="GPT-4">GPT-4</SelectItem>
-                    <SelectItem value="GPT-3.5">GPT-3.5</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="specs">Specifications</Label>
+                <Label htmlFor="specs">Description</Label>
                 <Textarea
                   id="specs"
                   value={newAssignment.specs}
@@ -251,7 +251,7 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
                 />
               </div>
               <div>
-                <Label htmlFor="settings">Settings</Label>
+                <Label htmlFor="settings">Type <span className="text-muted-foreground text-xs"> - For Labeling (eg. Group assignment)</span></Label>
                 <Input
                   id="settings"
                   value={newAssignment.settings}
@@ -278,7 +278,7 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard/units">Units</BreadcrumbLink>
+                <BreadcrumbLink>Units</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>

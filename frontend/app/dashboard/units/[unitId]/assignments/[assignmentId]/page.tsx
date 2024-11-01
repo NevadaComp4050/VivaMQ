@@ -704,7 +704,6 @@ export default function AssignmentManagementPage({
                     <TableRow>
                       <TableHead>Submission File</TableHead>
                       <TableHead>Student ID</TableHead>
-                      <TableHead>Status</TableHead>
                       <TableHead>Viva Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -725,7 +724,6 @@ export default function AssignmentManagementPage({
                           <TableCell>
                             {submission.studentCode ?? "Not assigned"}
                           </TableCell>
-                          <TableCell>{submission.status}</TableCell>
                           <TableCell>{submission.vivaStatus}</TableCell>
                           <TableCell>
                             <div className="flex space-x-2">

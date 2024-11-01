@@ -47,6 +47,7 @@ import {
   BreadcrumbPage,
 } from "~/components/ui/breadcrumb";
 import { RainbowButton } from "~/components/ui/rainbow-button";
+import { saveAs } from 'file-saver';
 
 // Define VivaStatus type
 type VivaStatus = "NOTSTARTED" | "COMPLETED" | "ERROR";
@@ -238,7 +239,7 @@ export default function AssignmentManagementPage({
     formData.append("file", file);
 
     try {
-      const response = await fetch("/backend/process-csv", {
+      const response = await fetch("/api/process-csv", {
         method: "POST",
         body: formData,
       });
@@ -600,6 +601,41 @@ export default function AssignmentManagementPage({
     }
   };
 
+  // Handler to download viva questions
+  const handleDownloadViva = async () => {
+    if (!session?.user?.accessToken) return;
+
+    const apiClient = createApiClient(session.user.accessToken);
+    const studentIds = Array.from(
+      new Set(
+        assignment?.submissions
+          .map((sub) => sub.studentId)
+          .filter((id): id is string => !!id)
+      )
+    );
+
+    try {
+      const response = await apiClient.post(
+        `/submission/download-viva/`,
+        { studentId: studentIds },
+        { responseType: 'blob' }
+      );
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      saveAs(blob, 'viva_questions.zip');
+      toast({
+        title: "Download Started",
+        description: "Your viva questions zip is downloading.",
+      });
+    } catch (error) {
+      console.error("Error downloading viva questions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to download viva questions. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Render loading state
   if (loading) {
     return (
@@ -674,6 +710,9 @@ export default function AssignmentManagementPage({
                 Regenerate Viva Questions
               </Button>
             )}
+            <Button onClick={handleDownloadViva}>
+              Download Viva Questions
+            </Button>
           </div>
         )}
       </motion.div>

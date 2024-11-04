@@ -67,7 +67,7 @@ export async function processMessage(message: Message): Promise<any> {
       default:
         throw new Error(`Unknown message type: ${message.type}`);
     }
-    console.log("Returning data:", response);
+    //console.log("Returning data:", response);
     return {
       type: message.type,
       data: response,
@@ -115,13 +115,13 @@ export async function startMessageProcessor() {
       if (msg) {
         const content = msg.content.toString();
         const message: Message = JSON.parse(content);
-        console.log("Received message:", content);
+        console.log("Received message:", content.substring(0, 50));
 
         try {
           const response = await processMessage(message);
           const sendMsg = Buffer.from(JSON.stringify(response));
           channel.sendToQueue(sendQueue, sendMsg, { persistent: true });
-          console.log("Sent response:", sendMsg.toString());
+          console.log("Sent response:", sendMsg.toString().substr(0, 50));
         } catch (error) {
           console.error("Error processing message:", content, error);
           const errorMsg = Buffer.from(

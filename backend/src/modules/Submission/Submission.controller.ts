@@ -1,4 +1,4 @@
-import { type NextFunction, type Request } from 'express';
+import { type Response, type NextFunction, type Request } from 'express';
 import { HttpStatusCode } from 'axios';
 import { type Submission } from '@prisma/client';
 import SubmissionService from './Submission.service';
@@ -265,6 +265,30 @@ export default class SubmissionController extends Api {
       });
     } catch (e) {
       next(e);
+    }
+  };
+
+  public downloadVivaQuestionsDocx = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { submissionId } = req.params;
+      const docxBuffer =
+        await this.submissionService.generateVivaQuestionsDocx(submissionId);
+
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=viva_questions_${submissionId}.docx`
+      );
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      );
+      res.send(docxBuffer);
+    } catch (error) {
+      next(error);
     }
   };
 }

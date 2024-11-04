@@ -7,8 +7,11 @@ import {
   requestSummaryAndQualityGeneration,
 } from '@/services/ai-service/ai-service';
 import { type SubmissionResponseDto } from '@/dto/submission.dto';
+import DocxService from '@/services/docx.service';
 
 export default class SubmissionService {
+  private readonly docxService = new DocxService();
+
   private readonly s3Handler: S3PDFHandler;
 
   constructor() {
@@ -263,5 +266,25 @@ export default class SubmissionService {
     });
 
     return customQuestion;
+  }
+
+  public async generateVivaQuestionsDocx(
+    submissionId: string
+  ): Promise<Buffer> {
+    const submission = await prisma.submission.findFirst({
+      where: { id: submissionId, deletedAt: null },
+      include: {
+        vivaQuestions: {
+          where: { deletedAt: null },
+          select: { question: true, category: true },
+        },
+        student: { select: { name: true } },
+      },
+    });
+
+    if (!submission) throw new Error('Submission not found');
+
+    // Use DocxService to generate the DOCX buffer
+    return await this.docxService.generateSingleSubmissionDocx(submission);
   }
 }

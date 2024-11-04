@@ -33,7 +33,7 @@ async function saveVivaQuestion(submissionID: string, question: any) {
   };
 
   await prisma.vivaQuestion.create({ data: vivaQuestion });
-  console.log('Viva question saved. ID:', vivaId);
+  console.log('Viva question saved. ID:', submissionID);
 }
 
 // Handler function for processing viva question responses
@@ -42,7 +42,7 @@ export async function handleVivaQuestions(
   uuid: string,
   requestType: string | null
 ) {
-  console.log('Viva Questions Response (raw):', data);
+  // console.log('Viva Questions Response (raw):', data);
   console.log('Handling request type:', requestType);
 
   if (requestType === 'vivaQuestionRegeneration') {
@@ -137,7 +137,7 @@ async function handleSubmissionVivaQuestions(data: any, submissionID: string) {
 
   let parsedData;
   try {
-    parsedData = JSON.parse(data); // Parse data directly
+    parsedData = JSON.parse(data);
   } catch (parseError) {
     console.error('Failed to parse AI response:', parseError);
     await updateSubmissionStatus(submissionID, VIVASTATUS.ERROR);

@@ -4,7 +4,9 @@ import { BE_TO_AI_QUEUE, AI_TO_BE_QUEUE, RABBITMQ_URL } from '../config';
 let connection: amqp.Connection | null = null;
 let channel: amqp.Channel | null = null;
 
-// Function to establish a connection and setup channels/queues
+const recentMessages = new Map<string, number>();
+const DEBOUNCE_TIME = 5000;
+
 async function createChannel() {
   if (!connection) {
     connection = await amqp.connect(RABBITMQ_URL);
@@ -19,7 +21,6 @@ async function createChannel() {
   return channel;
 }
 
-// Function to setup queues and consume messages
 export async function setupQueue(
   onMessage: (msg: amqp.Message | null) => void
 ) {
@@ -48,9 +49,22 @@ export async function setupQueue(
 
 export async function sendToQueue(message: object, queue: string) {
   try {
+    const messageString = JSON.stringify(message);
+    const currentTime = Date.now();
+
+    if (recentMessages.has(messageString)) {
+      const lastSentTime = recentMessages.get(messageString) as number;
+      if (currentTime - lastSentTime < DEBOUNCE_TIME) {
+        console.log(`Debounced message to ${queue}, not sent.`);
+        return;
+      }
+    }
+
+    recentMessages.set(messageString, currentTime);
+
     channel = await createChannel();
 
-    const sendMsg = Buffer.from(JSON.stringify(message));
+    const sendMsg = Buffer.from(messageString);
     channel.sendToQueue(queue, sendMsg, { persistent: true });
 
     console.log(`Message sent to ${queue}`);

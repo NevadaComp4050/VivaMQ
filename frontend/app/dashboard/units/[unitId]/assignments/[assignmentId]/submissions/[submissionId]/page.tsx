@@ -175,7 +175,7 @@ export default function SingleSubmissionReviewPage({
     const apiClient = createApiClient(session.user.accessToken);
     try {
       const response = await apiClient.post(
-        `/viva-questions/${submission.id}/regenerate`
+        `/submissions/${submission.id}/regenerate-viva-questions`
       );
       setSubmission({
         ...submission,
@@ -288,7 +288,7 @@ export default function SingleSubmissionReviewPage({
     const apiClient = createApiClient(session.user.accessToken);
     try {
       const response = await apiClient.get(
-        `/viva-questions/${submission.id}/download`,
+        `/submission/${submission.assignmentId}/download-vivas`,
         {
           responseType: "blob",
         }

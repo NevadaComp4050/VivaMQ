@@ -146,4 +146,17 @@ submissions.post(
   controller.addCustomQuestion
 );
 
+/**
+ * GET /api/submissions/{submissionId}/viva-questions-docx
+ * @summary Download DOCX file of viva questions for a specific submission
+ * @tags VivaQuestion
+ * @param {string} submissionId.path.required - Submission ID
+ * @return {file} 200 - DOCX file of viva questions
+ */
+submissions.get(
+  '/:submissionId/viva-questions-docx',
+  verifyAuthToken,
+  controller.downloadVivaQuestionsDocx
+);
+
 export default submissions;

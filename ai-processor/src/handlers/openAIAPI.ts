@@ -27,7 +27,7 @@ export async function promptSubUUID(
   }
 ): Promise<string> { // Return type is now string
   try {
-    console.log("Prompting for submission:", submission);
+    console.log("Prompting for submission:", submission.substring(0, 50));
     const prompt = generateSingleQuestionVivaPrompt(
       submission,
       customPrompt,

@@ -252,28 +252,6 @@ export default class AssignmentController extends Api {
     }
   };
 
-  // Generate summaries for an assignment
-  public generateSummaries = async (
-    req: ExtendedRequest,
-    res: CustomResponse<void>,
-    next: NextFunction
-  ) => {
-    try {
-      const { assignmentId } = req.params;
-
-      await this.assignmentService.generateSummaries(assignmentId);
-
-      this.send(
-        res,
-        null,
-        HttpStatusCode.Accepted,
-        'Summary Generation Started'
-      );
-    } catch (e) {
-      next(e);
-    }
-  };
-
   // Helper methods for common responses
   private unauthorizedResponse(res: CustomResponse<any>, message: string) {
     return res.status(HttpStatusCode.Unauthorized).json({
@@ -305,10 +283,11 @@ export default class AssignmentController extends Api {
       const { id: assignmentId } = req.params;
       const { studentIds } = req.body;
 
-      const zipBuffer = await this.assignmentService.generateVivaQuestionsZip(
-        assignmentId,
-        studentIds
-      );
+      const zipBuffer =
+        await this.assignmentService.generateCombinedVivaQuestionsZip(
+          assignmentId,
+          studentIds
+        );
 
       res.set({
         'Content-Type': 'application/zip',

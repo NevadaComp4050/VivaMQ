@@ -40,7 +40,7 @@ export async function dispatchMessage(msg: amqp.Message | null) {
     return;
   }
 
-  const { type, data, uuid, requestType = null } = response; // Extract requestType
+  const { type, data, uuid, requestType = null } = response;
 
   if (handlers[type]) {
     try {

@@ -657,6 +657,9 @@ export default function AssignmentManagementPage({
     );
   }
 
+  // Add isSubmitting to determine if any submission is in progress
+  const isSubmitting = assignment.submissions.some((submission) => submission.status === "uploading");
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -707,15 +710,15 @@ export default function AssignmentManagementPage({
             {assignment.submissions.some(
               (submission) => submission.vivaStatus === "NOTSTARTED"
             ) ? (
-              <RainbowButton onClick={generateVivaQuestions}>
+              <RainbowButton onClick={generateVivaQuestions} disabled={isSubmitting}>
                 Generate Viva
               </RainbowButton>
             ) : (
-              <Button variant="outline" onClick={generateVivaQuestions}>
+              <Button variant="outline" onClick={generateVivaQuestions} disabled={isSubmitting}>
                 Regenerate Viva Questions
               </Button>
             )}
-            <Button onClick={handleDownloadViva}>
+            <Button onClick={handleDownloadViva} disabled={isSubmitting}>
               Download Viva Questions
             </Button>
           </div>

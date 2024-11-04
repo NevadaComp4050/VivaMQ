@@ -617,8 +617,7 @@ export default function AssignmentManagementPage({
 
     try {
       const response = await apiClient.post(
-        `/submission/download-viva/`,
-        { studentId: studentIds },
+        `/assignments/${params.assignmentId}/download-vivas/`,
         { responseType: 'blob' }
       );
       const blob = new Blob([response.data], { type: 'application/zip' });

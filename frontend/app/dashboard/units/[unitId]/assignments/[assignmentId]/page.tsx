@@ -607,21 +607,21 @@ export default function AssignmentManagementPage({
     if (!session?.user?.accessToken) return;
 
     const apiClient = createApiClient(session.user.accessToken);
-    const studentIds = Array.from(
-      new Set(
-        assignment?.submissions
-          .map((sub) => sub.studentId)
-          .filter((id): id is string => !!id)
-      )
-    );
 
     try {
       const response = await apiClient.post(
         `/assignments/${params.assignmentId}/download-vivas/`,
-        { responseType: 'blob' }
+        null, // No payload
+        {
+          headers: {
+            'Accept': 'application/zip',
+          },
+          responseType: 'blob', // Ensure the response is treated as a blob
+        }
       );
       const blob = new Blob([response.data], { type: 'application/zip' });
-      saveAs(blob, 'viva_questions.zip');
+      saveAs(blob, `viva_questions_${params.assignmentId}.zip`);
+      
       toast({
         title: "Download Started",
         description: "Your viva questions zip is downloading.",

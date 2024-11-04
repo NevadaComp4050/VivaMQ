@@ -338,10 +338,10 @@ export default function UnitPage({ params }: { params: { unitId: string } }) {
                         </CardHeader>
                         <CardContent className="flex-grow">
                           <p className="mb-2">
-                            <strong>Specs:</strong> {assignment.specs}
+                            <strong>Description:</strong> {assignment.specs}
                           </p>
                           <p className="mb-2">
-                            <strong>Settings:</strong> {assignment.settings}
+                            <strong>Type:</strong> {assignment.settings}
                           </p>
                           <p>
                             <strong>Submissions:</strong>{" "}

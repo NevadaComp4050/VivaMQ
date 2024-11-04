@@ -48,6 +48,7 @@ import {
 } from "~/components/ui/breadcrumb";
 import { RainbowButton } from "~/components/ui/rainbow-button";
 import { saveAs } from 'file-saver';
+import { cn } from "~/lib/utils";
 
 // Define VivaStatus type
 type VivaStatus = "NOTSTARTED" | "COMPLETED" | "ERROR";
@@ -606,22 +607,21 @@ export default function AssignmentManagementPage({
     if (!session?.user?.accessToken) return;
 
     const apiClient = createApiClient(session.user.accessToken);
-    const studentIds = Array.from(
-      new Set(
-        assignment?.submissions
-          .map((sub) => sub.studentId)
-          .filter((id): id is string => !!id)
-      )
-    );
 
     try {
       const response = await apiClient.post(
-        `/submission/download-viva/`,
-        { studentId: studentIds },
-        { responseType: 'blob' }
+        `/assignments/${params.assignmentId}/download-vivas/`,
+        null, // No payload
+        {
+          headers: {
+            'Accept': 'application/zip',
+          },
+          responseType: 'blob', // Ensure the response is treated as a blob
+        }
       );
       const blob = new Blob([response.data], { type: 'application/zip' });
-      saveAs(blob, 'viva_questions.zip');
+      saveAs(blob, `viva_questions_${params.assignmentId}.zip`);
+      
       toast({
         title: "Download Started",
         description: "Your viva questions zip is downloading.",
@@ -656,6 +656,9 @@ export default function AssignmentManagementPage({
       </div>
     );
   }
+
+  // Add isSubmitting to determine if any submission is in progress
+  const isSubmitting = assignment.submissions.some((submission) => submission.status === "uploading");
 
   return (
     <motion.div
@@ -698,19 +701,24 @@ export default function AssignmentManagementPage({
         </div>
 
         {assignment.writeable && (
-          <div className="flex items-center justify-between mb-4">
+          <div className={
+            cn(
+              "flex items-center justify-between mb-4",
+              `${assignment.submissions.length > 1 ? "" : "hidden"}`
+            )
+          }>
             {assignment.submissions.some(
               (submission) => submission.vivaStatus === "NOTSTARTED"
             ) ? (
-              <RainbowButton onClick={generateVivaQuestions}>
+              <RainbowButton onClick={generateVivaQuestions} disabled={isSubmitting}>
                 Generate Viva
               </RainbowButton>
             ) : (
-              <Button variant="outline" onClick={generateVivaQuestions}>
+              <Button variant="outline" onClick={generateVivaQuestions} disabled={isSubmitting}>
                 Regenerate Viva Questions
               </Button>
             )}
-            <Button onClick={handleDownloadViva}>
+            <Button onClick={handleDownloadViva} disabled={isSubmitting}>
               Download Viva Questions
             </Button>
           </div>

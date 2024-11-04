@@ -82,6 +82,7 @@ export default function SingleSubmissionReviewPage({
   );
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<VivaQuestion | null>(
     null
   );
@@ -251,6 +252,11 @@ export default function SingleSubmissionReviewPage({
         variant: "destructive",
       });
     }
+  };
+
+  const handleEditQuestion = (question: VivaQuestion) => {
+    setEditingQuestion(question);
+    setIsEditModalOpen(true);
   };
 
   const handleDownload = useCallback(async () => {
@@ -488,9 +494,10 @@ export default function SingleSubmissionReviewPage({
                   <RotateCw className="w-4 h-4 mr-2" />
                   Regenerate Unlocked
                 </Button>
+                {/* Add Question Dialog */}
                 <Dialog
-                  open={isEditModalOpen}
-                  onOpenChange={setIsEditModalOpen}
+                  open={isAddModalOpen}
+                  onOpenChange={setIsAddModalOpen}
                 >
                   <DialogTrigger asChild>
                     <Button>
@@ -500,36 +507,48 @@ export default function SingleSubmissionReviewPage({
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>
-                        {editingQuestion ? "Edit Question" : "Add New Question"}
-                      </DialogTitle>
+                      <DialogTitle>Add New Question</DialogTitle>
                     </DialogHeader>
                     <Textarea
-                      value={
-                        editingQuestion
-                          ? editingQuestion.question
-                          : newQuestionText
-                      }
-                      onChange={(e) =>
-                        editingQuestion
-                          ? setEditingQuestion({
-                              ...editingQuestion,
-                              question: e.target.value,
-                            })
-                          : setNewQuestionText(e.target.value)
-                      }
+                      value={newQuestionText}
+                      onChange={(e) => setNewQuestionText(e.target.value)}
                       placeholder="Enter question here..."
                       className="min-h-[100px]"
                     />
                     <DialogFooter>
-                      <Button
-                        onClick={
-                          editingQuestion
-                            ? handleSaveQuestion
-                            : handleAddQuestion
-                        }
-                      >
-                        {editingQuestion ? "Save Changes" : "Add Question"}
+                      <Button onClick={handleAddQuestion}>
+                        Add Question
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+                {/* Edit Question Dialog */}
+                <Dialog
+                  open={isEditModalOpen}
+                  onOpenChange={setIsEditModalOpen}
+                >
+                  <DialogTrigger asChild>
+                    {/* Trigger is handled in the table actions */}
+                    <span />
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Question</DialogTitle>
+                    </DialogHeader>
+                    <Textarea
+                      value={editingQuestion?.question || ""}
+                      onChange={(e) =>
+                        setEditingQuestion({
+                          ...editingQuestion!,
+                          question: e.target.value,
+                        })
+                      }
+                      placeholder="Edit question here..."
+                      className="min-h-[100px]"
+                    />
+                    <DialogFooter>
+                      <Button onClick={handleSaveQuestion}>
+                        Save Changes
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -560,7 +579,7 @@ export default function SingleSubmissionReviewPage({
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleSaveQuestion()}
+                              onClick={() => handleEditQuestion(question)}
                             >
                               <Edit className="w-4 h-4" />
                             </Button>

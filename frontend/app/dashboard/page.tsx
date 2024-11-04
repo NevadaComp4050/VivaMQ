@@ -23,6 +23,7 @@ import { FileText, Book, Clock, ExternalLink, Loader2 } from "lucide-react";
 import { parseISO, formatRelative } from "date-fns";
 import { useSession } from "next-auth/react";
 import createApiClient from "~/lib/api-client";
+import { RainbowButton } from "~/components/ui/rainbow-button";
 
 type Unit = {
   id: string;
@@ -131,6 +132,18 @@ export default function DashboardPage() {
               <CardTitle>My Units</CardTitle>
             </CardHeader>
             <CardContent>
+              {sessions.length === 0 && (
+                <div className="w-full flex flex-col ">
+                  <Link
+                    href="/dashboard/units/create"
+                    className="flex justify-center"
+                  >
+                    <RainbowButton className="mt-4">
+                      Create New Unit
+                    </RainbowButton>
+                  </Link>
+                </div>
+              )}
               {error ? (
                 <p className="text-red-500">{error}</p>
               ) : (

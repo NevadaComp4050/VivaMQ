@@ -138,9 +138,9 @@ export default class UnitController extends Api {
       const unitsGroupedBySession =
         await this.unitService.getUnitsGroupedBySession(userId);
       if (!unitsGroupedBySession || unitsGroupedBySession.length === 0) {
-        return res.status(HttpStatusCode.NotFound).json({
+        return res.status(HttpStatusCode.Ok).json({
           message: 'No units found',
-          data: null,
+          data: [],
         });
       }
 

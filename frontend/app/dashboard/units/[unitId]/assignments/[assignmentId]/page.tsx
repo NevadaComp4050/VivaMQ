@@ -48,6 +48,7 @@ import {
 } from "~/components/ui/breadcrumb";
 import { RainbowButton } from "~/components/ui/rainbow-button";
 import { saveAs } from 'file-saver';
+import { cn } from "~/lib/utils";
 
 // Define VivaStatus type
 type VivaStatus = "NOTSTARTED" | "COMPLETED" | "ERROR";
@@ -698,7 +699,12 @@ export default function AssignmentManagementPage({
         </div>
 
         {assignment.writeable && (
-          <div className="flex items-center justify-between mb-4">
+          <div className={
+            cn(
+              "flex items-center justify-between mb-4",
+              `${assignment.submissions.length > 1 ? "" : "hidden"}`
+            )
+          }>
             {assignment.submissions.some(
               (submission) => submission.vivaStatus === "NOTSTARTED"
             ) ? (
